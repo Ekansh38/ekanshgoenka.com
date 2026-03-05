@@ -6,14 +6,14 @@
   --bg: #f8f6f2;
   --fg: #111;
   --muted: #aaa;
-  --accent: #a83200;
+  --accent: #1a56a0;
 }
 
 [data-theme="dark"] {
   --bg: #111;
   --fg: #ccc8bc;
   --muted: #444;
-  --accent: #cc6030;
+  --accent: #5b9bd5;
 }
 
 body {
