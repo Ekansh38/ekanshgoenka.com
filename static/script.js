@@ -34,7 +34,7 @@ function toggleTheme() {
 
   var MODES = ['life', 'boids', 'off'];
   var modeIdx = Math.max(0, MODES.indexOf(localStorage.getItem('bgMode') || 'life'));
-  var speedLevel = parseInt(localStorage.getItem('bgSpeed') || '2');
+  var speedLevel = parseInt(localStorage.getItem('bgSpeed') || '3');
   var W, H;
 
   function isDark() {
@@ -161,7 +161,7 @@ function toggleTheme() {
       if (spd > MAX_SPEED) { b.vx = b.vx/spd*MAX_SPEED; b.vy = b.vy/spd*MAX_SPEED; }
       else if (spd < MIN_SPEED && spd > 1e-4) { b.vx = b.vx/spd*MIN_SPEED; b.vy = b.vy/spd*MIN_SPEED; }
 
-      var sp = 0.5 + (lifeCurrentSpeed - 1) * (1.5 / 9);
+      var sp = lifeCurrentSpeed / 5;
       b.x += b.vx * sp; b.y += b.vy * sp;
       if (b.x < -20) b.x = W+20; else if (b.x > W+20) b.x = -20;
       if (b.y < -20) b.y = H+20; else if (b.y > H+20) b.y = -20;
@@ -316,8 +316,8 @@ function toggleTheme() {
     var mode = MODES[modeIdx];
     if (mode === 'life') {
       lifeFrame++;
-      // speedLevel 1→slowest (every 4 frames = 25% of max), 10→fast (every 1 frame)
-      var lifeSpeed = Math.max(1, Math.round(4 * Math.pow(1/4, (lifeCurrentSpeed - 1) / 9)));
+      // speedLevel 1→slowest (every 18 frames), 10→fast (every 1)
+      var lifeSpeed = Math.max(1, Math.round(18 * Math.pow(1/18, (lifeCurrentSpeed - 1) / 9)));
       if (lifeFrame % lifeSpeed === 0) stepLife();
       drawLife();
     } else if (mode === 'boids') {
