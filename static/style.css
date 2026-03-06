@@ -2,11 +2,11 @@
 
 :root {
   --bg: #e1e2e7;
-  --fg: #343b58;
-  --muted: #5a5f7a;
+  --fg: #2a3154;
+  --muted: #464b6b;
   --accent: #1a3e96;
-  --border: #c2c3c9;
-  --shadow: rgba(255,255,255,0.8);
+  --border: #b4b5c0;
+  --shadow: rgba(225,226,231,0.92);
 }
 
 [data-theme="dark"] {
@@ -103,7 +103,7 @@ footer { margin-top: 48px; font-size: 0.77rem; }
               remove <canvas id="bg-canvas"> from baseof.html
    ================================================================ */
 
-body { background: transparent; text-shadow: 0 0 20px var(--shadow), 0 0 8px var(--shadow); }
+body { background: transparent; text-shadow: 0 0 40px var(--shadow), 0 0 20px var(--shadow), 0 0 8px var(--shadow); }
 
 #bg-canvas {
   position: fixed;
@@ -151,4 +151,5 @@ body { background: transparent; text-shadow: 0 0 20px var(--shadow), 0 0 8px var
 /* Hide sim controls on touch-only devices (phones/tablets) */
 @media (hover: none) and (pointer: coarse) {
   #speed-slider, #bg-mode-btn, #bg-canvas { display: none !important; }
+  body { text-shadow: none !important; background: var(--bg) !important; }
 }
