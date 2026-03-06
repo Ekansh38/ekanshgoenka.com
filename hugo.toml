@@ -2,6 +2,8 @@ baseURL = "https://ekanshgoenka.com/"
 languageCode = "en-us"
 title = "ekansh goenka"
 
+[markup.goldmark.renderer]
+  unsafe = true
+
 [params]
   tagline = "helly · belly · shmelly"
-  now = "Living in Singapore. Working on byte-space and GENO. Writing occasionally. — March 2026"

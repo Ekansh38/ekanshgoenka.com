@@ -46,7 +46,8 @@
   {{ end }}
 </ul>
 
+{{ $now := .Site.GetPage "/now" }}
 <h2>Now</h2>
-<p class="now">{{ .Site.Params.now }}</p>
+<p class="now">{{ $now.Params.summary }}</p>
 
 {{ end }}

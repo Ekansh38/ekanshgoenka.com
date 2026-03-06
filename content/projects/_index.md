@@ -1,5 +1,4 @@
 ---
 title: "Projects"
+layout: "section"
 ---
-
-HASHDAJSDHHAS
