@@ -1,19 +1,23 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap');
 
 :root {
-  --bg: #f8f6f2;
-  --fg: #1a1a1a;
-  --muted: #777;
+  --bg: #f0ece4;
+  --fg: #2b303b;
+  --muted: #717d8a;
   --accent: #4682b4;
-  --border: #d0ccc6;
+  --border: #d0c9be;
 }
 
 [data-theme="dark"] {
-  --bg: #111;
-  --fg: #ccc8bc;
-  --muted: #888;
+  --bg: #13151f;
+  --fg: #b8c0cc;
+  --muted: #545c6e;
   --accent: #5f9fd6;
-  --border: #252525;
+  --border: #1e2538;
+}
+
+::selection {
+  background: rgba(95, 159, 214, 0.25);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }

@@ -1,3 +1,6 @@
+import fs from 'fs'
+import nodePath from 'path'
+
 // ANSI escape codes
 const RESET  = '\x1b[0m'
 const BOLD   = '\x1b[1m'
@@ -18,11 +21,51 @@ const rule  = dim('─'.repeat(W))
 const thick = dim('━'.repeat(W))
 const back  = `  ${muted('←')} ${dim('curl -L ekanshgoenka.com | less -R')}`
 
+// ─── content helpers ──────────────────────────────────────────────────────────
+
+function readMd(rel) {
+  try {
+    const raw = fs.readFileSync(nodePath.join(process.cwd(), rel), 'utf8')
+    const parts = raw.split(/^---\s*$/m)
+    if (parts.length < 3) return { fm: {}, body: raw.trim() }
+    const body = parts.slice(2).join('---').trim()
+    const fm = {}
+    for (const line of parts[1].trim().split('\n')) {
+      const i = line.indexOf(':')
+      if (i > 0) {
+        const key = line.slice(0, i).trim()
+        const val = line.slice(i + 1).trim().replace(/^["']|["']$/g, '')
+        fm[key] = val
+      }
+    }
+    return { fm, body }
+  } catch {
+    return { fm: {}, body: '' }
+  }
+}
+
+function bodyLines(body) {
+  return body.split('\n').filter(l => l.trim())
+}
+
+// ─── read content ─────────────────────────────────────────────────────────────
+
+const nowMd    = readMd('content/now/_index.md')
+const bspaceMd = readMd('content/projects/byte-space/_index.md')
+const genoMd   = readMd('content/projects/geno/_index.md')
+const musicMd  = readMd('content/music/_index.md')
+const gamesMd  = readMd('content/games/_index.md')
+
+const nowLines    = bodyLines(nowMd.body)
+const nowUpdated  = nowMd.fm.updated || ''
+const bspaceLines = bodyLines(bspaceMd.body)
+const genoLines   = bodyLines(genoMd.body)
+
 // ─── pages ────────────────────────────────────────────────────────────────────
 
 const MAIN = `
 ${thick}
-  ${hi('ekansh goenka')}  ${muted('/ bytecolony')}
+  ${hi('Ekansh Goenka')}  ${muted('/ bytecolony')}
   ${muted('systems · protocols · Singapore')}
 ${thick}
 
@@ -37,14 +80,12 @@ ${rule}
   ${label('PROJECTS')}
 ${rule}
 
-  ${b('byte-space')}  ${muted('Go · active')}
-  ${muted('│')}  1980s internet simulator. HTTP, SMTP, DNS, Telnet
-  ${muted('│')}  from scratch — no libraries. Unix domain sockets.
+  ${b('byte-space')}  ${muted(`${bspaceMd.fm.stack || 'Go'} · ${bspaceMd.fm.status || 'active'}`)}
+  ${muted('│')}  ${bspaceMd.fm.summary || ''}
   ${muted('└─')} ${accent('curl -L ekanshgoenka.com/byte-space | less -R')}
 
-  ${b('GENO')}        ${muted('Go · in progress')}
-  ${muted('│')}  Genetic evolution simulator. Real genomes encoding
-  ${muted('│')}  speed, aggression, sight, fertility. Bubbletea TUI.
+  ${b('GENO')}        ${muted(`${genoMd.fm.stack || 'Go'} · ${genoMd.fm.status || 'in progress'}`)}
+  ${muted('│')}  ${genoMd.fm.summary || ''}
   ${muted('└─')} ${accent('curl -L ekanshgoenka.com/geno | less -R')}
 
 ${rule}
@@ -67,9 +108,7 @@ ${rule}
   ${label('NOW')}
 ${rule}
 
-  ${muted('Living in Singapore.')}
-  ${muted('Working on byte-space and GENO.')}
-  ${muted('Writing occasionally. — March 2026')}
+${nowLines.map(l => `  ${muted(l)}`).join('\n')}${nowUpdated ? `\n  ${muted('— ' + nowUpdated)}` : ''}
   ${muted('└─')} ${accent('curl -L ekanshgoenka.com/now | less -R')}
 
 ${rule}
@@ -79,18 +118,18 @@ ${rule}
   ${accent('/byte-space')}    ${accent('/geno')}    ${accent('/now')}    ${accent('/music')}    ${accent('/games')}
 
 ${thick}
-  ${muted('ekansh goenka · 2026 · ekanshgoenka.com')}
+  ${muted('Ekansh Goenka · 2026 · ekanshgoenka.com')}
 ${thick}
 
 `
 
 const BYTE_SPACE = `
 ${thick}
-  ${hi('byte-space')}  ${muted('Go · active')}
+  ${hi('byte-space')}  ${muted(`${bspaceMd.fm.stack || 'Go'} · ${bspaceMd.fm.status || 'active'}`)}
   ${muted('1980s internet simulator')}
 ${thick}
 
-  ${muted('github')}    github.com/ekanshgoenka/byte-space
+  ${muted('github')}    ${bspaceMd.fm.github?.replace('https://', '') || 'github.com/ekanshgoenka/byte-space'}
   ${muted('youtube')}   youtube.com/@bytecolony
   ${muted('web')}       ekanshgoenka.com/projects/byte-space
 
@@ -98,10 +137,7 @@ ${rule}
   ${label('ABOUT')}
 ${rule}
 
-  HTTP, SMTP, DNS, and Telnet implemented from scratch in Go
-  — no network libraries. All protocols built on raw TCP.
-  Unix domain sockets for inter-process communication.
-  ByteShell: a custom terminal emulator built on top.
+  ${bspaceLines.join('\n  ')}
 
 ${rule}
   ${label('ARTICLES')}
@@ -124,11 +160,11 @@ ${thick}
 
 const GENO = `
 ${thick}
-  ${hi('GENO')}  ${muted('Go · in progress')}
+  ${hi('GENO')}  ${muted(`${genoMd.fm.stack || 'Go'} · ${genoMd.fm.status || 'in progress'}`)}
   ${muted('Genetic evolution simulator')}
 ${thick}
 
-  ${muted('github')}    github.com/ekanshgoenka/geno
+  ${muted('github')}    ${genoMd.fm.github?.replace('https://', '') || 'github.com/ekanshgoenka/geno'}
   ${muted('youtube')}   youtube.com/@bytecolony
   ${muted('web')}       ekanshgoenka.com/projects/geno
 
@@ -136,9 +172,7 @@ ${rule}
   ${label('ABOUT')}
 ${rule}
 
-  Real genomes encoding speed, aggression, sight range,
-  and fertility. Agents compete, reproduce, and evolve
-  over generations. Terminal UI built with Bubbletea.
+  ${genoLines.join('\n  ')}
 
 ${thick}
 ${back}
@@ -148,12 +182,10 @@ ${thick}
 
 const NOW = `
 ${thick}
-  ${hi('now')}  ${muted('— March 2026')}
+  ${hi('now')}${nowUpdated ? `  ${muted('— ' + nowUpdated)}` : ''}
 ${thick}
 
-  Living in Singapore.
-  Working on byte-space and GENO.
-  Writing occasionally.
+${nowLines.map(l => `  ${l}`).join('\n')}
 
 ${thick}
 ${back}
@@ -193,9 +225,9 @@ ${thick}
 
 `
 
-const notFound = (path) => `
+const notFound = (urlPath) => `
 ${thick}
-  ${hi('not found')}  ${muted(path)}
+  ${hi('not found')}  ${muted(urlPath)}
 ${thick}
 
 ${rule}
@@ -237,8 +269,8 @@ export default function handler(req, res) {
     return
   }
 
-  const path = (req.url || '/').split('?')[0].replace(/\/$/, '') || '/'
+  const urlPath = (req.url || '/').split('?')[0].replace(/\/$/, '') || '/'
 
   res.setHeader('Content-Type', 'text/plain; charset=utf-8')
-  res.send(routes[path] ?? notFound(path))
+  res.send(routes[urlPath] ?? notFound(urlPath))
 }
