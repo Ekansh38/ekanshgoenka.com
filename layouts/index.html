@@ -26,13 +26,16 @@
   {{ end }}
 </ul>
 
+{{ $music := .Site.GetPage "/music" }}
 <h2>Music</h2>
 <ul>
+  {{ range $music.RegularPages }}
   <li>
-    <span class="li-name-plain">btop</span> —
-    <span class="li-desc">Experimental album. Bitcrushed percussion, degraded jazz.</span>
-    <div class="li-meta">Logic Pro · in production · 2025</div>
+    <span class="li-name"><a href="{{ .Permalink }}">{{ .Title }}</a></span> —
+    <span class="li-desc">{{ .Params.summary }}</span>
+    <div class="li-meta">{{ .Params.tools }} · {{ .Params.status }} · {{ .Params.year }}</div>
   </li>
+  {{ end }}
 </ul>
 
 {{ $writing := .Site.GetPage "/writing" }}
