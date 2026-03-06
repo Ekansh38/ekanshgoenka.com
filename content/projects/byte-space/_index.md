@@ -1,7 +1,7 @@
 ---
 title: "byte-space"
 layout: "list"
-summary: "1980s internet simulator — HTTP, SMTP, DNS, Telnet implemented from scratch."
+summary: "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
 stack: "Go"
 status: "active"
 github: "https://github.com/ekanshgoenka/byte-space"

@@ -1,7 +1,6 @@
 {{ define "main" }}
 
 <div class="bio">{{ .Content }}</div>
-<hr>
 
 {{ $projects := .Site.GetPage "/projects" }}
 <h2>Projects</h2>
@@ -10,31 +9,6 @@
   <li>
     <span class="li-name"><a href="{{ .Permalink }}">{{ .Title }}</a></span> —
     <span class="li-desc">{{ .Params.summary }}</span>
-    <div class="li-meta">{{ .Params.stack }} · {{ .Params.status }} · <a href="{{ .Params.github }}" target="_blank">source</a> · <a href="{{ .Permalink }}">notes</a></div>
-  </li>
-  {{ end }}
-</ul>
-
-{{ $games := .Site.GetPage "/games" }}
-<h2>Games</h2>
-<ul>
-  {{ range $games.RegularPages }}
-  <li>
-    <span class="li-name"><a href="{{ .Params.itchio }}" target="_blank">{{ .Title }}</a></span> —
-    <span class="li-desc">{{ .Params.summary }}</span>
-    <div class="li-meta">{{ .Params.engine }}</div>
-  </li>
-  {{ end }}
-</ul>
-
-{{ $music := .Site.GetPage "/music" }}
-<h2>Music</h2>
-<ul>
-  {{ range $music.RegularPages }}
-  <li>
-    <span class="li-name"><a href="{{ .Permalink }}">{{ .Title }}</a></span> —
-    <span class="li-desc">{{ .Params.summary }}</span>
-    <div class="li-meta">{{ .Params.tools }} · {{ .Params.status }} · {{ .Params.year }}</div>
   </li>
   {{ end }}
 </ul>
@@ -46,6 +20,24 @@
   <li class="writing-li">
     <a href="{{ .Permalink }}">{{ .Title }}</a>
     <span class="yr">{{ .Date.Format "2006" }}</span>
+  </li>
+  {{ end }}
+</ul>
+
+{{ $games := .Site.GetPage "/games" }}
+{{ $music := .Site.GetPage "/music" }}
+<h2>Other</h2>
+<ul>
+  {{ range $games.RegularPages }}
+  <li>
+    <span class="li-name"><a href="{{ .Params.itchio }}" target="_blank">{{ .Title }}</a></span> —
+    <span class="li-desc">{{ .Params.summary }}</span>
+  </li>
+  {{ end }}
+  {{ range $music.RegularPages }}
+  <li>
+    <span class="li-name"><a href="{{ .Permalink }}">{{ .Title }}</a></span> —
+    <span class="li-desc">{{ .Params.summary }}</span>
   </li>
   {{ end }}
 </ul>

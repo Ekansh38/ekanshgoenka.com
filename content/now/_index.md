@@ -1,8 +1,6 @@
 ---
 title: "Now"
-summary: "Living in Singapore. Working on byte-space and GENO. Writing occasionally. — March 2026"
+summary: "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
 ---
 
-Living in Singapore. Working on byte-space and GENO. Writing occasionally.
-
-— March 2026
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.

@@ -1,6 +1,6 @@
 ---
 title: "GENO"
-summary: "Genetic evolution simulator with real genomes and a Bubbletea TUI."
+summary: "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
 stack: "Go"
 status: "in progress"
 github: "https://github.com/ekanshgoenka/geno"

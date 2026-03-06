@@ -3,7 +3,7 @@ title: btop
 status: in production
 tools: Logic Pro
 year: "2025"
-summary: Experimental album. Bitcrushed percussion, degraded jazz samples, terminal textures.
+summary: "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
 ---
 
 Bitcrushed percussion, degraded jazz samples, terminal textures. Five tracks. Near-monochrome art direction.
