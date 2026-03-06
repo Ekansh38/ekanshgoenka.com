@@ -1,0 +1,27 @@
+{{ define "main" }}
+
+<a href="/projects" class="back">← projects</a>
+
+<div class="project-title">{{ .Title }}</div>
+<div class="project-meta">{{ .Params.stack }} · {{ .Params.status }}</div>
+
+{{ .Content }}
+
+<div class="links">
+  {{ with .Params.github }}<a href="{{ . }}" target="_blank">github ↗</a>{{ end }}
+  {{ with .Params.bytecolony }}<a href="{{ . }}" target="_blank">bytecolony ↗</a>{{ end }}
+</div>
+
+{{ with .RegularPages }}
+<h3>Articles</h3>
+<ul>
+  {{ range . }}
+  <li class="writing-li">
+    <a href="{{ .Permalink }}">{{ .Title }}</a>
+    <span class="yr">{{ .Date.Format "2006" }}</span>
+  </li>
+  {{ end }}
+</ul>
+{{ end }}
+
+{{ end }}

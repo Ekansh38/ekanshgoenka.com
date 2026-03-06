@@ -1,4 +1,12 @@
 {
-  "cleanUrls": true,
-  "trailingSlash": false
+  "buildCommand": "hugo",
+  "outputDirectory": "public",
+  "routes": [
+    {
+      "src": "/",
+      "has": [{ "type": "header", "key": "user-agent", "value": "curl.*" }],
+      "dest": "/api/index.js"
+    },
+    { "handle": "filesystem" }
+  ]
 }

@@ -1,0 +1,52 @@
+{{ define "main" }}
+
+<div class="bio">{{ .Content }}</div>
+
+{{ $projects := .Site.GetPage "/projects" }}
+<h2>Projects</h2>
+<ul>
+  {{ range $projects.Sections }}
+  <li>
+    <span class="li-name"><a href="{{ .Permalink }}">{{ .Title }}</a></span> —
+    <span class="li-desc">{{ .Params.summary }}</span>
+    <div class="li-meta">{{ .Params.stack }} · {{ .Params.status }} · <a href="{{ .Params.github }}" target="_blank">source</a> · <a href="{{ .Permalink }}">design notes →</a></div>
+  </li>
+  {{ end }}
+</ul>
+
+{{ $games := .Site.GetPage "/games" }}
+<h2>Games</h2>
+<ul>
+  {{ range $games.RegularPages }}
+  <li>
+    <span class="li-name"><a href="{{ .Params.itchio }}" target="_blank">{{ .Title }}</a></span> —
+    <span class="li-desc">{{ .Params.summary }}</span>
+    <div class="li-meta">{{ .Params.engine }}</div>
+  </li>
+  {{ end }}
+</ul>
+
+<h2>Music</h2>
+<ul>
+  <li>
+    <span class="li-name">btop</span> —
+    <span class="li-desc">Experimental album. Bitcrushed percussion, degraded jazz.</span>
+    <div class="li-meta">Logic Pro · in production · 2025</div>
+  </li>
+</ul>
+
+{{ $writing := .Site.GetPage "/writing" }}
+<h2>Writing</h2>
+<ul>
+  {{ range $writing.RegularPages }}
+  <li class="writing-li">
+    <a href="{{ .Permalink }}">{{ .Title }}</a>
+    <span class="yr">{{ .Date.Format "2006" }}</span>
+  </li>
+  {{ end }}
+</ul>
+
+<h2>Now</h2>
+<p class="now">{{ .Site.Params.now }}</p>
+
+{{ end }}

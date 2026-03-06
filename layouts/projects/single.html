@@ -1,0 +1,10 @@
+{{ define "main" }}
+
+<a href="{{ .Parent.Permalink }}" class="back">← {{ .Parent.Title }}</a>
+
+<div class="project-title">{{ .Title }}</div>
+<div class="project-meta">{{ .Date.Format "2006-01-02" }}{{ with .Params.status }} · {{ . }}{{ end }}</div>
+
+{{ .Content }}
+
+{{ end }}
