@@ -1,5 +1,6 @@
 ---
 title: "byte-space"
+layout: "list"
 summary: "1980s internet simulator — HTTP, SMTP, DNS, Telnet implemented from scratch."
 stack: "Go"
 status: "active"
