@@ -94,7 +94,7 @@ footer { margin-top: 48px; font-size: 0.77rem; }
 }
 
 /* ================================================================
-   BG EFFECT — Animated Lissajous dot field (canvas)
+   BG EFFECT — Boids flocking simulation (canvas)
    To remove: delete this block in style.css,
               delete the BG EFFECT section in script.js,
               remove <canvas id="bg-canvas"> from baseof.html
