@@ -48,6 +48,7 @@ function toggleTheme() {
   }
 
   function initMode(mode) {
+    ctx.clearRect(0, 0, W, H);
     if (mode === 'boids') initBoids();
     if (mode === 'life')  initLife();
   }
@@ -79,18 +80,19 @@ function toggleTheme() {
   });
 
   // ===== BOIDS ==============================================
-  // Three classic steering rules + spread force.
-  // Each boid is a filled triangle pointing in its velocity direction.
+  // Three classic steering rules. Fewer boids (120) for cleaner
+  // flocking shapes. Soft trail via partial-fade instead of clearRect.
+  // Each boid is a concave arrow pointing in its velocity direction.
 
-  var N          = 200;
-  var MAX_SPEED  = 1.6,  MIN_SPEED  = 0.55;
-  var PERCEPTION = 80,   SEP_DIST   = 44;
-  var SEP_W      = 0.18, ALI_W      = 0.04, COH_W = 0.009;
-  var MAX_FORCE  = 0.13;
-  var MARGIN     = 100,  TURN       = 0.20;
-  var SPREAD_R   = 230,  SPREAD_W   = 0.034;
-  var BOID_LEN   = 11;   // tip-to-base length (px)
-  var BOID_HALF  = 4.5;  // half-width at base (px)
+  var N          = 120;
+  var MAX_SPEED  = 1.8,  MIN_SPEED  = 0.6;
+  var PERCEPTION = 85,   SEP_DIST   = 40;
+  var SEP_W      = 0.15, ALI_W      = 0.06, COH_W = 0.015;
+  var MAX_FORCE  = 0.12;
+  var MARGIN     = 100,  TURN       = 0.22;
+  var SPREAD_R   = 200,  SPREAD_W   = 0.03;
+  var BOID_LEN   = 14;
+  var BOID_HALF  = 5.5;
 
   var boids = [];
 
@@ -168,35 +170,59 @@ function toggleTheme() {
 
   function drawBoids() {
     var dark = isDark();
-    ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = dark ? 'rgba(169,177,214,0.10)' : 'rgba(52,59,88,0.11)';
+    // Soft trail: fade previous frame toward background instead of full clear
+    ctx.fillStyle = dark ? 'rgba(26,27,38,0.22)' : 'rgba(225,226,231,0.22)';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.fillStyle = dark ? 'rgba(169,177,214,0.55)' : 'rgba(52,59,88,0.50)';
     for (var i = 0; i < N; i++) {
       var b   = boids[i];
       var spd = Math.sqrt(b.vx*b.vx + b.vy*b.vy);
       if (spd < 1e-4) continue;
       var nx = b.vx/spd, ny = b.vy/spd;  // forward unit vector
       var px = -ny,      py = nx;          // perpendicular unit vector
+      // Concave arrow shape (tip → left wing → notch → right wing)
       ctx.beginPath();
-      ctx.moveTo(b.x + nx*BOID_LEN*0.65,                b.y + ny*BOID_LEN*0.65);
-      ctx.lineTo(b.x - nx*BOID_LEN*0.35 + px*BOID_HALF, b.y - ny*BOID_LEN*0.35 + py*BOID_HALF);
-      ctx.lineTo(b.x - nx*BOID_LEN*0.35 - px*BOID_HALF, b.y - ny*BOID_LEN*0.35 - py*BOID_HALF);
+      ctx.moveTo(b.x + nx*BOID_LEN*0.65,                  b.y + ny*BOID_LEN*0.65);
+      ctx.lineTo(b.x - nx*BOID_LEN*0.35 + px*BOID_HALF,   b.y - ny*BOID_LEN*0.35 + py*BOID_HALF);
+      ctx.lineTo(b.x - nx*BOID_LEN*0.10,                  b.y - ny*BOID_LEN*0.10);
+      ctx.lineTo(b.x - nx*BOID_LEN*0.35 - px*BOID_HALF,   b.y - ny*BOID_LEN*0.35 - py*BOID_HALF);
       ctx.closePath();
       ctx.fill();
     }
   }
 
   // ===== CONWAY'S GAME OF LIFE ==============================
-  // Toroidal wrapping grid. Seeded with 25% random density so
-  // patterns fill the full screen naturally from the start.
-  // Auto-fertilises with fresh random cells if population falls
-  // too low, keeping the simulation continuously alive.
+  // Toroidal wrapping grid. Seeded with known long-lived patterns
+  // (R-pentomino, Acorn, gliders, oscillators) plus a sparse random
+  // base. Auto-fertilises by dropping structured patterns, not blobs.
 
-  var CELL = 6;
+  var CELL = 7;
   var GW, GH;
   var grid, next;
   var lifeFrame = 0;
   var liveCount = 0;
-  var lifeCurrentSpeed = 5; // smoothly lerped toward speedLevel
+  var lifeCurrentSpeed = 5;
+
+  // Known patterns as [dx, dy] offsets from placement origin
+  var PAT_GLIDER_SE = [[1,0],[2,1],[0,2],[1,2],[2,2]];            // moves SE
+  var PAT_GLIDER_SW = [[1,0],[0,1],[2,1],[0,2],[1,2]];            // moves SW
+  var PAT_GLIDER_NE = [[0,0],[1,0],[2,0],[2,1],[1,2]];            // moves NE
+  var PAT_GLIDER_NW = [[0,0],[1,0],[2,0],[0,1],[1,2]];            // moves NW
+  var PAT_RPENTO    = [[1,0],[2,0],[0,1],[1,1],[1,2]];            // ~1103 gen chaos
+  var PAT_ACORN     = [[1,0],[3,1],[0,2],[1,2],[4,2],[5,2],[6,2]];// ~5206 gen chaos
+  var PAT_DIEHARD   = [[6,0],[0,1],[1,1],[1,2],[5,2],[6,2],[7,2]];// 130 gens
+  var PAT_BLINKER   = [[0,0],[1,0],[2,0]];                        // period-2
+  var PAT_TOAD      = [[1,0],[2,0],[3,0],[0,1],[1,1],[2,1]];      // period-2
+  var PAT_BEACON    = [[0,0],[1,0],[0,1],[3,2],[2,3],[3,3]];      // period-2
+
+  function placePattern(cx, cy, cells) {
+    for (var i = 0; i < cells.length; i++) {
+      var x = ((cx + cells[i][0]) % GW + GW) % GW;
+      var y = ((cy + cells[i][1]) % GH + GH) % GH;
+      if (!grid[y * GW + x]) { grid[y * GW + x] = 1; liveCount++; }
+    }
+  }
 
   function initLife() {
     GW        = Math.ceil(W / CELL);
@@ -205,9 +231,31 @@ function toggleTheme() {
     next      = new Uint8Array(GW * GH);
     liveCount = 0;
     lifeFrame = 0;
-    // Sparse random seed across the full grid (~8% density)
+
+    // Sparse random base (~12%) — enough for organic interaction without dying
     for (var i = 0; i < GW * GH; i++) {
-      if (Math.random() < 0.08) { grid[i] = 1; liveCount++; }
+      if (Math.random() < 0.12) { grid[i] = 1; liveCount++; }
+    }
+
+    // Scatter gliders in all four directions
+    var gliders = [PAT_GLIDER_SE, PAT_GLIDER_SW, PAT_GLIDER_NE, PAT_GLIDER_NW];
+    for (var k = 0; k < 16; k++) {
+      placePattern(Math.floor(Math.random() * GW), Math.floor(Math.random() * GH), gliders[k % 4]);
+    }
+    // Long-lived chaos seeds that produce gliders and complex structures
+    for (var k = 0; k < 10; k++) {
+      placePattern(Math.floor(Math.random() * GW), Math.floor(Math.random() * GH), PAT_RPENTO);
+    }
+    for (var k = 0; k < 5; k++) {
+      placePattern(Math.floor(Math.random() * GW), Math.floor(Math.random() * GH), PAT_ACORN);
+    }
+    for (var k = 0; k < 4; k++) {
+      placePattern(Math.floor(Math.random() * GW), Math.floor(Math.random() * GH), PAT_DIEHARD);
+    }
+    // Quick oscillators for immediate visual interest
+    var oscs = [PAT_BLINKER, PAT_TOAD, PAT_BEACON];
+    for (var k = 0; k < 24; k++) {
+      placePattern(Math.floor(Math.random() * GW), Math.floor(Math.random() * GH), oscs[k % 3]);
     }
   }
 
@@ -228,23 +276,18 @@ function toggleTheme() {
       }
     }
     var tmp = grid; grid = next; next = tmp;
-    // auto-fertilise: drop a small cluster if population falls too low
-    if (liveCount < GW * GH * 0.008) {
-      var fcx = Math.floor(Math.random() * GW);
-      var fcy = Math.floor(Math.random() * GH);
-      var frx = Math.floor(GW * 0.07), fry = Math.floor(GH * 0.07);
-      var fx0 = Math.max(0, fcx - frx), fx1 = Math.min(GW, fcx + frx);
-      var fy0 = Math.max(0, fcy - fry), fy1 = Math.min(GH, fcy + fry);
-      for (var fy = fy0; fy < fy1; fy++)
-        for (var fx = fx0; fx < fx1; fx++)
-          if (Math.random() < 0.25) grid[fy*GW + fx] = 1;
+    // Auto-fertilise: drop a structured pattern (not a random blob)
+    if (liveCount < GW * GH * 0.015) {
+      var cx = Math.floor(Math.random() * GW);
+      var cy = Math.floor(Math.random() * GH);
+      placePattern(cx, cy, Math.random() < 0.5 ? PAT_RPENTO : PAT_ACORN);
     }
   }
 
   function drawLife() {
     var dark = isDark();
     ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = dark ? 'rgba(169,177,214,0.13)' : 'rgba(52,59,88,0.14)';
+    ctx.fillStyle = dark ? 'rgba(169,177,214,0.20)' : 'rgba(52,59,88,0.19)';
     for (var y = 0; y < GH; y++) {
       for (var x = 0; x < GW; x++) {
         if (grid[y*GW + x]) ctx.fillRect(x*CELL+1, y*CELL+1, CELL-2, CELL-2);
