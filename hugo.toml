@@ -1,6 +1,6 @@
 baseURL = "https://ekanshgoenka.com/"
 languageCode = "en-us"
-title = "ekansh goenka"
+title = "Ekansh Goenka"
 
 [markup.goldmark.renderer]
   unsafe = true
