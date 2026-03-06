@@ -2,80 +2,85 @@
 const RESET  = '\x1b[0m'
 const BOLD   = '\x1b[1m'
 const DIM    = '\x1b[2m'
-const BLUE   = '\x1b[34m'
-const CYAN   = '\x1b[36m'
+const STEEL  = '\x1b[38;5;67m'   // #5f87af — steel blue
 const WHITE  = '\x1b[97m'
 const GRAY   = '\x1b[90m'
 
 const b      = (s) => `${BOLD}${s}${RESET}`
 const dim    = (s) => `${DIM}${GRAY}${s}${RESET}`
-const accent = (s) => `${BLUE}${s}${RESET}`
-const label  = (s) => `${BOLD}${CYAN}${s}${RESET}`
+const accent = (s) => `${STEEL}${s}${RESET}`
+const label  = (s) => `${BOLD}${STEEL}${s}${RESET}`
 const muted  = (s) => `${GRAY}${s}${RESET}`
 const hi     = (s) => `${BOLD}${WHITE}${s}${RESET}`
 
-const divider = dim('─'.repeat(52))
+const W = 56
+const rule  = dim('─'.repeat(W))
+const thick = dim('━'.repeat(W))
 
 const terminal = `
-${dim('╔' + '═'.repeat(52) + '╗')}
-${dim('║')}  ${hi('ekansh goenka')}  ${muted('/ bytecolony')}                  ${dim('║')}
-${dim('║')}  ${muted('systems · protocols · Singapore')}              ${dim('║')}
-${dim('╚' + '═'.repeat(52) + '╝')}
+${thick}
+  ${hi('ekansh goenka')}  ${muted('/ bytecolony')}
+  ${muted('systems · protocols · Singapore')}
+${thick}
+
+  ${muted('tip:')} ${dim('curl ekanshgoenka.com | less -R')}
 
   ${muted('github')}    github.com/ekanshgoenka
   ${muted('youtube')}   youtube.com/@bytecolony
   ${muted('itch.io')}   ekanshgoenka.itch.io
   ${muted('web')}       ekanshgoenka.com
 
-${divider}
+${rule}
   ${label('PROJECTS')}
-${divider}
+${rule}
 
-  ${b('byte-space')}   ${muted('Go · active')}
-  ${muted('└')} 1980s internet simulator. HTTP, SMTP, DNS, Telnet
-    from scratch — no libraries. Unix domain sockets.
-    ${accent('→ ekanshgoenka.com/projects/byte-space')}
+  ${b('byte-space')}  ${muted('Go · active')}
+  ${muted('│')}  1980s internet simulator. HTTP, SMTP, DNS, Telnet
+  ${muted('│')}  from scratch — no libraries. Unix domain sockets.
+  ${muted('└─')} ${accent('ekanshgoenka.com/projects/byte-space')}
 
-  ${b('GENO')}         ${muted('Go · in progress')}
-  ${muted('└')} Genetic evolution simulator. Real genomes encoding
-    speed, aggression, sight, fertility. Bubbletea TUI.
-    ${accent('→ ekanshgoenka.com/projects/geno')}
+  ${b('GENO')}        ${muted('Go · in progress')}
+  ${muted('│')}  Genetic evolution simulator. Real genomes encoding
+  ${muted('│')}  speed, aggression, sight, fertility. Bubbletea TUI.
+  ${muted('└─')} ${accent('ekanshgoenka.com/projects/geno')}
 
-${divider}
+${rule}
   ${label('GAMES')}
-${divider}
+${rule}
 
-  ${b('[game 1]')}     ${muted('Godot')}
-  ${muted('└')} One line description.
-    ${accent('→ ekanshgoenka.itch.io/game-1')}
+  ${b('[game 1]')}    ${muted('Godot')}
+  ${muted('└─')} ${accent('ekanshgoenka.itch.io/game-1')}
 
-  ${b('[game 2]')}     ${muted('Godot')}
-  ${muted('└')} One line description.
-    ${accent('→ ekanshgoenka.itch.io/game-2')}
+  ${b('[game 2]')}    ${muted('Godot')}
+  ${muted('└─')} ${accent('ekanshgoenka.itch.io/game-2')}
 
-${divider}
+${rule}
   ${label('MUSIC')}
-${divider}
+${rule}
 
-  ${b('btop')}         ${muted('experimental album · in production · 2025')}
-  ${muted('└')} Bitcrushed percussion, degraded jazz samples,
-    terminal textures. Five tracks. Near-monochrome art.
+  ${b('btop')}        ${muted('experimental · in production · 2025')}
+  ${muted('│')}  Bitcrushed percussion, degraded jazz samples,
+  ${muted('│')}  terminal textures. Five tracks. Near-monochrome art.
+  ${muted('└─')} ${dim('unreleased')}
 
-${divider}
+${rule}
   ${label('WRITING')}
-${divider}
+${rule}
 
   ${b("I'm doing well in school, but will I do well in life?")}
-    ${accent('→ ekanshgoenka.com/writing/school-vs-life')}
+  ${muted('└─')} ${accent('ekanshgoenka.com/writing/school-vs-life')}
 
-${divider}
+${rule}
   ${label('NOW')}
-${divider}
+${rule}
 
-  byte-space shell · GENO sprint · finishing btop · SASMO
+  ${muted('Living in Singapore.')}
+  ${muted('Working on byte-space and GENO.')}
+  ${muted('Writing occasionally. — March 2026')}
 
-${dim('─'.repeat(52))}
+${thick}
   ${muted('ekansh goenka · 2025 · ekanshgoenka.com')}
+${thick}
 
 `
 

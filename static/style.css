@@ -1,19 +1,21 @@
-@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap');
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
   --bg: #f8f6f2;
-  --fg: #111;
-  --muted: #aaa;
-  --accent: #2e9b7e;
+  --fg: #1a1a1a;
+  --muted: #777;
+  --accent: #4682b4;
+  --border: #c8c4bc;
 }
 
 [data-theme="dark"] {
   --bg: #111;
   --fg: #ccc8bc;
-  --muted: #444;
-  --accent: #1a6b5a;
+  --muted: #888;
+  --accent: #5f9fd6;
+  --border: #252525;
 }
 
 html { background: var(--bg); }
@@ -21,7 +23,7 @@ html { background: var(--bg); }
 body {
   background: var(--bg);
   color: var(--fg);
-  font-family: 'Courier Prime', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 14px;
   line-height: 1.8;
   max-width: 560px;
@@ -40,7 +42,7 @@ header h1 { font-size: 1rem; font-weight: 700; }
 .tagline { color: var(--muted); font-size: 0.85rem; margin-top: 4px; }
 
 nav { margin-top: 10px; display: flex; gap: 16px; font-size: 0.82rem; flex-wrap: wrap; }
-nav a { color: var(--muted); }
+nav a { color: var(--fg); }
 nav a:hover { color: var(--accent); text-decoration: none; }
 
 .toggle {
@@ -49,7 +51,7 @@ nav a:hover { color: var(--accent); text-decoration: none; }
   padding: 0;
   font-family: inherit;
   font-size: 0.82rem;
-  color: var(--muted);
+  color: var(--fg);
   cursor: pointer;
 }
 .toggle:hover { color: var(--accent); }
@@ -76,16 +78,17 @@ ul { list-style: none; }
 
 li {
   padding: 5px 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--muted) 25%, transparent);
+  border-bottom: 1px solid var(--border);
 }
 
 li:first-child {
-  border-top: 1px solid color-mix(in srgb, var(--muted) 25%, transparent);
+  border-top: 1px solid var(--border);
 }
 
 .li-name { font-weight: 700; color: var(--accent); }
+.li-name-plain { font-weight: 700; color: var(--fg); }
 .li-desc { color: var(--fg); }
-.li-meta { font-size: 0.77rem; color: var(--muted); font-style: italic; margin-top: 2px; }
+.li-meta { font-size: 0.77rem; color: var(--muted); margin-top: 2px; }
 
 /* writing list */
 .writing-li {
@@ -133,7 +136,6 @@ h3 {
 .project-meta {
   font-size: 0.77rem;
   color: var(--muted);
-  font-style: italic;
   margin-bottom: 24px;
 }
 
@@ -145,7 +147,7 @@ h3 {
   justify-content: space-between;
   margin-top: 48px;
   padding-top: 16px;
-  border-top: 1px solid color-mix(in srgb, var(--muted) 25%, transparent);
+  border-top: 1px solid var(--border);
   font-size: 0.82rem;
   gap: 12px;
 }
