@@ -25,13 +25,16 @@ function toggleTheme() {
 //            <canvas id="bg-canvas"> and #bg-mode-btn from templates.
 // ================================================================
 (function () {
+  // Disable sim entirely on touch-only devices (phones/tablets)
+  if (window.matchMedia('(hover: none) and (pointer: coarse)').matches) return;
+
   var canvas = document.getElementById('bg-canvas');
   if (!canvas) return;
   var ctx = canvas.getContext('2d');
 
   var MODES = ['life', 'boids', 'off'];
   var modeIdx = Math.max(0, MODES.indexOf(localStorage.getItem('bgMode') || 'life'));
-  var speedLevel = parseInt(localStorage.getItem('bgSpeed') || '5');
+  var speedLevel = parseInt(localStorage.getItem('bgSpeed') || '2');
   var W, H;
 
   function isDark() {
@@ -156,7 +159,7 @@ function toggleTheme() {
       if (spd > MAX_SPEED) { b.vx = b.vx/spd*MAX_SPEED; b.vy = b.vy/spd*MAX_SPEED; }
       else if (spd < MIN_SPEED && spd > 1e-4) { b.vx = b.vx/spd*MIN_SPEED; b.vy = b.vy/spd*MIN_SPEED; }
 
-      var sp = speedLevel / 5;
+      var sp = lifeCurrentSpeed / 5;
       b.x += b.vx * sp; b.y += b.vy * sp;
       if (b.x < -20) b.x = W+20; else if (b.x > W+20) b.x = -20;
       if (b.y < -20) b.y = H+20; else if (b.y > H+20) b.y = -20;
@@ -193,6 +196,7 @@ function toggleTheme() {
   var grid, next;
   var lifeFrame = 0;
   var liveCount = 0;
+  var lifeCurrentSpeed = 5; // smoothly lerped toward speedLevel
 
   function initLife() {
     GW        = Math.ceil(W / CELL);
@@ -200,10 +204,20 @@ function toggleTheme() {
     grid      = new Uint8Array(GW * GH);
     next      = new Uint8Array(GW * GH);
     liveCount = 0;
-    for (var i = 0; i < GW * GH; i++) {
-      if (Math.random() < 0.25) { grid[i] = 1; liveCount++; }
-    }
     lifeFrame = 0;
+    // Seed 3–5 sparse clusters scattered around the screen
+    var numClusters = 3 + Math.floor(Math.random() * 3);
+    for (var i = 0; i < numClusters; i++) {
+      var cx = Math.floor(Math.random() * GW);
+      var cy = Math.floor(Math.random() * GH);
+      var rx = Math.floor(GW * (0.07 + Math.random() * 0.09));
+      var ry = Math.floor(GH * (0.07 + Math.random() * 0.09));
+      var x0 = Math.max(0, cx - rx), x1 = Math.min(GW, cx + rx);
+      var y0 = Math.max(0, cy - ry), y1 = Math.min(GH, cy + ry);
+      for (var yy = y0; yy < y1; yy++)
+        for (var xx = x0; xx < x1; xx++)
+          if (Math.random() < 0.30) { grid[yy*GW + xx] = 1; liveCount++; }
+    }
   }
 
   function stepLife() {
@@ -223,10 +237,16 @@ function toggleTheme() {
       }
     }
     var tmp = grid; grid = next; next = tmp;
-    // auto-fertilise: scatter fresh random cells if population drops too low
-    if (liveCount < GW * GH * 0.04) {
-      var add = Math.floor(GW * GH * 0.15);
-      for (var i = 0; i < add; i++) grid[Math.floor(Math.random() * GW * GH)] = 1;
+    // auto-fertilise: drop a small cluster if population falls too low
+    if (liveCount < GW * GH * 0.008) {
+      var fcx = Math.floor(Math.random() * GW);
+      var fcy = Math.floor(Math.random() * GH);
+      var frx = Math.floor(GW * 0.07), fry = Math.floor(GH * 0.07);
+      var fx0 = Math.max(0, fcx - frx), fx1 = Math.min(GW, fcx + frx);
+      var fy0 = Math.max(0, fcy - fry), fy1 = Math.min(GH, fcy + fry);
+      for (var fy = fy0; fy < fy1; fy++)
+        for (var fx = fx0; fx < fx1; fx++)
+          if (Math.random() < 0.25) grid[fy*GW + fx] = 1;
     }
   }
 
@@ -250,11 +270,14 @@ function toggleTheme() {
   }
 
   function loop() {
+    // Smoothly lerp toward target speed for fluid slider feel
+    lifeCurrentSpeed += (speedLevel - lifeCurrentSpeed) * 0.07;
+
     var mode = MODES[modeIdx];
     if (mode === 'life') {
       lifeFrame++;
-      // speedLevel 1→slow (every 12 frames), 5→default (every 4), 10→fast (every 1)
-      var lifeSpeed = Math.max(1, Math.round(12 * Math.pow(1/12, (speedLevel - 1) / 9)));
+      // speedLevel 1→slowest (every 18 frames), 10→fast (every 1)
+      var lifeSpeed = Math.max(1, Math.round(18 * Math.pow(1/18, (lifeCurrentSpeed - 1) / 9)));
       if (lifeFrame % lifeSpeed === 0) stepLife();
       drawLife();
     } else if (mode === 'boids') {

@@ -111,12 +111,6 @@ body { background: transparent; }
   z-index: -1;
 }
 
-/* ================================================================
-   EFFECT 7 — Nav links: strikethrough on hover (replaces underline)
-   To remove: delete this block
-   ================================================================ */
-
-.nav a:hover { text-decoration: line-through; }
 
 #speed-slider {
   -webkit-appearance: none;
@@ -136,8 +130,10 @@ body { background: transparent; }
   border-radius: 50%;
   background: var(--muted);
   cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
 }
-#speed-slider:hover::-webkit-slider-thumb { background: var(--accent); }
+#speed-slider:hover::-webkit-slider-thumb { background: var(--accent); transform: scale(1.35); }
+#speed-slider:active::-webkit-slider-thumb { transform: scale(1.1); }
 #speed-slider::-moz-range-thumb {
   width: 8px;
   height: 8px;
@@ -145,5 +141,12 @@ body { background: transparent; }
   background: var(--muted);
   border: none;
   cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
 }
+#speed-slider:hover::-moz-range-thumb { background: var(--accent); transform: scale(1.35); }
 #speed-slider::-moz-range-track { background: var(--border); height: 2px; }
+
+/* Hide sim controls on touch-only devices (phones/tablets) */
+@media (hover: none) and (pointer: coarse) {
+  #speed-slider, #bg-mode-btn, #bg-canvas { display: none !important; }
+}
