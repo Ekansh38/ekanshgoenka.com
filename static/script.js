@@ -34,7 +34,7 @@ function toggleTheme() {
 
   var MODES = ['life', 'boids', 'off'];
   var modeIdx = Math.max(0, MODES.indexOf(localStorage.getItem('bgMode') || 'life'));
-  var speedLevel = parseInt(localStorage.getItem('bgSpeed') || '3');
+  var speedLevel = parseInt(localStorage.getItem('bgSpeed') || '5');
   var W, H;
 
   function isDark() {
@@ -86,8 +86,8 @@ function toggleTheme() {
 
   var N          = 120;
   var MAX_SPEED  = 1.8,  MIN_SPEED  = 0.6;
-  var PERCEPTION = 85,   SEP_DIST   = 40;
-  var SEP_W      = 0.15, ALI_W      = 0.06, COH_W = 0.015;
+  var PERCEPTION = 85,   SEP_DIST   = 50;
+  var SEP_W      = 0.15, ALI_W      = 0.06, COH_W = 0.009;
   var MAX_FORCE  = 0.12;
   var MARGIN     = 100,  TURN       = 0.22;
   var SPREAD_R   = 200,  SPREAD_W   = 0.03;
@@ -142,7 +142,7 @@ function toggleTheme() {
         }
       }
 
-      if (sc  > 0) { tmp = clamp2(sx/sc*SEP_W,  sy/sc*SEP_W,  MAX_FORCE); fx += tmp[0]; fy += tmp[1]; }
+      if (sc  > 0) { tmp = clamp2(sx*SEP_W,  sy*SEP_W,  MAX_FORCE); fx += tmp[0]; fy += tmp[1]; }
       if (ac  > 0) {
         tmp = clamp2(ax/ac, ay/ac, MAX_SPEED);
         tmp = clamp2((tmp[0]-b.vx)*ALI_W, (tmp[1]-b.vy)*ALI_W, MAX_FORCE);
@@ -279,11 +279,16 @@ function toggleTheme() {
       }
     }
     var tmp = grid; grid = next; next = tmp;
-    // Auto-fertilise: drop a structured pattern (not a random blob)
-    if (liveCount < GW * GH * 0.015) {
-      var cx = Math.floor(Math.random() * GW);
-      var cy = Math.floor(Math.random() * GH);
-      placePattern(cx, cy, Math.random() < 0.5 ? PAT_RPENTO : PAT_ACORN);
+    // Auto-fertilise: keep activity up so the sim never looks like it stalled
+    if (liveCount < GW * GH * 0.05) {
+      var seeds = [PAT_RPENTO, PAT_ACORN, PAT_DIEHARD, PAT_GLIDER_SE, PAT_GLIDER_NW];
+      for (var k = 0; k < 5; k++) {
+        placePattern(
+          Math.floor(Math.random() * GW),
+          Math.floor(Math.random() * GH),
+          seeds[k % seeds.length]
+        );
+      }
     }
   }
 
