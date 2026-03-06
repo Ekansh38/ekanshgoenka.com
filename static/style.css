@@ -117,3 +117,33 @@ body { background: transparent; }
    ================================================================ */
 
 .nav a:hover { text-decoration: line-through; }
+
+#speed-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 52px;
+  height: 2px;
+  background: var(--border);
+  outline: none;
+  cursor: pointer;
+  vertical-align: middle;
+  margin: 0;
+}
+#speed-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  cursor: pointer;
+}
+#speed-slider:hover::-webkit-slider-thumb { background: var(--accent); }
+#speed-slider::-moz-range-thumb {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  border: none;
+  cursor: pointer;
+}
+#speed-slider::-moz-range-track { background: var(--border); height: 2px; }
