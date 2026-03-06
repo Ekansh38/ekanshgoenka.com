@@ -168,7 +168,7 @@ function toggleTheme() {
     }
   }
 
-  function isHome() { return document.body.hasAttribute('data-home'); }
+  function isHome() { return window.location.pathname === '/'; }
 
   function drawBoids() {
     var dark = isDark();
