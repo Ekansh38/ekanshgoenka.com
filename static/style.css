@@ -4,9 +4,9 @@
   --bg: #e1e2e7;
   --fg: #2a3154;
   --muted: #464b6b;
-  --accent: #1a3e96;
+  --accent: #3460e0;
   --border: #b4b5c0;
-  --shadow: rgba(225,226,231,0.92);
+  --shadow: transparent;
 }
 
 [data-theme="dark"] {
