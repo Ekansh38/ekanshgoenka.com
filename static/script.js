@@ -34,7 +34,7 @@ function toggleTheme() {
 
   var MODES = ['life', 'boids', 'off'];
   var modeIdx = Math.max(0, MODES.indexOf(localStorage.getItem('bgMode') || 'life'));
-  var speedLevel = parseInt(localStorage.getItem('bgSpeed') || '5');
+  var speedLevel = parseInt(localStorage.getItem('bgSpeed') || '1');
   var W, H;
 
   function isDark() {
