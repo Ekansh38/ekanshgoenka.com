@@ -5,7 +5,7 @@ import nodePath from 'path'
 const RESET  = '\x1b[0m'
 const BOLD   = '\x1b[1m'
 const DIM    = '\x1b[2m'
-const STEEL  = '\x1b[38;5;67m'   // #5f87af — steel blue
+const STEEL  = '\x1b[38;5;111m'  // #87afff — Tokyo Night blue
 const WHITE  = '\x1b[97m'
 const GRAY   = '\x1b[90m'
 
