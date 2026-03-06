@@ -191,7 +191,7 @@ function toggleTheme() {
   // Auto-fertilises with fresh random cells if population falls
   // too low, keeping the simulation continuously alive.
 
-  var CELL = 5;
+  var CELL = 9;
   var GW, GH;
   var grid, next;
   var lifeFrame = 0;
@@ -205,13 +205,13 @@ function toggleTheme() {
     next      = new Uint8Array(GW * GH);
     liveCount = 0;
     lifeFrame = 0;
-    // Seed 3–5 sparse clusters scattered around the screen
-    var numClusters = 3 + Math.floor(Math.random() * 3);
+    // Seed 5–8 clusters scattered around the screen
+    var numClusters = 5 + Math.floor(Math.random() * 4);
     for (var i = 0; i < numClusters; i++) {
       var cx = Math.floor(Math.random() * GW);
       var cy = Math.floor(Math.random() * GH);
-      var rx = Math.floor(GW * (0.07 + Math.random() * 0.09));
-      var ry = Math.floor(GH * (0.07 + Math.random() * 0.09));
+      var rx = Math.floor(GW * (0.10 + Math.random() * 0.13));
+      var ry = Math.floor(GH * (0.10 + Math.random() * 0.13));
       var x0 = Math.max(0, cx - rx), x1 = Math.min(GW, cx + rx);
       var y0 = Math.max(0, cy - ry), y1 = Math.min(GH, cy + ry);
       for (var yy = y0; yy < y1; yy++)
