@@ -5,6 +5,7 @@
   --fg: #1a1a1a;
   --muted: #777;
   --accent: #4682b4;
+  --border: #d0ccc6;
 }
 
 [data-theme="dark"] {
@@ -12,6 +13,7 @@
   --fg: #ccc8bc;
   --muted: #888;
   --accent: #5f9fd6;
+  --border: #252525;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -41,16 +43,14 @@ h2 { color: var(--muted); margin: 28px 0 6px; font-size: 0.78rem; text-transform
 h3 { color: var(--muted); margin: 20px 0 4px; font-size: 0.78rem; text-transform: uppercase; }
 
 header { margin-bottom: 28px; }
+.header-top { display: flex; justify-content: space-between; align-items: center; }
 .tagline, .bio, .li-meta, .project-meta, .now, .yr, footer { color: var(--muted); }
 .li-name, .project-title { font-weight: 700; }
 .li-name-plain { font-weight: 700; color: var(--fg); }
-.bio { margin-bottom: 40px; }
-
-nav { margin-top: 8px; display: flex; gap: 14px; flex-wrap: wrap; }
-nav a { color: var(--fg); }
-nav a:hover { color: var(--accent); text-decoration: none; }
-.toggle { background: none; border: none; padding: 0; font: inherit; cursor: pointer; color: var(--fg); }
+.bio { margin-bottom: 12px; }
+.toggle { background: none; border: none; padding: 0; font: inherit; cursor: pointer; color: var(--muted); }
 .toggle:hover { color: var(--accent); }
+hr { border: none; border-top: 1px solid var(--border); margin: 0 0 28px; }
 
 .writing-li { display: flex; justify-content: space-between; gap: 8px; }
 .writing-li a { color: var(--fg); }
