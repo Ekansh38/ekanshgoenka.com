@@ -66,14 +66,14 @@ function toggleTheme() {
   // that repels boids outside their personal-space zone,
   // pushing them to fill the canvas more evenly.
 
-  var N          = 110;
+  var N          = 200;
   var MAX_SPEED  = 1.6,  MIN_SPEED  = 0.55;
-  var PERCEPTION = 75,   SEP_DIST   = 22;
-  var SEP_W      = 0.09, ALI_W      = 0.05, COH_W = 0.028;
+  var PERCEPTION = 80,   SEP_DIST   = 44;
+  var SEP_W      = 0.18, ALI_W      = 0.04, COH_W = 0.009;
   var MAX_FORCE  = 0.13;
   var MARGIN     = 100,  TURN       = 0.20;
-  var DASH_LEN   = 3.2;
-  var SPREAD_R   = 160,  SPREAD_W   = 0.016; // spread repulsion radius / weight
+  var DASH_LEN   = 5.5;
+  var SPREAD_R   = 230,  SPREAD_W   = 0.034; // spread repulsion radius / weight
 
   var boids = [];
 
@@ -152,8 +152,8 @@ function toggleTheme() {
   function drawBoids() {
     var dark = isDark();
     ctx.clearRect(0, 0, W, H);
-    ctx.strokeStyle = dark ? 'rgba(169,177,214,0.07)' : 'rgba(52,59,88,0.09)';
-    ctx.lineWidth = 1.1;
+    ctx.strokeStyle = dark ? 'rgba(169,177,214,0.08)' : 'rgba(52,59,88,0.10)';
+    ctx.lineWidth = 1.5;
     ctx.lineCap   = 'round';
     ctx.beginPath();
     for (var i = 0; i < N; i++) {
@@ -178,6 +178,33 @@ function toggleTheme() {
   var GW, GH;                // grid dimensions in cells
   var grid, next;
   var lifeFrame = 0, LIFE_SPEED = 4; // step every N animation frames
+  var lifeStep = 0, INJECT_EVERY = 180; // inject chaos pattern every N game steps
+
+  // Small chaos-generating patterns (placed at random positions)
+  var CHAOS_PATS = [
+    // R-pentomino — runs 1103 steps, spawns gliders
+    [[1,0],[2,0],[0,1],[1,1],[1,2]],
+    // Acorn — runs 5206 steps
+    [[0,0],[1,0],[1,2],[3,1],[4,0],[5,0],[6,0]],
+    // Die hard — runs 130 steps, vanishes cleanly (short burst)
+    [[6,0],[0,1],[1,1],[1,2],[5,2],[6,2],[7,2]],
+    // Pi-heptomino
+    [[0,0],[1,0],[2,0],[0,1],[2,1],[0,2],[1,2],[2,2]],
+    // Thunderbird
+    [[0,0],[1,0],[2,0],[1,1],[1,2],[1,3],[1,4]],
+  ];
+
+  function injectChaos() {
+    var pat = CHAOS_PATS[Math.floor(Math.random() * CHAOS_PATS.length)];
+    // Avoid edges so patterns don't immediately wrap awkwardly
+    var ox = 5 + Math.floor(Math.random() * (GW - 15));
+    var oy = 5 + Math.floor(Math.random() * (GH - 15));
+    pat.forEach(function (c) {
+      var gx = (c[0] + ox + GW) % GW;
+      var gy = (c[1] + oy + GH) % GH;
+      grid[gy * GW + gx] = 1;
+    });
+  }
 
   // Gosper Glider Gun — [col, row] cell coordinates (0-indexed)
   var GOSPER = [
@@ -219,9 +246,13 @@ function toggleTheme() {
     }
 
     lifeFrame = 0;
+    lifeStep  = 0;
   }
 
   function stepLife() {
+    lifeStep++;
+    if (lifeStep % INJECT_EVERY === 0) injectChaos();
+
     for (var y = 0; y < GH; y++) {
       for (var x = 0; x < GW; x++) {
         var n = 0;
