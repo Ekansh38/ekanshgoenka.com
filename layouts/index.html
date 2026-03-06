@@ -2,6 +2,8 @@
 
 <div class="bio">{{ .Content }}</div>
 
+<hr>
+
 {{ $projects := .Site.GetPage "/projects" }}
 <h2>Projects</h2>
 <ul>
@@ -13,8 +15,11 @@
   {{ end }}
 </ul>
 
+<hr>
+
 {{ $writing := .Site.GetPage "/writing" }}
 <h2>Writing</h2>
+{{ if $writing.RegularPages }}
 <ul>
   {{ range $writing.RegularPages }}
   <li class="writing-li">
@@ -23,17 +28,17 @@
   </li>
   {{ end }}
 </ul>
+{{ else }}
+<p style="color: var(--muted)">nothing yet child</p>
+{{ end }}
+
+
+<hr>
 
 {{ $games := .Site.GetPage "/games" }}
 {{ $music := .Site.GetPage "/music" }}
-<h2>Other</h2>
+<h2>Music</h2>
 <ul>
-  {{ range $games.RegularPages }}
-  <li>
-    <span class="li-name"><a href="{{ .Params.itchio }}" target="_blank">{{ .Title }}</a></span> —
-    <span class="li-desc">{{ .Params.summary }}</span>
-  </li>
-  {{ end }}
   {{ range $music.RegularPages }}
   <li>
     <span class="li-name"><a href="{{ .Permalink }}">{{ .Title }}</a></span> —
@@ -41,6 +46,21 @@
   </li>
   {{ end }}
 </ul>
+
+<hr>
+
+<h2>Games</h2>
+<ul>
+  {{ range $games.RegularPages }}
+  <li>
+    <span class="li-name"><a href="{{ .Params.itchio }}" target="_blank">{{ .Title }}</a></span> —
+    <span class="li-desc">{{ .Params.summary }}</span>
+  </li>
+  {{ end }}
+</ul>
+
+
+<hr>
 
 {{ $now := .Site.GetPage "/now" }}
 <h2>Now</h2>
