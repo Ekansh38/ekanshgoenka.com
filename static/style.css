@@ -6,6 +6,7 @@
   --muted: #5a5f7a;
   --accent: #1a3e96;
   --border: #c2c3c9;
+  --shadow: rgba(255,255,255,0.8);
 }
 
 [data-theme="dark"] {
@@ -14,6 +15,7 @@
   --muted: #565f89;
   --accent: #7aa2f7;
   --border: #292e42;
+  --shadow: rgba(0,0,0,0.8);
 }
 
 ::selection {
@@ -101,7 +103,7 @@ footer { margin-top: 48px; font-size: 0.77rem; }
               remove <canvas id="bg-canvas"> from baseof.html
    ================================================================ */
 
-body { background: transparent; text-shadow: 0 0 20px var(--bg), 0 0 8px var(--bg); }
+body { background: transparent; text-shadow: 0 0 20px var(--shadow), 0 0 8px var(--shadow); }
 
 #bg-canvas {
   position: fixed;
