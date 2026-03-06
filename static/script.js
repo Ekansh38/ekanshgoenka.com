@@ -176,8 +176,8 @@ function toggleTheme() {
     ctx.clearRect(0, 0, W, H);
 
     ctx.fillStyle = dark
-      ? (sub ? 'rgba(169,177,214,0.18)' : 'rgba(169,177,214,0.04)')
-      : (sub ? 'rgba(52,59,88,0.15)'    : 'rgba(52,59,88,0.03)');
+      ? (sub ? 'rgba(169,177,214,0.18)' : 'rgba(169,177,214,0.07)')
+      : (sub ? 'rgba(52,59,88,0.15)'    : 'rgba(52,59,88,0.055)');
     for (var i = 0; i < N; i++) {
       var b   = boids[i];
       var spd = Math.sqrt(b.vx*b.vx + b.vy*b.vy);
@@ -297,8 +297,8 @@ function toggleTheme() {
     var sub  = isHome();
     ctx.clearRect(0, 0, W, H);
     ctx.fillStyle = dark
-      ? (sub ? 'rgba(169,177,214,0.10)' : 'rgba(169,177,214,0.025)')
-      : (sub ? 'rgba(52,59,88,0.09)'    : 'rgba(52,59,88,0.02)');
+      ? (sub ? 'rgba(169,177,214,0.10)' : 'rgba(169,177,214,0.05)')
+      : (sub ? 'rgba(52,59,88,0.09)'    : 'rgba(52,59,88,0.04)');
     for (var y = 0; y < GH; y++) {
       for (var x = 0; x < GW; x++) {
         if (grid[y*GW + x]) ctx.fillRect(x*CELL+1, y*CELL+1, CELL-2, CELL-2);
