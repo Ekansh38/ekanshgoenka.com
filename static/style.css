@@ -1,21 +1,23 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap');
 
+/* Rosé Pine Dawn — light */
 :root {
-  --bg: #e1e2e7;
-  --fg: #2a3154;
-  --muted: #464b6b;
-  --accent: #4a6fd4;
-  --border: #b4b5c0;
+  --bg: #faf4ed;
+  --fg: #575279;
+  --muted: #797593;
+  --accent: #286983;
+  --border: #dbd5c5;
   --shadow: transparent;
 }
 
+/* Tokyo Night — dark */
 [data-theme="dark"] {
   --bg: #1a1b26;
   --fg: #a9b1d6;
   --muted: #565f89;
   --accent: #7aa2f7;
   --border: #292e42;
-  --shadow: rgba(0,0,0,0.8);
+  --shadow: rgba(0,0,0,0.55);
 }
 
 ::selection {
@@ -103,7 +105,7 @@ footer { margin-top: 48px; font-size: 0.77rem; }
               remove <canvas id="bg-canvas"> from baseof.html
    ================================================================ */
 
-body { background: transparent; text-shadow: 0 0 40px var(--shadow), 0 0 20px var(--shadow), 0 0 8px var(--shadow); }
+body { background: transparent; text-shadow: 0 0 18px var(--shadow), 0 0 6px var(--shadow); }
 
 #bg-canvas {
   position: fixed;
