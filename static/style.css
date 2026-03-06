@@ -1,11 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap');
 
 :root {
-  --bg: #d5d6db;
+  --bg: #e1e2e7;
   --fg: #343b58;
-  --muted: #9699a3;
-  --accent: #343b8f;
-  --border: #b4b5b9;
+  --muted: #5a5f7a;
+  --accent: #2959aa;
+  --border: #c2c3c9;
 }
 
 [data-theme="dark"] {
