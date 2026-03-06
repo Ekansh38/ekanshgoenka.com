@@ -101,7 +101,7 @@ footer { margin-top: 48px; font-size: 0.77rem; }
               remove <canvas id="bg-canvas"> from baseof.html
    ================================================================ */
 
-body { background: transparent; }
+body { background: transparent; text-shadow: 0 0 20px var(--bg), 0 0 8px var(--bg); }
 
 #bg-canvas {
   position: fixed;

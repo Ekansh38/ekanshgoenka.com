@@ -170,11 +170,9 @@ function toggleTheme() {
 
   function drawBoids() {
     var dark = isDark();
-    // Soft trail: fade previous frame toward background instead of full clear
-    ctx.fillStyle = dark ? 'rgba(26,27,38,0.22)' : 'rgba(225,226,231,0.22)';
-    ctx.fillRect(0, 0, W, H);
+    ctx.clearRect(0, 0, W, H);
 
-    ctx.fillStyle = dark ? 'rgba(169,177,214,0.55)' : 'rgba(52,59,88,0.50)';
+    ctx.fillStyle = dark ? 'rgba(169,177,214,0.18)' : 'rgba(52,59,88,0.15)';
     for (var i = 0; i < N; i++) {
       var b   = boids[i];
       var spd = Math.sqrt(b.vx*b.vx + b.vy*b.vy);
@@ -287,7 +285,7 @@ function toggleTheme() {
   function drawLife() {
     var dark = isDark();
     ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = dark ? 'rgba(169,177,214,0.20)' : 'rgba(52,59,88,0.19)';
+    ctx.fillStyle = dark ? 'rgba(169,177,214,0.10)' : 'rgba(52,59,88,0.09)';
     for (var y = 0; y < GH; y++) {
       for (var x = 0; x < GW; x++) {
         if (grid[y*GW + x]) ctx.fillRect(x*CELL+1, y*CELL+1, CELL-2, CELL-2);
