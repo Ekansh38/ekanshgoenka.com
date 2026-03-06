@@ -44,22 +44,58 @@ function readMd(rel) {
   }
 }
 
+// Read all .md files in a directory (excluding _index.md), sorted by date desc
+function readDir(rel) {
+  try {
+    const dir = nodePath.join(process.cwd(), rel)
+    return fs.readdirSync(dir)
+      .filter(f => f.endsWith('.md') && f !== '_index.md')
+      .map(f => ({ slug: f.replace(/\.md$/, ''), ...readMd(nodePath.join(rel, f)) }))
+      .sort((a, b) => (b.fm.date || '') > (a.fm.date || '') ? 1 : -1)
+  } catch {
+    return []
+  }
+}
+
+// Parse [params] section from hugo.toml — no external deps needed
+function readTomlParams(rel) {
+  try {
+    const raw = fs.readFileSync(nodePath.join(process.cwd(), rel), 'utf8')
+    const params = {}
+    let inParams = false
+    for (const line of raw.split('\n')) {
+      if (line.trim() === '[params]') { inParams = true; continue }
+      if (inParams && line.trim().startsWith('[')) { inParams = false; continue }
+      if (inParams) {
+        const m = line.match(/^\s*(\w+)\s*=\s*"([^"]*)"/)
+        if (m) params[m[1]] = m[2]
+      }
+    }
+    return params
+  } catch { return {} }
+}
+
 function bodyLines(body) {
   return body.split('\n').filter(l => l.trim())
 }
 
 // ─── read content ─────────────────────────────────────────────────────────────
 
+const site     = readTomlParams('hugo.toml')
 const nowMd    = readMd('content/now/_index.md')
 const bspaceMd = readMd('content/projects/byte-space/_index.md')
 const genoMd   = readMd('content/projects/geno/_index.md')
-const musicMd  = readMd('content/music/_index.md')
-const gamesMd  = readMd('content/games/_index.md')
+const games    = readDir('content/games')
+const music    = readDir('content/music')
+const bspaceArticles = readDir('content/projects/byte-space')
 
-const nowLines    = bodyLines(nowMd.body)
-const nowUpdated  = nowMd.fm.updated || ''
-const bspaceLines = bodyLines(bspaceMd.body)
-const genoLines   = bodyLines(genoMd.body)
+const nowLines   = bodyLines(nowMd.body)
+const nowUpdated = nowMd.fm.updated || ''
+
+// Social links — single source of truth: hugo.toml [params]
+const githubUrl  = (site.github  || '').replace('https://', '')
+const youtubeUrl = (site.youtube || '').replace('https://', '')
+const itchUrl    = (site.itchio  || '').replace('https://', '')
 
 // ─── pages ────────────────────────────────────────────────────────────────────
 
@@ -71,9 +107,9 @@ ${thick}
 
   ${muted('tip:')} ${dim('curl -L ekanshgoenka.com | less -R')}
 
-  ${muted('github')}    github.com/ekanshgoenka
-  ${muted('youtube')}   youtube.com/@bytecolony
-  ${muted('itch.io')}   ekanshgoenka.itch.io
+  ${muted('github')}    ${githubUrl}
+  ${muted('youtube')}   ${youtubeUrl}
+  ${muted('itch.io')}   ${itchUrl}
   ${muted('web')}       ekanshgoenka.com
 
 ${rule}
@@ -92,17 +128,20 @@ ${rule}
   ${label('GAMES')}
 ${rule}
 
-  ${b('Untitled Game')}  ${muted('Godot')}
-  ${muted('└─')} ${accent('ekanshgoenka.itch.io/untitled-game')}
+${games.map(g => `  ${b(g.fm.title || g.slug)}  ${muted(g.fm.engine || '')}
+  ${muted('└─')} ${accent((g.fm.itchio || '').replace('https://', ''))}`).join('\n\n')}
 
 ${rule}
   ${label('MUSIC')}
 ${rule}
 
-  ${b('btop')}        ${muted('experimental · in production · 2025')}
-  ${muted('│')}  Bitcrushed percussion, degraded jazz samples,
-  ${muted('│')}  terminal textures. Five tracks. Near-monochrome art.
-  ${muted('└─')} ${dim('unreleased')}
+${music.map(m => {
+  const meta = [m.fm.genre, m.fm.status, m.fm.year].filter(Boolean).join(' · ')
+  const released = m.fm.status !== 'unreleased' && m.fm.status !== 'in production'
+  return `  ${b(m.fm.title || m.slug)}  ${muted(meta)}
+  ${muted('│')}  ${m.fm.summary || ''}
+  ${muted('└─')} ${released ? accent(m.slug) : dim('unreleased')}`
+}).join('\n\n')}
 
 ${rule}
   ${label('NOW')}
@@ -126,31 +165,25 @@ ${thick}
 const BYTE_SPACE = `
 ${thick}
   ${hi('byte-space')}  ${muted(`${bspaceMd.fm.stack || 'Go'} · ${bspaceMd.fm.status || 'active'}`)}
-  ${muted('1980s internet simulator')}
+  ${muted(bspaceMd.fm.summary || '')}
 ${thick}
 
-  ${muted('github')}    ${bspaceMd.fm.github?.replace('https://', '') || 'github.com/ekanshgoenka/byte-space'}
-  ${muted('youtube')}   youtube.com/@bytecolony
+  ${muted('github')}    ${(bspaceMd.fm.github || '').replace('https://', '')}
+  ${muted('youtube')}   ${youtubeUrl}
   ${muted('web')}       ekanshgoenka.com/projects/byte-space
 
 ${rule}
   ${label('ABOUT')}
 ${rule}
 
-  ${bspaceLines.join('\n  ')}
+  ${bodyLines(bspaceMd.body).join('\n  ')}
 
 ${rule}
   ${label('ARTICLES')}
 ${rule}
 
-  ${b('Protocol Implementations')}
-  ${muted('└─')} ${accent('ekanshgoenka.com/projects/byte-space/protocols')}
-
-  ${b('ByteShell Design')}
-  ${muted('└─')} ${accent('ekanshgoenka.com/projects/byte-space/shell')}
-
-  ${b('The IPC System')}
-  ${muted('└─')} ${accent('ekanshgoenka.com/projects/byte-space/ipc')}
+${bspaceArticles.map(a => `  ${b(a.fm.title || a.slug)}
+  ${muted('└─')} ${accent('ekanshgoenka.com/projects/byte-space/' + a.slug)}`).join('\n\n')}
 
 ${thick}
 ${back}
@@ -161,18 +194,18 @@ ${thick}
 const GENO = `
 ${thick}
   ${hi('GENO')}  ${muted(`${genoMd.fm.stack || 'Go'} · ${genoMd.fm.status || 'in progress'}`)}
-  ${muted('Genetic evolution simulator')}
+  ${muted(genoMd.fm.summary || '')}
 ${thick}
 
-  ${muted('github')}    ${genoMd.fm.github?.replace('https://', '') || 'github.com/ekanshgoenka/geno'}
-  ${muted('youtube')}   youtube.com/@bytecolony
+  ${muted('github')}    ${(genoMd.fm.github || '').replace('https://', '')}
+  ${muted('youtube')}   ${youtubeUrl}
   ${muted('web')}       ekanshgoenka.com/projects/geno
 
 ${rule}
   ${label('ABOUT')}
 ${rule}
 
-  ${genoLines.join('\n  ')}
+  ${bodyLines(genoMd.body).join('\n  ')}
 
 ${thick}
 ${back}
@@ -198,12 +231,14 @@ ${thick}
   ${hi('music')}
 ${thick}
 
-  ${b('btop')}        ${muted('experimental · in production · 2025')}
-  ${muted('│')}  Bitcrushed percussion, degraded jazz samples,
-  ${muted('│')}  terminal textures. Five tracks. Near-monochrome art.
-  ${muted('│')}  Sounds like a computer trying to remember
-  ${muted('│')}  what music sounded like.
-  ${muted('└─')} ${dim('unreleased — no release date set')}
+${music.map(m => {
+  const lines = bodyLines(m.body)
+  const meta = [m.fm.genre, m.fm.status, m.fm.year].filter(Boolean).join(' · ')
+  const released = m.fm.status !== 'unreleased' && m.fm.status !== 'in production'
+  return `  ${b(m.fm.title || m.slug)}  ${muted(meta)}
+${lines.map(l => `  ${muted('│')}  ${l}`).join('\n')}
+  ${muted('└─')} ${released ? accent(m.slug) : dim('unreleased — no release date set')}`
+}).join('\n\n')}
 
 ${thick}
 ${back}
@@ -216,8 +251,8 @@ ${thick}
   ${hi('games')}
 ${thick}
 
-  ${b('Untitled Game')}  ${muted('Godot')}
-  ${muted('└─')} ${accent('ekanshgoenka.itch.io/untitled-game')}
+${games.map(g => `  ${b(g.fm.title || g.slug)}  ${muted(g.fm.engine || '')}
+  ${muted('└─')} ${accent((g.fm.itchio || '').replace('https://', ''))}`).join('\n\n')}
 
 ${thick}
 ${back}
