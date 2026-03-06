@@ -1,6 +1,9 @@
 {
   "buildCommand": "hugo",
   "outputDirectory": "public",
+  "env": {
+    "HUGO_VERSION": "0.157.0"
+  },
   "routes": [
     {
       "src": "/",
