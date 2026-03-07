@@ -575,20 +575,6 @@ function toggleTheme() {
       '  boids.separation  separation px      (0–1000,  default 50)',
     ].join('\n'),
 
-    sys: [
-      'sys — system information',
-      '─────────────────────────────────────────────',
-      '  neofetch          system overview + ascii art',
-      '  uname [-a]        kernel / browser info',
-      '  uptime            time since page load',
-      '  ps                process list',
-      '  history           command history',
-      '  color             current theme palette',
-      '  whoami            identity',
-      '  date              current date',
-      '  pwd               working directory',
-    ].join('\n'),
-
     look: [
       'look — appearance',
       '─────────────────────────────────────────────',
@@ -689,6 +675,79 @@ function toggleTheme() {
   // ── rm -rf / degradation ─────────────────────────────────────
   function startDegradation() {
     var GLITCH = '░▒▓▄▀█■□10!@#%&*[]{}|;:.<>/\\~`';
+
+    // ── audio ── create immediately (needs user gesture context) ─
+    var audioCtx = null;
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+
+    function startAudio() {
+      if (!audioCtx) return function(){};
+      var now = audioCtx.currentTime;
+
+      // low sawtooth drone — pitch drops as system dies
+      var drone = audioCtx.createOscillator();
+      var droneGain = audioCtx.createGain();
+      drone.type = 'sawtooth';
+      drone.frequency.setValueAtTime(110, now);
+      drone.frequency.exponentialRampToValueAtTime(28, now + 9);
+      droneGain.gain.setValueAtTime(0.001, now);
+      droneGain.gain.linearRampToValueAtTime(0.18, now + 0.6);
+      droneGain.gain.linearRampToValueAtTime(0, now + 9);
+      drone.connect(droneGain);
+      droneGain.connect(audioCtx.destination);
+      drone.start(now);
+      drone.stop(now + 9);
+
+      // glitch beeps — short random square/sine chirps, accelerating
+      var beepRate = 350;
+      var beepTimer;
+      function scheduleBeep() {
+        var o = audioCtx.createOscillator();
+        var g = audioCtx.createGain();
+        var t = audioCtx.currentTime;
+        o.type = Math.random() > 0.4 ? 'square' : 'sine';
+        o.frequency.setValueAtTime(Math.random() * 2400 + 120, t);
+        o.frequency.exponentialRampToValueAtTime(Math.random() * 800 + 80, t + 0.06);
+        g.gain.setValueAtTime(0.09, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.07 + Math.random() * 0.08);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(t); o.stop(t + 0.18);
+        beepRate = Math.max(60, beepRate - 12);
+        beepTimer = setTimeout(scheduleBeep, beepRate * (0.5 + Math.random()));
+      }
+      scheduleBeep();
+
+      // bandpass-filtered noise bursts — crackle / static
+      var noiseTimer;
+      function scheduleNoise() {
+        var dur    = 0.08 + Math.random() * 0.12;
+        var size   = Math.ceil(audioCtx.sampleRate * dur);
+        var buf    = audioCtx.createBuffer(1, size, audioCtx.sampleRate);
+        var data   = buf.getChannelData(0);
+        for (var i = 0; i < size; i++) data[i] = Math.random() * 2 - 1;
+        var src    = audioCtx.createBufferSource();
+        src.buffer = buf;
+        var bp     = audioCtx.createBiquadFilter();
+        bp.type    = 'bandpass';
+        bp.frequency.value = 400 + Math.random() * 3600;
+        bp.Q.value = 1.5 + Math.random() * 4;
+        var ng     = audioCtx.createGain();
+        var t      = audioCtx.currentTime;
+        ng.gain.setValueAtTime(0.06, t);
+        ng.gain.exponentialRampToValueAtTime(0.001, t + dur);
+        src.connect(bp); bp.connect(ng); ng.connect(audioCtx.destination);
+        src.start(t);
+        noiseTimer = setTimeout(scheduleNoise, 80 + Math.random() * 220);
+      }
+      scheduleNoise();
+
+      return function stopAudio() {
+        clearTimeout(beepTimer);
+        clearTimeout(noiseTimer);
+        try { audioCtx.close(); } catch(e) {}
+      };
+    }
+
     var deletions = [
       ['removing /usr/bin...', 'term-line-ok'],
       ['removing /etc...', 'term-line-ok'],
@@ -707,14 +766,38 @@ function toggleTheme() {
 
     setTimeout(function () {
       close();
-
-      // crank the simulation
       if (window.setBgSpeed) window.setBgSpeed(10);
+
+      var stopAudio = startAudio();
+
+      // ── screen shake ── RAF loop, intensity grows over time ───
+      var shakeStart  = Date.now();
+      var shaking     = true;
+      var shakeX = 0, shakeY = 0, shakeVX = 0, shakeVY = 0;
+      document.body.style.transformOrigin = 'center top';
+
+      (function shakeLoop() {
+        if (!shaking) { document.body.style.transform = ''; return; }
+        var elapsed    = (Date.now() - shakeStart) / 1000;
+        var intensity  = Math.min(elapsed * 1.4, 10);
+        // spring-ish random walk
+        shakeVX += (Math.random() - 0.5) * intensity * 0.9;
+        shakeVY += (Math.random() - 0.5) * intensity * 0.5;
+        shakeVX *= 0.72; shakeVY *= 0.72;
+        shakeX  += shakeVX; shakeY += shakeVY;
+        // occasional hard jolt
+        if (Math.random() < 0.04 + elapsed * 0.006) {
+          shakeVX += (Math.random() - 0.5) * intensity * 3;
+          shakeVY += (Math.random() - 0.5) * intensity * 1.5;
+        }
+        document.body.style.transform = 'translate(' + shakeX.toFixed(1) + 'px,' + shakeY.toFixed(1) + 'px)';
+        requestAnimationFrame(shakeLoop);
+      })();
 
       // ── phase 1: text corruption ────────────────────────────
       var textNodes = [];
       function collectText(node) {
-        if (node.nodeType === 3 && node.textContent.trim().length > 0)
+        if (node.nodeType === 3 && node.textContent.length > 0)
           textNodes.push(node);
         for (var i = 0; i < node.childNodes.length; i++)
           collectText(node.childNodes[i]);
@@ -725,11 +808,13 @@ function toggleTheme() {
       var corruptTick = setInterval(function () {
         for (var i = 0; i < Math.ceil(corruptRate); i++) {
           if (!textNodes.length) break;
-          var idx  = Math.floor(Math.random() * textNodes.length);
-          var tn   = textNodes[idx];
+          var idx = Math.floor(Math.random() * textNodes.length);
+          var tn  = textNodes[idx];
           if (!tn.parentNode) { textNodes.splice(idx, 1); continue; }
           var chars = tn.textContent.split('');
-          if (!chars.length) continue;
+          if (!chars.length) { textNodes.splice(idx, 1); continue; }
+          // whitespace-only nodes: blank them out entirely
+          if (!tn.textContent.trim()) { tn.textContent = ''; textNodes.splice(idx, 1); continue; }
           chars[Math.floor(Math.random() * chars.length)] =
             GLITCH[Math.floor(Math.random() * GLITCH.length)];
           tn.textContent = chars.join('');
@@ -738,20 +823,19 @@ function toggleTheme() {
       }, 70);
 
       // ── phase 2: element deletion ───────────────────────────
-      setTimeout(function () {        var sel = 'nav, .social, .tagline, li, p, h3, h2, footer, ' +
+      setTimeout(function () {
+        var sel = 'nav, .social, .tagline, li, p, h3, h2, footer, ' +
                   '.nav, h1, header, section, article, #theme-picker, main';
         var nodeList = document.querySelectorAll(sel);
         var els = [];
         for (var i = 0; i < nodeList.length; i++) els.push(nodeList[i]);
-        // shuffle
         for (var i = els.length - 1; i > 0; i--) {
-          var j   = Math.floor(Math.random() * (i + 1));
-          var tmp = els[i]; els[i] = els[j]; els[j] = tmp;
+          var j = Math.floor(Math.random() * (i + 1));
+          var t = els[i]; els[i] = els[j]; els[j] = t;
         }
 
         var ri = 0;
         var removeTick = setInterval(function () {
-          // delete 1-3 elements per tick, accelerating
           var batch = Math.min(Math.ceil(ri / 8) + 1, 4);
           for (var b = 0; b < batch; b++) {
             if (ri >= els.length) { clearInterval(removeTick); break; }
@@ -761,7 +845,16 @@ function toggleTheme() {
             el.style.opacity    = '0';
             el.style.transform  = 'translateX(' + (Math.random() * 14 - 7) + 'px)';
             (function (e) {
-              setTimeout(function () { if (e.parentNode) e.parentNode.removeChild(e); }, 130);
+              setTimeout(function () {
+                if (!e.parentNode) return;
+                // also strip adjacent whitespace text nodes
+                var prev = e.previousSibling, next = e.nextSibling;
+                e.parentNode.removeChild(e);
+                if (prev && prev.nodeType === 3 && !prev.textContent.trim() && prev.parentNode)
+                  prev.parentNode.removeChild(prev);
+                if (next && next.nodeType === 3 && !next.textContent.trim() && next.parentNode)
+                  next.parentNode.removeChild(next);
+              }, 130);
             })(el);
           }
         }, 100);
@@ -780,16 +873,19 @@ function toggleTheme() {
 
         // ── phase 4: blackout ─────────────────────────────────
         setTimeout(function () {
+          shaking = false;
           clearInterval(colorTick);
+          stopAudio();
           var canvas = document.getElementById('bg-canvas');
           if (canvas) { canvas.style.transition = 'opacity 1.2s'; canvas.style.opacity = '0'; }
-          document.body.style.transition   = 'background 1.2s, color 1.2s';
-          document.body.style.background   = '#000';
-          document.body.style.color        = '#000';
+          document.body.style.transform  = '';
+          document.body.style.transition = 'background 1.2s, color 1.2s';
+          document.body.style.background = '#000';
+          document.body.style.color      = '#000';
           document.documentElement.style.background = '#000';
 
           setTimeout(function () {
-            document.body.innerHTML   = '';
+            document.body.innerHTML = '';
             document.body.style.cssText = 'background:#000;margin:0;padding:0;height:100vh;';
           }, 1300);
         }, 1600);
