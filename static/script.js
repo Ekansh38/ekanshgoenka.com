@@ -686,6 +686,119 @@ function toggleTheme() {
   }
   function echoCmd(raw) { line('$ ' + raw, 'term-line-cmd'); }
 
+  // ── rm -rf / degradation ─────────────────────────────────────
+  function startDegradation() {
+    var GLITCH = '░▒▓▄▀█■□10!@#%&*[]{}|;:.<>/\\~`';
+    var deletions = [
+      ['removing /usr/bin...', 'term-line-ok'],
+      ['removing /etc...', 'term-line-ok'],
+      ['removing /home/ekansh...', 'term-line-ok'],
+      ['removing /var/log...', 'term-line-ok'],
+      ['removing /sys/kernel...', 'term-line-ok'],
+      ['removing /proc...', 'term-line-ok'],
+      ['i/o error on sector 0x00FF', 'term-line-err'],
+      ['i/o error on sector 0x0100', 'term-line-err'],
+      ['segmentation fault (core dumped)', 'term-line-err'],
+    ];
+
+    deletions.forEach(function (d, i) {
+      setTimeout(function () { line(d[0], d[1]); }, i * 190);
+    });
+
+    setTimeout(function () {
+      close();
+
+      // crank the simulation
+      if (window.setBgSpeed) window.setBgSpeed(10);
+
+      // ── phase 1: text corruption ────────────────────────────
+      var textNodes = [];
+      function collectText(node) {
+        if (node.nodeType === 3 && node.textContent.trim().length > 0)
+          textNodes.push(node);
+        for (var i = 0; i < node.childNodes.length; i++)
+          collectText(node.childNodes[i]);
+      }
+      collectText(document.body);
+
+      var corruptRate = 1;
+      var corruptTick = setInterval(function () {
+        for (var i = 0; i < Math.ceil(corruptRate); i++) {
+          if (!textNodes.length) break;
+          var idx  = Math.floor(Math.random() * textNodes.length);
+          var tn   = textNodes[idx];
+          if (!tn.parentNode) { textNodes.splice(idx, 1); continue; }
+          var chars = tn.textContent.split('');
+          if (!chars.length) continue;
+          chars[Math.floor(Math.random() * chars.length)] =
+            GLITCH[Math.floor(Math.random() * GLITCH.length)];
+          tn.textContent = chars.join('');
+        }
+        corruptRate = Math.min(corruptRate + 0.4, 25);
+      }, 70);
+
+      // ── phase 2: element deletion ───────────────────────────
+      setTimeout(function () {
+        var sel = 'nav, .social, .tagline, li, p, h3, h2, footer, ' +
+                  '.nav, h1, header, section, article, #theme-picker, main';
+        var nodeList = document.querySelectorAll(sel);
+        var els = [];
+        for (var i = 0; i < nodeList.length; i++) els.push(nodeList[i]);
+        // shuffle
+        for (var i = els.length - 1; i > 0; i--) {
+          var j   = Math.floor(Math.random() * (i + 1));
+          var tmp = els[i]; els[i] = els[j]; els[j] = tmp;
+        }
+
+        var ri = 0;
+        var removeTick = setInterval(function () {
+          // delete 1-3 elements per tick, accelerating
+          var batch = Math.min(Math.ceil(ri / 8) + 1, 4);
+          for (var b = 0; b < batch; b++) {
+            if (ri >= els.length) { clearInterval(removeTick); break; }
+            var el = els[ri++];
+            if (!el || !el.parentNode) continue;
+            el.style.transition = 'opacity 0.12s, transform 0.12s';
+            el.style.opacity    = '0';
+            el.style.transform  = 'translateX(' + (Math.random() * 14 - 7) + 'px)';
+            (function (e) {
+              setTimeout(function () { if (e.parentNode) e.parentNode.removeChild(e); }, 130);
+            })(el);
+          }
+        }, 100);
+      }, 1400);
+
+      // ── phase 3: color corruption ───────────────────────────
+      setTimeout(function () {
+        clearInterval(corruptTick);
+        var hue = 0;
+        var colorTick = setInterval(function () {
+          hue = (hue + 31) % 360;
+          document.documentElement.style.setProperty('--fg',     'hsl(' + hue + ',100%,55%)');
+          document.documentElement.style.setProperty('--bg',     'hsl(' + ((hue + 137) % 360) + ',60%,6%)');
+          document.documentElement.style.setProperty('--accent', 'hsl(' + ((hue + 251) % 360) + ',100%,50%)');
+        }, 55);
+
+        // ── phase 4: blackout ─────────────────────────────────
+        setTimeout(function () {
+          clearInterval(colorTick);
+          var canvas = document.getElementById('bg-canvas');
+          if (canvas) { canvas.style.transition = 'opacity 1.2s'; canvas.style.opacity = '0'; }
+          document.body.style.transition   = 'background 1.2s, color 1.2s';
+          document.body.style.background   = '#000';
+          document.body.style.color        = '#000';
+          document.documentElement.style.background = '#000';
+
+          setTimeout(function () {
+            document.body.innerHTML   = '';
+            document.body.style.cssText = 'background:#000;margin:0;padding:0;height:100vh;';
+          }, 1300);
+        }, 1600);
+      }, 3200);
+
+    }, deletions.length * 190 + 250);
+  }
+
   // ── commands ────────────────────────────────────────────────
   var CMDS = {
     help: function (args) {
@@ -1068,9 +1181,14 @@ function toggleTheme() {
     vim:    function ()  { line('you\'re already in vim (spiritually).', 'term-line-ok'); },
     pwd:    function ()  { line('/home/ekansh'); },
     date:   function ()  { line(new Date().toString().toLowerCase()); },
-    rm:     function (a) {
-      if (a.join('').indexOf('rf') >= 0) line('nice try.', 'term-line-err');
-      else line('rm: ' + (a[0] || '?') + ': permission denied', 'term-line-err');
+    rm: function (a) {
+      var flags = a.filter(function (x) { return x[0] === '-'; }).join('');
+      var paths = a.filter(function (x) { return x[0] !== '-'; });
+      var isRF  = flags.indexOf('r') >= 0 && flags.indexOf('f') >= 0;
+      var isRoot = paths.indexOf('/') >= 0;
+      if (isRF && isRoot) { startDegradation(); return; }
+      if (isRF) { line('rm: ' + (paths[0] || '/') + ': permission denied', 'term-line-err'); return; }
+      line('rm: ' + (a[0] || '?') + ': permission denied', 'term-line-err');
     },
     sl:     function ()  { line('        🚂 choo choo'); },
     yes:    function (a) { line(a.join(' ') || 'y'); line('(use ctrl+c to stop — kidding, you can\'t)'); },
