@@ -600,8 +600,6 @@ function toggleTheme() {
       '  grep <pat> <path>   search',
       '  wc [-l] <path>      word/line count',
       '  which <cmd>         locate a command',
-      '  git log             commit history',
-      '  git status          repo status',
       '  make [target]       build',
       '  tar                 archive',
       '  yes [text]          infinite output',
@@ -640,7 +638,6 @@ function toggleTheme() {
     history: 'history\n  show command history for this session.',
     color:   'color\n  print current theme CSS variables.',
     whoami:  'whoami\n  print user identity.',
-    git:     'git <subcommand>\n  git plumbing.\n\n  git log     → recent commits\n  git status  → working tree status\n  git diff    → diff',
     make:    'make [target]\n  build target.\n\n  make\n  make clean',
     tar:     'tar [flags] [file]\n  archive utility.\n\n  tar -xzf archive.tar.gz',
     curl:    'curl -L <url>\n  transfer data.\n\n  curl -L ekanshgoenka.com\n\n  (run that from a real terminal, not here)',
@@ -1162,25 +1159,6 @@ function toggleTheme() {
         'LANG=en_US.UTF-8',
         'PATH=/usr/local/bin:/usr/bin:/bin',
       ].join('\n'), 'term-line-pre');
-    },
-
-    'git': function (args) {
-      var sub = args[0] || '';
-      if (sub === 'log') {
-        line([
-          'commit 07bdea8  changes',
-          'commit 46c5a36  changes',
-          'commit 11d038b  changes',
-          'commit 4010bb1  changes',
-          'commit ecdab13  changes',
-        ].join('\n'), 'term-line-pre');
-      } else if (sub === 'status') {
-        line('On branch main\nnothing to commit, working tree clean', 'term-line-pre');
-      } else if (sub === 'diff') {
-        line('(clean)', 'term-line-ok');
-      } else {
-        line('git: ' + (sub||'') + ': try  git log  or  git status', 'term-line-err');
-      }
     },
 
     make: function (args) {
