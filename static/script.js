@@ -643,7 +643,7 @@ function toggleTheme() {
     git:     'git <subcommand>\n  git plumbing.\n\n  git log     → recent commits\n  git status  → working tree status\n  git diff    → diff',
     make:    'make [target]\n  build target.\n\n  make\n  make clean',
     tar:     'tar [flags] [file]\n  archive utility.\n\n  tar -xzf archive.tar.gz',
-    curl:    'curl -L <url>\n  transfer data. try:\n\n  curl -L ekanshgoenka.com',
+    curl:    'curl -L <url>\n  transfer data.\n\n  curl -L ekanshgoenka.com\n\n  (run that from a real terminal, not here)',
   };
 
   // ── output helpers ──────────────────────────────────────────
@@ -1233,7 +1233,7 @@ function toggleTheme() {
     echo:   function (args) { line(args.join(' ')); },
     curl:   function (args) {
       var isSite = args.some(function (a) { return a.indexOf('ekanshgoenka') >= 0; });
-      if (!isSite) { line('curl: not available here', 'term-line-err'); return; }
+      if (!isSite) { line('try: curl -L ekanshgoenka.com', 'term-line-ok'); return; }
 
       var CW = 66, CH = 13;
       var BG_TEXT = 'USE  A  BROWSER,  YOU  NERD';
@@ -1298,7 +1298,7 @@ function toggleTheme() {
         } else {
           clearInterval(timer);
           pre.innerHTML = '';
-          line('JUST USE A REGULAR BROWSER!!!', 'term-line-err');
+          line('JUST USE A REGULAR BROWSER!!!', 'term-line-ok');
           output.scrollTop = output.scrollHeight;
           return;
         }
