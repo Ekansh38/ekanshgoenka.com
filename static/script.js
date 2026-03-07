@@ -510,7 +510,7 @@ function toggleTheme() {
     var ps = document.getElementById('term-prompt');
     var pb = document.getElementById('term-path');
     var loc = cwd ? '~/' + cwd : '~';
-    if (ps) ps.textContent = loc + '$ ';
+    if (ps) ps.textContent = loc + '$\u00a0';
     if (pb) pb.textContent = 'ekansh@site:' + loc;
   }
 
