@@ -139,43 +139,9 @@ body { background: transparent; text-shadow: 0 0 18px var(--shadow), 0 0 6px var
 }
 
 
-#speed-slider {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 52px;
-  height: 2px;
-  background: var(--border);
-  outline: none;
-  cursor: pointer;
-  vertical-align: middle;
-  margin: 0;
-}
-#speed-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--muted);
-  cursor: pointer;
-  transition: background 0.2s, transform 0.15s;
-}
-#speed-slider:hover::-webkit-slider-thumb { background: var(--accent); transform: scale(1.35); }
-#speed-slider:active::-webkit-slider-thumb { transform: scale(1.1); }
-#speed-slider::-moz-range-thumb {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--muted);
-  border: none;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.15s;
-}
-#speed-slider:hover::-moz-range-thumb { background: var(--accent); transform: scale(1.35); }
-#speed-slider::-moz-range-track { background: var(--border); height: 2px; }
-
-/* Hide sim controls on touch-only devices (phones/tablets) */
+/* Hide sim on touch-only devices (phones/tablets) */
 @media (hover: none) and (pointer: coarse) {
-  #speed-slider, #bg-mode-btn, #bg-canvas { display: none !important; }
+  #bg-canvas { display: none !important; }
   body { text-shadow: none !important; background: var(--bg) !important; }
 }
 

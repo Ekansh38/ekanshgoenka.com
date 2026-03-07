@@ -79,8 +79,6 @@ function toggleTheme() {
   }
 
   function updateBtn() {
-    var btn = document.getElementById('bg-mode-btn');
-    if (btn) btn.textContent = '[' + MODES[modeIdx] + ']';
     canvas.style.display = MODES[modeIdx] === 'off' ? 'none' : '';
   }
 
@@ -95,18 +93,6 @@ function toggleTheme() {
     localStorage.setItem('bgMode', MODES[modeIdx]);
     updateBtn();
     initMode(MODES[modeIdx]);
-  }
-
-  var modeBtn = document.getElementById('bg-mode-btn');
-  if (modeBtn) modeBtn.addEventListener('click', cycleMode);
-
-  var speedSlider = document.getElementById('speed-slider');
-  if (speedSlider) {
-    speedSlider.value = speedLevel;
-    speedSlider.addEventListener('input', function () {
-      speedLevel = parseInt(this.value);
-      localStorage.setItem('bgSpeed', speedLevel);
-    });
   }
 
   document.addEventListener('keydown', function (e) {
@@ -408,8 +394,6 @@ function toggleTheme() {
   window.setBgSpeed = function (n) {
     speedLevel = Math.max(1, Math.min(10, n));
     localStorage.setItem('bgSpeed', speedLevel);
-    var s = document.getElementById('speed-slider');
-    if (s) s.value = speedLevel;
   };
   window.getBgSpeed = function () { return speedLevel; };
   window.resetBg    = function () { initMode(MODES[modeIdx]); };
