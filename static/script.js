@@ -1,10 +1,12 @@
-var THEMES = ['tokyo-night', 'rose-pine', 'gruvbox'];
+var THEMES = ['tokyo-night', 'gruvbox', 'rose-pine', 'catppuccin-latte'];
+var LIGHT_THEMES = ['rose-pine', 'catppuccin-latte'];
 
 function applyTheme(name) {
   document.documentElement.setAttribute('data-theme', name);
   localStorage.setItem('theme', name);
+  var isLight = LIGHT_THEMES.indexOf(name) >= 0;
   var t = document.getElementById('t');
-  if (t) t.textContent = name === 'rose-pine' ? '[light]' : '[dark]';
+  if (t) t.textContent = isLight ? '[light]' : '[dark]';
   var dots = document.querySelectorAll('.tp-dot');
   for (var i = 0; i < dots.length; i++)
     dots[i].classList.toggle('active', dots[i].getAttribute('data-t') === name);
@@ -55,13 +57,21 @@ function toggleTheme() {
   var W, H;
 
   function isDark() {
-    return document.documentElement.getAttribute('data-theme') !== 'rose-pine';
+    var t = document.documentElement.getAttribute('data-theme');
+    return t !== 'rose-pine' && t !== 'catppuccin-latte';
   }
+
+  var MODE_LABELS = { life: '[░ life]', boids: '[↠ boids]', off: '[off]' };
 
   function updateBtn() {
     var btn = document.getElementById('bg-mode-btn');
-    if (btn) btn.textContent = '[' + MODES[modeIdx] + ']';
-    canvas.style.display = MODES[modeIdx] === 'off' ? 'none' : '';
+    var mode = MODES[modeIdx];
+    if (btn) {
+      btn.textContent = MODE_LABELS[mode] || '[' + mode + ']';
+      btn.classList.toggle('sim-on', mode !== 'off');
+      btn.title = 'bg: conway\'s life  ·  boids  ·  off  (press b)';
+    }
+    canvas.style.display = mode === 'off' ? 'none' : '';
   }
 
   function initMode(mode) {
@@ -417,17 +427,22 @@ function toggleTheme() {
   };
 
   var NEOFETCH = [
-    '  ╔═══════════════╗  ekansh@home',
-    '  ║               ║  ────────────────────────────────────',
-    '  ║    ┌─────┐    ║',
-    '  ║    │ >_  │    ║  age      12',
-    '  ║    │     │    ║  editor   vim',
-    '  ║    └─────┘    ║',
-    '  ╚═══════════════╝',
+    '  ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄   ekansh@home',
+    '  █                 █   ────────────────────────────────────────',
+    '  █  ┌───────────┐  █',
+    '  █  │           │  █   age      12',
+    '  █  │   > _     │  █   editor   vim',
+    '  █  │           │  █',
+    '  █  └───────────┘  █',
+    '  █                 █',
+    '  ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀',
+    '        █████',
+    '  ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄',
+    '  ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀',
     '',
-    '                     projects  byte-space · geno',
-    '                     music     btop',
-    '                     hobbies   bjj · cs · music · reading',
+    '                        projects  byte-space · geno',
+    '                        music     btop',
+    '                        hobbies   bjj · cs · music · reading',
   ].join('\n');
 
   var HELP = [
@@ -517,7 +532,7 @@ function toggleTheme() {
     neofetch: function () { line(NEOFETCH, 'term-line-pre'); },
 
     theme: function (args) {
-      var ALL = ['tokyo-night', 'rose-pine', 'gruvbox'];
+      var ALL = ['tokyo-night', 'gruvbox', 'rose-pine', 'catppuccin-latte'];
       var name = args[0];
       if (!name) {
         line('themes: ' + ALL.join('  '));
