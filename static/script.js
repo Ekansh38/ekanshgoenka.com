@@ -428,26 +428,26 @@ function toggleTheme() {
   window.setParam = function (key, val) {
     switch (key) {
       case 'life.cell':
-        CELL = Math.max(3, Math.min(20, Math.round(val)));
+        CELL = Math.max(1, Math.min(80, Math.round(val)));
         if (MODES[modeIdx] === 'life') initLife();
         return true;
       case 'boids.n':
-        N = Math.max(10, Math.min(500, Math.round(val)));
+        N = Math.max(1, Math.min(1000, Math.round(val)));
         if (MODES[modeIdx] === 'boids') initBoids();
         return true;
       case 'boids.size':
-        BOID_LEN  = Math.max(4, Math.min(40, val));
+        BOID_LEN  = Math.max(1, Math.min(200, val));
         BOID_HALF = BOID_LEN * 0.393;
         return true;
       case 'boids.speed':
-        MAX_SPEED = Math.max(0.3, Math.min(6, val));
-        MIN_SPEED = Math.min(MIN_SPEED, MAX_SPEED * 0.33);
+        MAX_SPEED = Math.max(0, Math.min(30, val));
+        MIN_SPEED = Math.min(MIN_SPEED, Math.max(0, MAX_SPEED * 0.33));
         return true;
       case 'boids.perception':
-        PERCEPTION = Math.max(20, Math.min(400, val));
+        PERCEPTION = Math.max(1, Math.min(2000, val));
         return true;
       case 'boids.separation':
-        SEP_DIST = Math.max(5, Math.min(200, val));
+        SEP_DIST = Math.max(0, Math.min(1000, val));
         return true;
       default:
         return false;
@@ -565,14 +565,14 @@ function toggleTheme() {
       '  set <param> <val>      change a parameter',
       '',
       'life params:',
-      '  life.cell         cell size px       (3–20,   default 7)',
+      '  life.cell         cell size px       (1–80,    default 7)',
       '',
       'boids params:',
-      '  boids.n           boid count         (10–500, default 120)',
-      '  boids.size        boid length px     (4–40,   default 14)',
-      '  boids.speed       max speed          (0.3–6,  default 1.8)',
-      '  boids.perception  sight radius px    (20–400, default 85)',
-      '  boids.separation  separation px      (5–200,  default 50)',
+      '  boids.n           boid count         (1–1000,  default 120)',
+      '  boids.size        boid length px     (1–200,   default 14)',
+      '  boids.speed       max speed          (0–30,    default 1.8)',
+      '  boids.perception  sight radius px    (1–2000,  default 85)',
+      '  boids.separation  separation px      (0–1000,  default 50)',
     ].join('\n'),
 
     sys: [
@@ -650,7 +650,7 @@ function toggleTheme() {
     speed:   'speed [1-10]\n  get or set simulation speed (syncs with the slider).\n\n  speed          → show current\n  speed 1        → slowest\n  speed 10       → fastest',
     reset:   'reset\n  reinitialize the current simulation from scratch.',
     params:  'params\n  show all tunable simulation parameters with current values.',
-    set:     'set <param> <value>\n  tune a simulation parameter live.\n\n  set life.cell 4           → tiny cells\n  set life.cell 12          → chunky cells\n  set boids.n 50            → sparse flock\n  set boids.n 300           → dense flock\n  set boids.size 8          → small boids\n  set boids.speed 3.5       → fast boids\n  set boids.perception 150  → wide awareness\n  set boids.separation 20   → tight packing\n\n  see: help bg  for all params and ranges',
+    set:     'set <param> <value>\n  tune a simulation parameter live. ranges are intentionally wide.\n\n  set life.cell 1           → single pixel cells\n  set life.cell 40          → chunky blocks\n  set boids.n 1000          → chaos\n  set boids.n 5             → lonely\n  set boids.size 100        → massive\n  set boids.speed 20        → unhinged\n  set boids.speed 0         → frozen\n  set boids.perception 2000 → hive mind\n  set boids.perception 1    → blind\n  set boids.separation 0    → merge\n\n  see: help bg  for all params and defaults',
     colorscheme: 'colorscheme [name]\n  list or apply a colorscheme.\n\n  colorscheme              → list (active marked *)\n  colorscheme gruvbox      → apply\n\n  available: tokyo-night  gruvbox  rose-pine  solarized-light',
     cowsay:  'cowsay [text]\n  a cow says something.\n\n  cowsay hello world',
     fortune: 'fortune\n  print a random programming quote.',
@@ -810,14 +810,14 @@ function toggleTheme() {
         'simulation parameters  (set <param> <val> to change)',
         '',
         'life:',
-        '  life.cell         ' + (p['life.cell']        || '?') + '    cell size px  (3–20)',
+        '  life.cell         ' + (p['life.cell']        || '?') + '    cell size px  (1–80)',
         '',
         'boids:',
-        '  boids.n           ' + (p['boids.n']          || '?') + '   count         (10–500)',
-        '  boids.size        ' + (p['boids.size']        || '?') + '   length px     (4–40)',
-        '  boids.speed       ' + (p['boids.speed']       || '?') + '  max speed      (0.3–6)',
-        '  boids.perception  ' + (p['boids.perception']  || '?') + '   sight radius  (20–400)',
-        '  boids.separation  ' + (p['boids.separation']  || '?') + '   separation px (5–200)',
+        '  boids.n           ' + (p['boids.n']          || '?') + '   count         (1–1000)',
+        '  boids.size        ' + (p['boids.size']        || '?') + '   length px     (1–200)',
+        '  boids.speed       ' + (p['boids.speed']       || '?') + '  max speed      (0–30)',
+        '  boids.perception  ' + (p['boids.perception']  || '?') + '   sight radius  (1–2000)',
+        '  boids.separation  ' + (p['boids.separation']  || '?') + '   separation px (0–1000)',
       ].join('\n'), 'term-line-pre');
     },
 
