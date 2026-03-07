@@ -892,6 +892,10 @@ function toggleTheme() {
     }, deletions.length * 190 + 250);
   }
 
+  // ── arg validation helpers ───────────────────────────────────
+  function tooMany(name) { line(name + ': too many arguments', 'term-line-err'); }
+  function needArg(name, usage) { line(name + ': missing argument\nusage: ' + usage, 'term-line-err'); }
+
   // ── commands ────────────────────────────────────────────────
   var CMDS = {
     help: function (args) {
@@ -903,6 +907,7 @@ function toggleTheme() {
     },
 
     ls: function (args) {
+      if (args.length > 1) { tooMany('ls'); return; }
       var target = args[0] ? resolvePath(args[0]) : cwd;
       var node = FS[target !== undefined ? target : ''];
       if (node === undefined) node = FS[''];
@@ -922,7 +927,8 @@ function toggleTheme() {
     },
 
     cat: function (args) {
-      if (!args[0]) { line('usage: cat <path>', 'term-line-err'); return; }
+      if (!args[0]) { needArg('cat', 'cat <path>'); return; }
+      if (args.length > 1) { tooMany('cat'); return; }
       var target = resolvePath(args[0]);
       if (!FS.hasOwnProperty(target)) {
         line('cat: ' + args[0] + ': no such file or directory', 'term-line-err'); return;
@@ -944,6 +950,7 @@ function toggleTheme() {
     },
 
     cd: function (args) {
+      if (args.length > 1) { tooMany('cd'); return; }
       var target = args[0] || '';
       if (!target || target === '~' || target === '/') { cwd = ''; updatePrompt(); return; }
       var resolved = resolvePath(target);
@@ -956,9 +963,13 @@ function toggleTheme() {
       }
     },
 
-    pwd: function () { line('/' + cwd, 'term-line-ok'); },
+    pwd: function (args) {
+      if (args.length) { tooMany('pwd'); return; }
+      line('/' + cwd, 'term-line-ok');
+    },
 
     open: function (args) {
+      if (args.length > 1) { tooMany('open'); return; }
       var target = resolvePath((args[0] || '').replace(/^\//, ''));
       var node = FS.hasOwnProperty(target) ? FS[target] : null;
       var url = null;
@@ -975,13 +986,18 @@ function toggleTheme() {
       }
     },
 
-    whoami: function () {
+    whoami: function (args) {
+      if (args.length) { tooMany('whoami'); return; }
       line('ekansh goenka. 12. building things. bjj. music.');
     },
 
-    neofetch: function () { line(NEOFETCH, 'term-line-pre'); },
+    neofetch: function (args) {
+      if (args.length) { tooMany('neofetch'); return; }
+      line(NEOFETCH, 'term-line-pre');
+    },
 
     colorscheme: function (args) {
+      if (args.length > 1) { tooMany('colorscheme'); return; }
       var ALL = ['tokyo-night', 'gruvbox', 'rose-pine', 'solarized-light'];
       var cur  = document.documentElement.getAttribute('data-theme');
       var name = args[0];
@@ -999,21 +1015,25 @@ function toggleTheme() {
     },
     theme: function (args) { CMDS.colorscheme(args); },
 
-    github: function () {
+    github: function (args) {
+      if (args.length) { tooMany('github'); return; }
       line('opening github...', 'term-line-ok');
       setTimeout(function () { window.open((SITE_LINKS||{}).github||'#', '_blank'); }, 200);
     },
-    youtube: function () {
+    youtube: function (args) {
+      if (args.length) { tooMany('youtube'); return; }
       line('opening bytecolony...', 'term-line-ok');
       setTimeout(function () { window.open((SITE_LINKS||{}).youtube||'#', '_blank'); }, 200);
     },
-    itch: function () {
+    itch: function (args) {
+      if (args.length) { tooMany('itch'); return; }
       line('opening itch.io...', 'term-line-ok');
       setTimeout(function () { window.open((SITE_LINKS||{}).itchio||'#', '_blank'); }, 200);
     },
 
     // ── background control ──────────────────────────────────────
     bg: function (args) {
+      if (args.length > 1) { tooMany('bg'); return; }
       var m = args[0];
       if (!m) { line('bg: ' + (window.getBgMode ? window.getBgMode() : '?'), 'term-line-ok'); return; }
       if (!window.setBgMode || !window.setBgMode(m))
@@ -1023,6 +1043,7 @@ function toggleTheme() {
     },
 
     speed: function (args) {
+      if (args.length > 1) { tooMany('speed'); return; }
       if (!args[0]) { line('speed: ' + (window.getBgSpeed ? window.getBgSpeed() : '?') + ' / 10', 'term-line-ok'); return; }
       var n = parseInt(args[0]);
       if (isNaN(n) || n < 1 || n > 10) { line('speed: value must be 1–10', 'term-line-err'); return; }
@@ -1030,12 +1051,14 @@ function toggleTheme() {
       line('speed → ' + n, 'term-line-ok');
     },
 
-    reset: function () {
+    reset: function (args) {
+      if (args.length) { tooMany('reset'); return; }
       if (window.resetBg) window.resetBg();
       line('simulation reinitialized.', 'term-line-ok');
     },
 
-    params: function () {
+    params: function (args) {
+      if (args.length) { tooMany('params'); return; }
       var p = window.getBgParams ? window.getBgParams() : {};
       line([
         'simulation parameters  (set <param> <val> to change)',
@@ -1053,6 +1076,7 @@ function toggleTheme() {
     },
 
     set: function (args) {
+      if (args.length > 2) { tooMany('set'); return; }
       var key = args[0] || '';
       var val = parseFloat(args[1]);
       if (!key || isNaN(val)) { line('usage: set <param> <value>   (see: params)', 'term-line-err'); return; }
@@ -1064,13 +1088,19 @@ function toggleTheme() {
 
     // ── system ──────────────────────────────────────────────────
     uname: function (args) {
+      var flags = args.filter(function (a) { return a[0] === '-'; });
+      var extra = args.filter(function (a) { return a[0] !== '-'; });
+      if (extra.length) { tooMany('uname'); return; }
+      if (flags.some(function (f) { return f.replace(/-/g,'').split('').some(function(c){ return 'a'.indexOf(c)<0; }); }))
+        { line('uname: invalid option', 'term-line-err'); return; }
       if (args.indexOf('-a') >= 0)
         line('Browser 1.0.0 ekansh-site #1 SMP ' + new Date().toDateString() + ' x86_64 WebKit');
       else
         line('Browser');
     },
 
-    uptime: function () {
+    uptime: function (args) {
+      if (args.length) { tooMany('uptime'); return; }
       var s = Math.floor((Date.now() - PAGE_START) / 1000);
       var m = Math.floor(s / 60); s %= 60;
       var h = Math.floor(m / 60); m %= 60;
@@ -1078,7 +1108,8 @@ function toggleTheme() {
       line('up ' + t + '   load avg: 0.42 0.13 0.07');
     },
 
-    ps: function () {
+    ps: function (args) {
+      if (args.length) { tooMany('ps'); return; }
       line([
         '  PID  COMMAND              CPU%   MEM%',
         '─────────────────────────────────────────',
@@ -1091,7 +1122,8 @@ function toggleTheme() {
       ].join('\n'), 'term-line-pre');
     },
 
-    top: function () {
+    top: function (args) {
+      if (args.length) { tooMany('top'); return; }
       var p = window.getBgParams ? window.getBgParams() : {};
       line([
         'top - ' + new Date().toTimeString().slice(0,8) + '  up ' + (function(){
@@ -1110,7 +1142,8 @@ function toggleTheme() {
       ].join('\n'), 'term-line-pre');
     },
 
-    history: function () {
+    history: function (args) {
+      if (args.length) { tooMany('history'); return; }
       if (!hist.length) { line('(no history)', 'term-line-err'); return; }
       var out = hist.slice().reverse().map(function (cmd, i) {
         var n = String(i + 1); while (n.length < 4) n = ' ' + n;
@@ -1119,7 +1152,8 @@ function toggleTheme() {
       line(out, 'term-line-pre');
     },
 
-    color: function () {
+    color: function (args) {
+      if (args.length) { tooMany('color'); return; }
       var theme = document.documentElement.getAttribute('data-theme');
       var vars  = ['--bg', '--fg', '--accent', '--muted', '--border'];
       var cs    = getComputedStyle(document.documentElement);
@@ -1132,7 +1166,8 @@ function toggleTheme() {
       line(out, 'term-line-pre');
     },
 
-    df: function () {
+    df: function (args) {
+      if (args.length) { tooMany('df'); return; }
       line([
         'Filesystem        Size    Used   Avail  Use%  Mounted on',
         '/dev/brain        256G    201G    55G    79%   /home/ekansh',
@@ -1142,7 +1177,8 @@ function toggleTheme() {
     },
 
     du: function (args) {
-      var target = args.length ? resolvePath(args.join(' ')) : cwd;
+      if (args.length > 1) { tooMany('du'); return; }
+      var target = args.length ? resolvePath(args[0]) : cwd;
       if (!FS.hasOwnProperty(target)) { line('du: ' + (args.join(' ') || '.') + ': no such file', 'term-line-err'); return; }
       var prefix = target ? target + '/' : '';
       var kids = lsChildren(target);
@@ -1155,6 +1191,7 @@ function toggleTheme() {
     },
 
     ping: function (args) {
+      if (args.length > 1) { tooMany('ping'); return; }
       var host = args[0] || 'ekanshgoenka.com';
       var steps = [
         'PING ' + host + ': 56 data bytes',
@@ -1196,13 +1233,15 @@ function toggleTheme() {
     },
 
     which: function (args) {
+      if (args.length > 1) { tooMany('which'); return; }
       var cmd = args[0];
-      if (!cmd) { line('usage: which <command>', 'term-line-err'); return; }
+      if (!cmd) { needArg('which', 'which <command>'); return; }
       if (CMDS[cmd]) line('/usr/local/bin/' + cmd);
       else line('which: ' + cmd + ': not found', 'term-line-err');
     },
 
-    env: function () {
+    env: function (args) {
+      if (args.length) { tooMany('env'); return; }
       var theme = document.documentElement.getAttribute('data-theme');
       line([
         'TERM=xterm-256color',
@@ -1218,6 +1257,7 @@ function toggleTheme() {
     },
 
     make: function (args) {
+      if (args.length > 1) { tooMany('make'); return; }
       var target = args[0] || 'all';
       var steps = [
         'cc -O2 -Wall -o ' + target + ' main.c util.c',
@@ -1250,7 +1290,8 @@ function toggleTheme() {
       ].join('\n'), 'term-line-pre');
     },
 
-    fortune: function () {
+    fortune: function (args) {
+      if (args.length) { tooMany('fortune'); return; }
       line(QUOTES[Math.floor(Math.random() * QUOTES.length)]);
     },
 
@@ -1261,9 +1302,9 @@ function toggleTheme() {
       if (entry) line(entry, 'term-line-pre');
       else line('no manual entry for ' + a[0], 'term-line-err');
     },
-    clear:  function () { output.innerHTML = ''; },
-    exit:   function () { close(); },
-    q:      function () { close(); },
+    clear:  function (args) { if (args.length) { tooMany('clear'); return; } output.innerHTML = ''; },
+    exit:   function (args) { if (args.length) { tooMany('exit'); return; } close(); },
+    q:      function (args) { if (args.length) { tooMany('q'); return; } close(); },
     echo:   function (args) { line(args.join(' ')); },
     curl:   function (args) {
       var isSite = args.some(function (a) { return a.indexOf('ekanshgoenka') >= 0; });
@@ -1341,8 +1382,8 @@ function toggleTheme() {
       }, 80);
     },
     sudo:   function ()  { line('ekansh is not in the sudoers file. this incident will be reported.', 'term-line-err'); },
-    vim:    function ()  { line('you\'re already in vim (spiritually).', 'term-line-ok'); },
-    date:   function ()  { line(new Date().toString().toLowerCase()); },
+    vim:    function (args) { if (args.length) { tooMany('vim'); return; } line('you\'re already in vim (spiritually).', 'term-line-ok'); },
+    date:   function (args) { if (args.length) { tooMany('date'); return; } line(new Date().toString().toLowerCase()); },
     rm: function (a) {
       var flags = a.filter(function (x) { return x[0] === '-'; }).join('');
       var paths = a.filter(function (x) { return x[0] !== '-'; });
