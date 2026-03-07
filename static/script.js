@@ -770,47 +770,18 @@ function toggleTheme() {
 
       var stopAudio = startAudio();
 
-      // ── screen shake ── RAF loop, intensity grows over time ───
-      var shakeStart  = Date.now();
-      var shaking     = true;
-      var shakeX = 0, shakeY = 0, shakeVX = 0, shakeVY = 0;
-      document.body.style.transformOrigin = 'center top';
-
-      (function shakeLoop() {
-        if (!shaking) {
-          document.body.style.transform = '';
-          var cv = document.getElementById('bg-canvas');
-          if (cv) cv.style.transform = '';
-          return;
-        }
-        var elapsed    = (Date.now() - shakeStart) / 1000;
-        var intensity  = Math.min(elapsed * 1.4, 10);
-        // spring-ish random walk
-        shakeVX += (Math.random() - 0.5) * intensity * 0.9;
-        shakeVY += (Math.random() - 0.5) * intensity * 0.5;
-        shakeVX *= 0.72; shakeVY *= 0.72;
-        shakeX  += shakeVX; shakeY += shakeVY;
-        // occasional hard jolt
-        if (Math.random() < 0.04 + elapsed * 0.006) {
-          shakeVX += (Math.random() - 0.5) * intensity * 3;
-          shakeVY += (Math.random() - 0.5) * intensity * 1.5;
-        }
-        document.body.style.transform = 'translate(' + shakeX.toFixed(1) + 'px,' + shakeY.toFixed(1) + 'px)';
-        // counter-transform canvas so it stays viewport-fixed (body transform breaks position:fixed)
-        var cv = document.getElementById('bg-canvas');
-        if (cv) cv.style.transform = 'translate(' + (-shakeX).toFixed(1) + 'px,' + (-shakeY).toFixed(1) + 'px)';
-        requestAnimationFrame(shakeLoop);
-      })();
+      // blank ALL whitespace-only text nodes upfront so no phantom newlines remain
+      (function stripWhitespace(node) {
+        if (node.nodeType === 3 && !node.textContent.trim()) { node.textContent = ''; return; }
+        for (var i = 0; i < node.childNodes.length; i++) stripWhitespace(node.childNodes[i]);
+      })(document.body);
 
       // ── phase 1: text corruption ────────────────────────────
       var textNodes = [];
-      function collectText(node) {
-        if (node.nodeType === 3 && node.textContent.length > 0)
-          textNodes.push(node);
-        for (var i = 0; i < node.childNodes.length; i++)
-          collectText(node.childNodes[i]);
-      }
-      collectText(document.body);
+      (function collectText(node) {
+        if (node.nodeType === 3 && node.textContent.length > 0) textNodes.push(node);
+        for (var i = 0; i < node.childNodes.length; i++) collectText(node.childNodes[i]);
+      })(document.body);
 
       var corruptRate = 1;
       var corruptTick = setInterval(function () {
@@ -821,8 +792,6 @@ function toggleTheme() {
           if (!tn.parentNode) { textNodes.splice(idx, 1); continue; }
           var chars = tn.textContent.split('');
           if (!chars.length) { textNodes.splice(idx, 1); continue; }
-          // whitespace-only nodes: blank them out entirely
-          if (!tn.textContent.trim()) { tn.textContent = ''; textNodes.splice(idx, 1); continue; }
           chars[Math.floor(Math.random() * chars.length)] =
             GLITCH[Math.floor(Math.random() * GLITCH.length)];
           tn.textContent = chars.join('');
@@ -854,14 +823,7 @@ function toggleTheme() {
             el.style.transform  = 'translateX(' + (Math.random() * 14 - 7) + 'px)';
             (function (e) {
               setTimeout(function () {
-                if (!e.parentNode) return;
-                // also strip adjacent whitespace text nodes
-                var prev = e.previousSibling, next = e.nextSibling;
-                e.parentNode.removeChild(e);
-                if (prev && prev.nodeType === 3 && !prev.textContent.trim() && prev.parentNode)
-                  prev.parentNode.removeChild(prev);
-                if (next && next.nodeType === 3 && !next.textContent.trim() && next.parentNode)
-                  next.parentNode.removeChild(next);
+                if (e.parentNode) e.parentNode.removeChild(e);
               }, 130);
             })(el);
           }
@@ -881,19 +843,17 @@ function toggleTheme() {
 
         // ── phase 4: blackout ─────────────────────────────────
         setTimeout(function () {
-          shaking = false;
           clearInterval(colorTick);
           stopAudio();
           var canvas = document.getElementById('bg-canvas');
           if (canvas) { canvas.style.transition = 'opacity 1.2s'; canvas.style.opacity = '0'; }
-          document.body.style.transform  = '';
           document.body.style.transition = 'background 1.2s, color 1.2s';
           document.body.style.background = '#000';
           document.body.style.color      = '#000';
           document.documentElement.style.background = '#000';
 
           setTimeout(function () {
-            localStorage.setItem('bgSpeed', '3'); // reset before reload so next visit isn't speed 10
+            localStorage.setItem('bgSpeed', '3');
             document.body.innerHTML = '';
             document.body.style.cssText = 'background:#000;margin:0;padding:0;height:100vh;';
           }, 1300);
