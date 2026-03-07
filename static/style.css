@@ -93,7 +93,7 @@ header { margin-bottom: 28px; }
 .article-nav { display: flex; justify-content: space-between; margin-top: 40px; }
 .article-nav-next { margin-left: auto; }
 
-.album-cover { display: block; width: 100%; height: auto; margin-bottom: 28px; }
+.album-cover { display: block; width: 240px; height: 240px; object-fit: cover; margin-bottom: 20px; }
 
 .back { display: inline-block; color: var(--muted); margin-bottom: 28px; font-size: 0.88rem; }
 .back:hover { color: var(--accent); text-decoration: none; }
@@ -104,9 +104,9 @@ header { margin-bottom: 28px; }
 .links { display: flex; gap: 16px; margin-top: 24px; flex-wrap: wrap; }
 .links a { color: var(--accent); font-size: 0.88rem; }
 
-footer { margin-top: 48px; font-size: 0.77rem; }
-.footer-meta { color: var(--muted); margin-bottom: 4px; }
-.footer-links { display: flex; gap: 16px; flex-wrap: wrap; }
+footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 0.77rem; }
+.footer-meta { color: var(--muted); }
+.footer-links { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 4px; }
 .footer-links a { color: var(--muted); }
 .footer-links a:hover { color: var(--accent); text-decoration: none; }
 
