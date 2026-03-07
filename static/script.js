@@ -1,60 +1,36 @@
-/* ── THEME SYSTEM ──────────────────────────────────────────── */
-
-function getOSMode() {
-  return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-}
-
-function applyMode(mode) {
-  document.documentElement.setAttribute('data-mode', mode);
-  var t = document.getElementById('t');
-  if (t) t.textContent = mode === 'light' ? '[day]' : '[night]';
-  var mb = document.getElementById('theme-mode-btn');
-  if (mb) mb.textContent = mode === 'light' ? '○' : '●';
-}
+var THEMES = ['tokyo-night', 'rose-pine', 'gruvbox'];
 
 function applyTheme(name) {
   document.documentElement.setAttribute('data-theme', name);
   localStorage.setItem('theme', name);
+  var t = document.getElementById('t');
+  if (t) t.textContent = name === 'rose-pine' ? '[light]' : '[dark]';
   var dots = document.querySelectorAll('.tp-dot');
   for (var i = 0; i < dots.length; i++)
     dots[i].classList.toggle('active', dots[i].getAttribute('data-t') === name);
 }
 
-function toggleMode() {
-  var cur = document.documentElement.getAttribute('data-mode') || 'dark';
-  var next = cur === 'light' ? 'dark' : 'light';
-  applyMode(next);
-  localStorage.setItem('themeMode', next);
+function toggleTheme() {
+  var cur = document.documentElement.getAttribute('data-theme');
+  var idx = THEMES.indexOf(cur);
+  applyTheme(THEMES[(idx + 1) % THEMES.length]);
 }
-
-function toggleTheme() { toggleMode(); }
 
 (function () {
   var saved = localStorage.getItem('theme') || 'tokyo-night';
-  if (saved === 'dark')  saved = 'tokyo-night';
+  if (saved === 'dark') saved = 'tokyo-night';
   if (saved === 'light') saved = 'rose-pine';
-  var savedMode = localStorage.getItem('themeMode') || getOSMode();
+  if (THEMES.indexOf(saved) < 0) saved = 'tokyo-night';
   applyTheme(saved);
-  applyMode(savedMode);
-
-  // Auto-follow OS changes — only when user hasn't manually overridden
-  window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', function (e) {
-    if (!localStorage.getItem('themeMode')) {
-      applyMode(e.matches ? 'light' : 'dark');
-    }
-  });
 
   document.addEventListener('DOMContentLoaded', function () {
     applyTheme(document.documentElement.getAttribute('data-theme'));
-    applyMode(document.documentElement.getAttribute('data-mode') || getOSMode());
     var dots = document.querySelectorAll('.tp-dot');
     for (var i = 0; i < dots.length; i++) {
       dots[i].addEventListener('click', (function (d) {
         return function () { applyTheme(d.getAttribute('data-t')); };
       })(dots[i]));
     }
-    var mb = document.getElementById('theme-mode-btn');
-    if (mb) mb.addEventListener('click', toggleMode);
   });
 })();
 
@@ -79,7 +55,7 @@ function toggleTheme() { toggleMode(); }
   var W, H;
 
   function isDark() {
-    return document.documentElement.getAttribute('data-mode') !== 'light';
+    return document.documentElement.getAttribute('data-theme') !== 'rose-pine';
   }
 
   function updateBtn() {
@@ -441,19 +417,17 @@ function toggleTheme() { toggleMode(); }
   };
 
   var NEOFETCH = [
-    '  ╭───────────────────────╮   ekansh@home',
-    '  │                       │   ─────────────────────────────────────',
-    '  │   ┌─────────────┐     │',
-    '  │   │  >_ ██████  │     │   age        12',
-    '  │   │  ████  ████ │     │   os         macos',
-    '  │   │  ██  ██████ │     │   editor     vim',
-    '  │   └─────────────┘     │   shell      zsh',
-    '  │                       │',
-    '  ╰───────────────────────╯',
+    '  ╔═══════════════╗  ekansh@home',
+    '  ║               ║  ────────────────────────────────────',
+    '  ║    ┌─────┐    ║',
+    '  ║    │ >_  │    ║  age      12',
+    '  ║    │     │    ║  editor   vim',
+    '  ║    └─────┘    ║',
+    '  ╚═══════════════╝',
     '',
-    '                              projects    byte-space · geno',
-    '                              music       btop',
-    '                              hobbies     bjj · music · reading',
+    '                     projects  byte-space · geno',
+    '                     music     btop',
+    '                     hobbies   bjj · cs · music · reading',
   ].join('\n');
 
   var HELP = [
@@ -464,7 +438,6 @@ function toggleTheme() { toggleMode(); }
     '  whoami             who is this',
     '  neofetch           system info',
     '  theme [name]       list or switch theme',
-    '  mode [light|dark]  toggle light / dark mode',
     '  github / youtube / itch   open links',
     '  clear              clear output',
     '  exit / q           close terminal',
@@ -543,22 +516,8 @@ function toggleTheme() { toggleMode(); }
 
     neofetch: function () { line(NEOFETCH, 'term-line-pre'); },
 
-    mode: function (args) {
-      var m = args[0];
-      if (m === 'light' || m === 'dark') {
-        applyMode(m);
-        localStorage.setItem('themeMode', m);
-        line('mode → ' + m, 'term-line-ok');
-      } else if (!m) {
-        var cur = document.documentElement.getAttribute('data-mode') || 'dark';
-        line('mode: ' + cur + ' (light | dark)', 'term-line-ok');
-      } else {
-        line('mode: use "light" or "dark"', 'term-line-err');
-      }
-    },
-
     theme: function (args) {
-      var ALL = ['tokyo-night','rose-pine','gruvbox','catppuccin','nord','everforest'];
+      var ALL = ['tokyo-night', 'rose-pine', 'gruvbox'];
       var name = args[0];
       if (!name) {
         line('themes: ' + ALL.join('  '));
