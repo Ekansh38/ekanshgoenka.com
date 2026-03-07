@@ -70,7 +70,7 @@ function toggleTheme() {
 
   var MODES = ['life', 'boids', 'off'];
   var modeIdx = Math.max(0, MODES.indexOf(localStorage.getItem('bgMode') || 'life'));
-  var speedLevel = parseInt(localStorage.getItem('bgSpeed') || '1');
+  var speedLevel = parseInt(localStorage.getItem('bgSpeed') || '3');
   var W, H;
 
   function isDark() {
@@ -777,7 +777,12 @@ function toggleTheme() {
       document.body.style.transformOrigin = 'center top';
 
       (function shakeLoop() {
-        if (!shaking) { document.body.style.transform = ''; return; }
+        if (!shaking) {
+          document.body.style.transform = '';
+          var cv = document.getElementById('bg-canvas');
+          if (cv) cv.style.transform = '';
+          return;
+        }
         var elapsed    = (Date.now() - shakeStart) / 1000;
         var intensity  = Math.min(elapsed * 1.4, 10);
         // spring-ish random walk
@@ -791,6 +796,9 @@ function toggleTheme() {
           shakeVY += (Math.random() - 0.5) * intensity * 1.5;
         }
         document.body.style.transform = 'translate(' + shakeX.toFixed(1) + 'px,' + shakeY.toFixed(1) + 'px)';
+        // counter-transform canvas so it stays viewport-fixed (body transform breaks position:fixed)
+        var cv = document.getElementById('bg-canvas');
+        if (cv) cv.style.transform = 'translate(' + (-shakeX).toFixed(1) + 'px,' + (-shakeY).toFixed(1) + 'px)';
         requestAnimationFrame(shakeLoop);
       })();
 
@@ -885,6 +893,7 @@ function toggleTheme() {
           document.documentElement.style.background = '#000';
 
           setTimeout(function () {
+            localStorage.setItem('bgSpeed', '3'); // reset before reload so next visit isn't speed 10
             document.body.innerHTML = '';
             document.body.style.cssText = 'background:#000;margin:0;padding:0;height:100vh;';
           }, 1300);
