@@ -1400,19 +1400,69 @@ function toggleTheme() {
   };
 
   // ── tab completion ──────────────────────────────────────────
-  var ALL_PATHS = Object.keys(FS).filter(function (p) { return p; });
   var CMD_NAMES = Object.keys(CMDS);
+
+  function commonPrefix(strs) {
+    if (!strs.length) return '';
+    var p = strs[0];
+    for (var i = 1; i < strs.length; i++) {
+      while (strs[i].slice(0, p.length) !== p) { p = p.slice(0, -1); if (!p) return ''; }
+    }
+    return p;
+  }
+
+  // returns completion hits for a partially-typed path argument
+  function completePath(typed) {
+    var lastSlash = typed.lastIndexOf('/');
+    var dirPart, namePart, dirPath;
+    if (lastSlash >= 0) {
+      dirPart  = typed.slice(0, lastSlash + 1);       // e.g. "projects/"
+      namePart = typed.slice(lastSlash + 1);           // e.g. "b"
+      dirPath  = resolvePath(typed.slice(0, lastSlash) || '');
+    } else {
+      dirPart  = '';
+      namePart = typed;
+      dirPath  = cwd;                                  // relative to current dir
+    }
+    var prefix = dirPath ? dirPath + '/' : '';
+    return lsChildren(dirPath)
+      .filter(function (n) { return n.indexOf(namePart) === 0; })
+      .map(function (n) {
+        var isDir = FS[prefix + n] && FS[prefix + n].type === 'dir';
+        return dirPart + n + (isDir ? '/' : '');
+      });
+  }
 
   function complete(val) {
     var parts = val.trimStart().split(/\s+/);
-    var prefix = parts[parts.length - 1];
-    var pool = parts.length === 1 ? CMD_NAMES : ALL_PATHS.concat(lsChildren(cwd));
-    var hits = pool.filter(function (c) { return c.indexOf(prefix) === 0; });
+    var isCmd   = parts.length === 1;
+    var typed   = parts[parts.length - 1];
+
+    var hits = isCmd
+      ? CMD_NAMES.filter(function (c) { return c.indexOf(typed) === 0; })
+      : completePath(typed);
+
+    if (!hits.length) return val;
+
     if (hits.length === 1) {
       parts[parts.length - 1] = hits[0];
       return parts.join(' ');
     }
-    if (hits.length > 1) { echoCmd(val); line(hits.join('  ')); }
+
+    // advance to longest common prefix
+    var cp = commonPrefix(hits);
+    if (cp.length > typed.length) {
+      parts[parts.length - 1] = cp;
+      return parts.join(' ');
+    }
+
+    // already at common prefix — show options (basenames only)
+    echoCmd(val);
+    line(hits.map(function (h) {
+      var cut = h.length - (h.endsWith('/') ? 1 : 0);
+      var slash = h.lastIndexOf('/', cut - 1);
+      return h.slice(slash + 1);
+    }).join('  '));
     return val;
   }
 
