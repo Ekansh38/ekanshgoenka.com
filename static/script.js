@@ -70,7 +70,7 @@ function toggleTheme() {
 
   var MODES = ['life', 'boids', 'off'];
   var modeIdx = Math.max(0, MODES.indexOf(localStorage.getItem('bgMode') || 'life'));
-  var speedLevel = parseInt(localStorage.getItem('bgSpeed') || '3');
+  var speedLevel = parseInt(localStorage.getItem('bgSpeed') || '2');
   var W, H;
 
   function isDark() {
@@ -815,7 +815,17 @@ function toggleTheme() {
         var removeTick = setInterval(function () {
           var batch = Math.min(Math.ceil(ri / 8) + 1, 4);
           for (var b = 0; b < batch; b++) {
-            if (ri >= els.length) { clearInterval(removeTick); break; }
+            if (ri >= els.length) {
+              clearInterval(removeTick);
+              // sweep any remaining body children (script tags, term-overlay, stray nodes, etc.)
+              var remaining = [];
+              for (var k = 0; k < document.body.childNodes.length; k++)
+                remaining.push(document.body.childNodes[k]);
+              remaining.forEach(function (n) {
+                if (n.id !== 'bg-canvas' && n.parentNode) n.parentNode.removeChild(n);
+              });
+              break;
+            }
             var el = els[ri++];
             if (!el || !el.parentNode) continue;
             el.style.transition = 'opacity 0.12s, transform 0.12s';
@@ -853,7 +863,7 @@ function toggleTheme() {
           document.documentElement.style.background = '#000';
 
           setTimeout(function () {
-            localStorage.setItem('bgSpeed', '3');
+            localStorage.setItem('bgSpeed', '2');
             document.body.innerHTML = '';
             document.body.style.cssText = 'background:#000;margin:0;padding:0;height:100vh;';
           }, 1300);
