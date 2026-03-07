@@ -661,23 +661,104 @@ function toggleTheme() {
 // ================================================================
 
 // ================================================================
-// VIM MODE — pure text-file navigation (off by default)
-// j/k  line scroll   gg/G  top/bottom
-// ctrl+d/u  half page   ctrl+f/b  full page
-// Block cursor, blinking, -- NORMAL -- statusline
-// Toggle: click [vim] button in header
+// VIM MODE — cursor-based text navigation (off by default)
+// The cursor sits on a line element and moves with hjkl.
+// The page auto-scrolls to keep the cursor visible (scrolloff).
+// gg/G  top/bottom    ctrl+d/u  half page    0/$  line start/end
+// Toggle: [vim] button in header, or `vim` in terminal
 // ================================================================
 (function () {
-  var enabled   = localStorage.getItem('vimMode') === 'true'; // default OFF
-  var waiting   = false;   // for gg sequence
+  var enabled   = localStorage.getItem('vimMode') === 'true';
+  var waiting   = false;
   var waitTimer = null;
+  var lineEls   = [];
+  var lineIdx   = 0;
+  var charIdx   = 0;
+  var SCROLLOFF = 80; // px to keep above/below cursor (≈3 lines)
 
-  var cursorEl, modeLabel, pendingEl;
+  var cursorEl, pendingEl;
 
-  function setPending(k) {
-    if (pendingEl) pendingEl.textContent = k || '';
+  // ── collect navigable lines ──────────────────────────────────
+  function getLines() {
+    var sel = 'h1, .tagline, .nav a, .social a, h2, h3, p, li';
+    var all = document.querySelectorAll(sel);
+    var out = [];
+    for (var i = 0; i < all.length; i++) {
+      var el = all[i];
+      if (el.offsetParent !== null && el.textContent.trim().length > 0)
+        out.push(el);
+    }
+    return out;
   }
 
+  // ── get bounding rect of character at idx in element ────────
+  function charRect(el, idx) {
+    var fullText = el.textContent;
+    idx = Math.max(0, Math.min(fullText.length - 1, idx));
+
+    function walk(node, state) {
+      if (state.done) return;
+      if (node.nodeType === 3) {
+        var len = node.textContent.length;
+        if (state.rem < len) {
+          try {
+            var r = document.createRange();
+            r.setStart(node, state.rem);
+            r.setEnd(node, Math.min(state.rem + 1, len));
+            var rect = r.getBoundingClientRect();
+            if (rect.width > 0 || rect.height > 0) { state.rect = rect; state.done = true; }
+          } catch (e) {}
+        } else {
+          state.rem -= len;
+        }
+        return;
+      }
+      for (var i = 0; i < node.childNodes.length && !state.done; i++)
+        walk(node.childNodes[i], state);
+    }
+
+    var state = { rem: idx, rect: null, done: false };
+    walk(el, state);
+    return state.rect || el.getBoundingClientRect();
+  }
+
+  // ── cursor rendering (RAF loop keeps it glued during scroll) ─
+  function updateCursor() {
+    if (!cursorEl || !lineEls[lineIdx]) return;
+    var rect = charRect(lineEls[lineIdx], charIdx);
+    cursorEl.style.left   = rect.left + 'px';
+    cursorEl.style.top    = rect.top  + 'px';
+    cursorEl.style.height = Math.max(rect.height, 14) + 'px';
+  }
+
+  (function raf() {
+    if (enabled) updateCursor();
+    requestAnimationFrame(raf);
+  })();
+
+  // ── scrolloff ────────────────────────────────────────────────
+  function ensureVisible() {
+    var el = lineEls[lineIdx];
+    if (!el) return;
+    var rect = el.getBoundingClientRect();
+    if (rect.top < SCROLLOFF)
+      window.scrollBy({ top: rect.top - SCROLLOFF, behavior: 'smooth' });
+    else if (rect.bottom > window.innerHeight - SCROLLOFF)
+      window.scrollBy({ top: rect.bottom - window.innerHeight + SCROLLOFF, behavior: 'smooth' });
+  }
+
+  // ── movement helpers ─────────────────────────────────────────
+  function moveLine(delta) {
+    lineIdx = Math.max(0, Math.min(lineEls.length - 1, lineIdx + delta));
+    charIdx = Math.min(charIdx, Math.max(0, lineEls[lineIdx].textContent.length - 1));
+    ensureVisible();
+  }
+
+  function moveChar(delta) {
+    charIdx = Math.max(0, Math.min(lineEls[lineIdx].textContent.length - 1, charIdx + delta));
+  }
+
+  // ── enable/disable ───────────────────────────────────────────
   function applyEnabled() {
     document.body.classList.toggle('vim-mode-active', enabled);
     var b = document.getElementById('vim-btn');
@@ -685,33 +766,32 @@ function toggleTheme() {
       b.classList.toggle('vim-on', enabled);
       b.textContent = enabled ? '[vim:on]' : '[vim]';
     }
+    if (enabled) {
+      lineEls = getLines();
+      lineIdx = 0;
+      charIdx = 0;
+    }
   }
 
   function toggleVim() {
     enabled = !enabled;
     localStorage.setItem('vimMode', enabled);
-    if (!enabled) { waiting = false; clearTimeout(waitTimer); setPending(''); }
+    if (!enabled) { waiting = false; clearTimeout(waitTimer); if (pendingEl) pendingEl.textContent = ''; }
     applyEnabled();
   }
   window.toggleVimMode = toggleVim;
   window.isVimEnabled  = function () { return enabled; };
 
-  document.addEventListener('mousemove', function (e) {
-    if (cursorEl && enabled) {
-      cursorEl.style.left = e.clientX + 'px';
-      cursorEl.style.top  = e.clientY + 'px';
-    }
-  });
-
   document.addEventListener('DOMContentLoaded', function () {
     cursorEl  = document.getElementById('vim-cursor');
-    modeLabel = document.getElementById('vim-mode-label');
     pendingEl = document.getElementById('vim-pending');
+    lineEls   = getLines();
     applyEnabled();
     var b = document.getElementById('vim-btn');
     if (b) b.addEventListener('click', toggleVim);
   });
 
+  // ── guards ───────────────────────────────────────────────────
   function isTyping() {
     var o = document.getElementById('term-overlay');
     if (o && o.classList.contains('open')) return true;
@@ -723,54 +803,51 @@ function toggleTheme() {
     return tag === 'INPUT' || tag === 'TEXTAREA' || el.isContentEditable;
   }
 
+  // ── keydown ──────────────────────────────────────────────────
   document.addEventListener('keydown', function (e) {
     if (!enabled) return;
     if (e.metaKey || e.altKey) return;
     if (isTyping()) return;
 
-    var k = e.key;
+    var k    = e.key;
+    var half = Math.max(5, Math.floor(window.innerHeight / 48));
 
-    // ctrl+d / ctrl+u / ctrl+f / ctrl+b
     if (e.ctrlKey) {
-      if (k === 'd') { e.preventDefault(); window.scrollBy({ top:  Math.round(window.innerHeight * 0.5), behavior: 'smooth' }); }
-      if (k === 'u') { e.preventDefault(); window.scrollBy({ top: -Math.round(window.innerHeight * 0.5), behavior: 'smooth' }); }
-      if (k === 'f') { e.preventDefault(); window.scrollBy({ top:  window.innerHeight, behavior: 'smooth' }); }
-      if (k === 'b') { e.preventDefault(); window.scrollBy({ top: -window.innerHeight, behavior: 'smooth' }); }
+      if (k === 'd') { e.preventDefault(); moveLine(half);      }
+      if (k === 'u') { e.preventDefault(); moveLine(-half);     }
+      if (k === 'f') { e.preventDefault(); moveLine(half * 2);  }
+      if (k === 'b') { e.preventDefault(); moveLine(-half * 2); }
       return;
     }
 
-    // gg sequence
     if (waiting) {
       clearTimeout(waitTimer);
       waiting = false;
-      setPending('');
-      if (k === 'g') { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+      if (pendingEl) pendingEl.textContent = '';
+      if (k === 'g') { e.preventDefault(); lineIdx = 0; charIdx = 0; ensureVisible(); }
       return;
     }
 
     switch (k) {
-      case 'j':
-        e.preventDefault();
-        window.scrollBy({ top: 60, behavior: 'smooth' });
-        break;
-      case 'k':
-        e.preventDefault();
-        window.scrollBy({ top: -60, behavior: 'smooth' });
-        break;
+      case 'j': e.preventDefault(); moveLine(1);  break;
+      case 'k': e.preventDefault(); moveLine(-1); break;
+      case 'h': e.preventDefault(); moveChar(-1); break;
+      case 'l': e.preventDefault(); moveChar(1);  break;
+      case '0': e.preventDefault(); charIdx = 0; break;
+      case '$': e.preventDefault(); charIdx = Math.max(0, lineEls[lineIdx].textContent.length - 1); break;
       case 'G':
         e.preventDefault();
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        lineIdx = lineEls.length - 1; charIdx = 0; ensureVisible();
         break;
       case 'g':
         e.preventDefault();
-        waiting   = true;
-        setPending('g');
-        waitTimer = setTimeout(function () { waiting = false; setPending(''); }, 600);
+        waiting = true;
+        if (pendingEl) pendingEl.textContent = 'g';
+        waitTimer = setTimeout(function () { waiting = false; if (pendingEl) pendingEl.textContent = ''; }, 600);
         break;
       case 'Escape':
-        waiting = false;
-        clearTimeout(waitTimer);
-        setPending('');
+        waiting = false; clearTimeout(waitTimer);
+        if (pendingEl) pendingEl.textContent = '';
         break;
     }
   });

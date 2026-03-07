@@ -331,18 +331,15 @@ body { background: transparent; text-shadow: 0 0 18px var(--shadow), 0 0 6px var
 }
 
 /* ── VIM CURSOR + STATUSLINE ─────────────────────────────────── */
-body.vim-mode-active { cursor: none; }
-
 #vim-cursor {
   display: none;
   position: fixed;
   pointer-events: none;
   z-index: 99999;
-  width: 10px;
+  width: 9px;
   height: 16px;
   background: var(--fg);
   mix-blend-mode: difference;
-  transform: translate(-1px, -3px);
 }
 body.vim-mode-active #vim-cursor {
   display: block;
