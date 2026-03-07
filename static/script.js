@@ -606,6 +606,7 @@ function toggleTheme() {
       '  tar                 archive',
       '  yes [text]          infinite output',
 
+      '  curl -L <url>        try it',
       '  sudo <cmd>          nope',
       '  rm -rf /            nice try',
       '  vim                 spiritual',
@@ -642,6 +643,7 @@ function toggleTheme() {
     git:     'git <subcommand>\n  git plumbing.\n\n  git log     → recent commits\n  git status  → working tree status\n  git diff    → diff',
     make:    'make [target]\n  build target.\n\n  make\n  make clean',
     tar:     'tar [flags] [file]\n  archive utility.\n\n  tar -xzf archive.tar.gz',
+    curl:    'curl -L <url>\n  transfer data. try:\n\n  curl -L ekanshgoenka.com',
   };
 
   // ── output helpers ──────────────────────────────────────────
@@ -1232,29 +1234,77 @@ function toggleTheme() {
     curl:   function (args) {
       var isSite = args.some(function (a) { return a.indexOf('ekanshgoenka') >= 0; });
       if (!isSite) { line('curl: not available here', 'term-line-err'); return; }
-      var RAIN = [
-        '|  .  |    |  .   |    |     |  .  |    |',
-        '|  .  |    .  |   |    |  .  |     |    .',
-        '.     |  | .  |   |  . |     |     .    |',
-        '|  .  |    |  .   |    |     |  .  |    |',
-        '|     .    |  .   .    .     |     |  . |',
-        '.  .  |    |  .   |    |  .  |     |    |',
-        '|  .  |    .  |   |    |     |  .  |    .',
-        '|     .    |  .   |  . |     |     |    |',
-        '.    USE  A  BROWSER,  YOU  NERD  . |    |',
-        '|  .  |    |  .   |    |     |  .  |    |',
-        '.     |    .  |   |    |  .  |  .  |    |',
-        '|  .  |    |  .   .    |     |     .    |',
-        '|  .  .    |  .   |    |  .  |     |  . |',
-        '.     |    .  |   |    |     |  .  |    .',
-        '|  .  |    |  .   |    |  .  |     |    |',
-      ];
-      RAIN.forEach(function (l, i) {
-        setTimeout(function () { line(l, 'term-line-pre'); }, i * 100);
-      });
-      setTimeout(function () {
-        line('JUST USE A REGULAR BROWSER!!!', 'term-line-err');
-      }, RAIN.length * 100 + 150);
+
+      var CW = 66, CH = 13;
+      var BG_TEXT = 'USE  A  BROWSER,  YOU  NERD';
+      var BG_ROW  = Math.floor(CH / 2);
+      var BG_COL  = Math.floor((CW - BG_TEXT.length) / 2);
+
+      // build background text grid
+      var bg = [];
+      for (var y = 0; y < CH; y++) { bg[y] = []; for (var x = 0; x < CW; x++) bg[y][x] = null; }
+      for (var i = 0; i < BG_TEXT.length; i++) if (BG_COL + i < CW) bg[BG_ROW][BG_COL + i] = BG_TEXT[i];
+
+      // rain columns
+      var cols = [];
+      for (var x = 0; x < CW; x++) {
+        cols.push({ y: -Math.floor(Math.random() * CH * 2), spd: 0.4 + Math.random() * 0.6,
+                    len: 2 + Math.floor(Math.random() * 4), on: Math.random() > 0.45 });
+      }
+
+      function stepRain() {
+        for (var i = 0; i < cols.length; i++) {
+          var c = cols[i]; if (!c.on) continue;
+          c.y += c.spd;
+          if (c.y - c.len > CH) {
+            c.y = -Math.floor(Math.random() * 6); c.len = 2 + Math.floor(Math.random() * 4);
+            c.spd = 0.4 + Math.random() * 0.6;   c.on  = Math.random() > 0.2;
+          }
+        }
+      }
+
+      function renderFrame(fadeRatio) {
+        var html = '';
+        for (var y = 0; y < CH; y++) {
+          for (var x = 0; x < CW; x++) {
+            var col = cols[x], hy = Math.floor(col.y), dist = hy - y;
+            var ch = null, style = '';
+            if (col.on) {
+              if (dist === 0)                         { ch = '.'; style = 'color:var(--accent)'; }
+              else if (dist > 0 && dist <= col.len)   { ch = '|'; style = dist < 2 ? 'color:var(--accent)' : 'color:var(--muted)'; }
+            }
+            if (ch && fadeRatio > 0 && Math.random() < fadeRatio) ch = null;
+            if (ch)            html += '<span style="' + style + '">' + ch + '</span>';
+            else if (bg[y][x]) html += '<span style="color:var(--fg);font-weight:bold">' + bg[y][x] + '</span>';
+            else               html += ' ';
+          }
+          if (y < CH - 1) html += '\n';
+        }
+        return html;
+      }
+
+      var pre = document.createElement('pre');
+      pre.className = 'term-line-pre';
+      output.appendChild(pre);
+      output.scrollTop = output.scrollHeight;
+
+      var frame = 0, MAIN = 75, FADE = 10;
+      var timer = setInterval(function () {
+        stepRain();
+        if (frame < MAIN) {
+          pre.innerHTML = renderFrame(0);
+        } else if (frame < MAIN + FADE) {
+          pre.innerHTML = renderFrame((frame - MAIN + 1) / FADE);
+        } else {
+          clearInterval(timer);
+          pre.innerHTML = '';
+          line('JUST USE A REGULAR BROWSER!!!', 'term-line-err');
+          output.scrollTop = output.scrollHeight;
+          return;
+        }
+        frame++;
+        output.scrollTop = output.scrollHeight;
+      }, 80);
     },
     sudo:   function ()  { line('ekansh is not in the sudoers file. this incident will be reported.', 'term-line-err'); },
     vim:    function ()  { line('you\'re already in vim (spiritually).', 'term-line-ok'); },
