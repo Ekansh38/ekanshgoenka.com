@@ -655,36 +655,65 @@ function toggleTheme() {
 // VIM MODE — keyboard navigation (off by default)
 // j/k scroll  d/u half-page  gg/G top/bottom
 // f  link hints (vimium-style)  H/L history  gh home  t theme
+// Authentic: block cursor, blinking, -- NORMAL -- statusline,
+//            pending-key display, HINT mode label
 // Toggle: click [vim] button in header
 // ================================================================
 (function () {
-  var enabled   = localStorage.getItem('vimMode') === 'true'; // default OFF
-  var waiting   = false;   // for two-key sequences (g+g, g+h)
-  var waitTimer = null;
+  var enabled     = localStorage.getItem('vimMode') === 'true'; // default OFF
+  var waiting     = false;   // for two-key sequences (g+g, g+h)
+  var waitTimer   = null;
   var hintsActive = false;
-  var hintEls  = [];
-  var hintMap  = {};
+  var hintEls     = [];
+  var hintMap     = {};
 
-  function updateBtn() {
+  // ── DOM refs (set after DOMContentLoaded) ──────────────────
+  var cursorEl, statusEl, modeLabel, pendingEl;
+
+  // ── statusline helpers ──────────────────────────────────────
+  function setMode(label) {
+    if (modeLabel) modeLabel.textContent = label;
+  }
+  function setPending(k) {
+    if (pendingEl) pendingEl.textContent = k || '';
+  }
+
+  // ── cursor + body class ────────────────────────────────────
+  function applyEnabled() {
+    document.body.classList.toggle('vim-mode-active', enabled);
     var b = document.getElementById('vim-btn');
-    if (!b) return;
-    b.classList.toggle('vim-on', enabled);
-    b.textContent = enabled ? '[vim:on]' : '[vim]';
+    if (b) {
+      b.classList.toggle('vim-on', enabled);
+      b.textContent = enabled ? '[vim:on]' : '[vim]';
+    }
   }
 
   function toggleVim() {
     enabled = !enabled;
     localStorage.setItem('vimMode', enabled);
-    if (!enabled) clearHints();
-    updateBtn();
+    if (!enabled) { clearHints(); setPending(''); }
+    applyEnabled();
   }
 
+  // ── cursor tracking ─────────────────────────────────────────
+  document.addEventListener('mousemove', function (e) {
+    if (cursorEl && enabled) {
+      cursorEl.style.left = e.clientX + 'px';
+      cursorEl.style.top  = e.clientY + 'px';
+    }
+  });
+
   document.addEventListener('DOMContentLoaded', function () {
-    updateBtn();
+    cursorEl  = document.getElementById('vim-cursor');
+    statusEl  = document.getElementById('vim-statusline');
+    modeLabel = document.getElementById('vim-mode-label');
+    pendingEl = document.getElementById('vim-pending');
+    applyEnabled();
     var b = document.getElementById('vim-btn');
     if (b) b.addEventListener('click', toggleVim);
   });
 
+  // ── context guards ──────────────────────────────────────────
   function termOpen() {
     var o = document.getElementById('term-overlay');
     return o && o.classList.contains('open');
@@ -701,11 +730,14 @@ function toggleTheme() {
     return tag === 'INPUT' || tag === 'TEXTAREA' || el.isContentEditable;
   }
 
+  // ── link hints ──────────────────────────────────────────────
   function clearHints() {
     for (var i = 0; i < hintEls.length; i++) hintEls[i].remove();
-    hintEls  = [];
-    hintMap  = {};
+    hintEls     = [];
+    hintMap     = {};
     hintsActive = false;
+    setMode('-- NORMAL --');
+    setPending('');
   }
 
   function showHints() {
@@ -718,23 +750,26 @@ function toggleTheme() {
       if (rect.width === 0 || rect.height === 0) continue;
       if (rect.bottom < 0 || rect.top > window.innerHeight) continue;
       var hint = document.createElement('span');
-      hint.className  = 'vim-hint';
+      hint.className   = 'vim-hint';
       hint.textContent = chars[idx];
-      hint.style.top  = (rect.top  + window.scrollY) + 'px';
-      hint.style.left = (rect.left + window.scrollX) + 'px';
+      hint.style.top   = (rect.top  + window.scrollY) + 'px';
+      hint.style.left  = (rect.left + window.scrollX) + 'px';
       document.body.appendChild(hint);
       hintEls.push(hint);
       hintMap[chars[idx]] = links[i];
       idx++;
     }
     hintsActive = true;
+    setMode('-- HINT --');
+    setPending('type key to follow link, Esc to cancel');
   }
 
+  // ── keydown ─────────────────────────────────────────────────
   document.addEventListener('keydown', function (e) {
-    if (!enabled && !hintsActive) return;  // vim mode off — do nothing (but still cancel active hints)
+    if (!enabled && !hintsActive) return;
     if (e.ctrlKey || e.metaKey || e.altKey) return;
 
-    // hint mode: any key either follows a hint or cancels
+    // HINT mode: any key follows or cancels
     if (hintsActive) {
       e.preventDefault();
       var target = hintMap[e.key.toUpperCase()];
@@ -747,13 +782,22 @@ function toggleTheme() {
 
     var k = e.key;
 
-    // two-key sequence resolution
+    // resolve two-key sequences
     if (waiting) {
       clearTimeout(waitTimer);
       waiting = false;
-      if (k === 'g') { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; } // gg → top
-      if (k === 'h') { e.preventDefault(); window.location.href = '/'; return; }                      // gh → home
-      // unknown second key — fall through to handle normally below
+      setPending('');
+      if (k === 'g') {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      if (k === 'h') {
+        e.preventDefault();
+        window.location.href = '/';
+        return;
+      }
+      // unknown second key — fall through
     }
 
     switch (k) {
@@ -796,7 +840,8 @@ function toggleTheme() {
       case 'g':
         e.preventDefault();
         waiting   = true;
-        waitTimer = setTimeout(function () { waiting = false; }, 600);
+        setPending('g');
+        waitTimer = setTimeout(function () { waiting = false; setPending(''); }, 600);
         break;
       case 'Escape':
         clearHints();
