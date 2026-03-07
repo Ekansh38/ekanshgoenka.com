@@ -137,7 +137,8 @@ function toggleTheme() {
           ax += o.vx; ay += o.vy; ac++;
           if (d2 < S2 && d2 > 0) {
             d = Math.sqrt(d2);
-            sx -= dx/d; sy -= dy/d; sc++;
+            var w = 1.0 - d / SEP_DIST;  // stronger when closer
+            sx -= (dx/d) * w; sy -= (dy/d) * w; sc++;
           }
         }
       }
@@ -165,6 +166,23 @@ function toggleTheme() {
       b.x += b.vx * sp; b.y += b.vy * sp;
       if (b.x < -20) b.x = W+20; else if (b.x > W+20) b.x = -20;
       if (b.y < -20) b.y = H+20; else if (b.y > H+20) b.y = -20;
+    }
+
+    // Hard separation: directly push apart any boids still overlapping
+    var MIN_D = BOID_LEN * 1.2;
+    var MIN_D2 = MIN_D * MIN_D;
+    for (i = 0; i < N; i++) {
+      for (j = i + 1; j < N; j++) {
+        dx = boids[j].x - boids[i].x; dy = boids[j].y - boids[i].y;
+        d2 = dx*dx + dy*dy;
+        if (d2 < MIN_D2 && d2 > 0) {
+          d = Math.sqrt(d2);
+          var push = (MIN_D - d) * 0.5;
+          var nx = dx/d, ny = dy/d;
+          boids[i].x -= nx*push; boids[i].y -= ny*push;
+          boids[j].x += nx*push; boids[j].y += ny*push;
+        }
+      }
     }
   }
 
