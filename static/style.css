@@ -93,6 +93,8 @@ header { margin-bottom: 28px; }
 .article-nav { display: flex; justify-content: space-between; margin-top: 40px; }
 .article-nav-next { margin-left: auto; }
 
+.album-cover { display: block; width: 200px; height: 200px; object-fit: cover; margin-bottom: 20px; }
+
 footer { margin-top: 48px; font-size: 0.77rem; }
 .footer-meta { color: var(--muted); margin-bottom: 4px; }
 .footer-links { display: flex; gap: 16px; flex-wrap: wrap; }

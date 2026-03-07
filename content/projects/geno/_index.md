@@ -1,6 +1,6 @@
 ---
 title: "GENO"
-summary: "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+summary: "a genetic evolution simulator. genomes, natural selection, emergent behavior."
 stack: "Go"
 status: "in progress"
 github: "https://github.com/ekanshgoenka/geno"

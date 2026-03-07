@@ -2,12 +2,17 @@
 title: btop
 status: in production
 tools: Logic Pro
-year: "2025"
-summary: "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+year: "2026"
+summary: "an experimental electronic music album"
+cover: /images/btop-cover.png
 ---
 
-Bitcrushed percussion, degraded jazz samples, terminal textures. Five tracks. Near-monochrome art direction.
+Bitcrushed and degraded samples. Layered percussion and synths. Catchy airy arps. "btop" spans 5 tracks:
 
-Assembled in fragments — drum machines run through bit crushers, jazz loops degraded past recognition, field recordings of keyboard noise and fan hum threaded through. Sounds like a computer trying to remember what music sounded like.
+01: buFfer overflow someday
+02: chewing on copper wire
+03: soft reboot in the rain
+04: flUorescent rice water 
+05: wet Concrete handshaKe
 
-No release date set.
+Releasing on 22-03-2026.

@@ -2,6 +2,10 @@
 
 <a href="/" class="back">← home</a>
 
+{{ with .Params.cover }}
+<img src="{{ . }}" alt="{{ $.Title }} cover" class="album-cover">
+{{ end }}
+
 <div class="project-title">{{ .Title }}</div>
 <div class="project-meta">{{ .Params.tools }} · {{ .Params.year }} · {{ .Params.status }}</div>
 
