@@ -1,8 +1,7 @@
 // ── ANSI ──────────────────────────────────────────────────────────────────────
-const W    = '\x1b[97m'      // white  — rain head
-const GB   = '\x1b[92m'      // bright green — top of trail
-const G    = '\x1b[32m'      // green — mid trail
-const GD   = '\x1b[2;32m'    // dim green — tail + bg text
+const RAIN  = '\x1b[34m'      // blue rain
+const RAIND = '\x1b[2;34m'    // dim blue trail
+const BG    = '\x1b[1;97m'    // bold bright white — background text
 const RESET = '\x1b[0m'
 const CLEAR = '\x1b[2J\x1b[H'
 const HOME  = '\x1b[H'
@@ -10,12 +9,10 @@ const HIDE  = '\x1b[?25l'
 const SHOW  = '\x1b[?25h'
 
 const COLS = 80, ROWS = 24
-const RC = '0123456789abcdefghijklmnopqrstuvwxyz!@#$%&*<>{}|~'
-const rch = () => RC[Math.floor(Math.random() * RC.length)]
 const sleep = ms => new Promise(r => setTimeout(r, ms))
 
-// ── Background text (visible through rain gaps) ────────────────────────────
-const BG_TEXT = 'USE A BROWSER, YOU NERD'
+// ── Background text ────────────────────────────────────────────────────────
+const BG_TEXT = 'USE  A  BROWSER,  YOU  NERD'
 const BG_ROW  = Math.floor(ROWS / 2)
 const BG_COL  = Math.floor((COLS - BG_TEXT.length) / 2)
 
@@ -25,22 +22,26 @@ function makeBg() {
   return g
 }
 
-// ── Rain columns ───────────────────────────────────────────────────────────
+// ── Rain drops ─────────────────────────────────────────────────────────────
+// Real rain: sparse columns, short streaks of |, tip is .
 function initRain() {
   return Array.from({ length: COLS }, () => ({
-    y:   -Math.floor(Math.random() * ROWS),
-    spd:  0.3 + Math.random() * 0.5,
-    len:  4   + Math.floor(Math.random() * 9),
+    y:    -Math.floor(Math.random() * ROWS * 2),
+    spd:   0.6 + Math.random() * 0.7,
+    len:   2 + Math.floor(Math.random() * 4),
+    on:    Math.random() > 0.45,    // ~55% of columns have rain
   }))
 }
 
 function stepRain(cols) {
   for (const c of cols) {
+    if (!c.on) continue
     c.y += c.spd
-    if (c.y - c.len > ROWS) {          // entire stream below screen — reset
-      c.y   = -Math.floor(Math.random() * 8)
-      c.len =  4 + Math.floor(Math.random() * 9)
-      c.spd =  0.3 + Math.random() * 0.5
+    if (c.y - c.len > ROWS) {
+      c.y   = -Math.floor(Math.random() * 6)
+      c.len =  2 + Math.floor(Math.random() * 4)
+      c.spd =  0.6 + Math.random() * 0.7
+      c.on  =  Math.random() > 0.2   // occasionally turn a column off/on
     }
   }
 }
@@ -52,23 +53,23 @@ function renderFrame(cols, bg, fadeRatio = 0) {
     for (let x = 0; x < COLS; x++) {
       const col  = cols[x]
       const hy   = Math.floor(col.y)
-      const dist = hy - y              // 0=head, 1..len=trail above head
+      const dist = hy - y
 
       let ch = null, color = ''
 
-      if (dist === 0) {
-        ch = rch(); color = W          // bright white head
-      } else if (dist > 0 && dist <= col.len) {
-        ch = rch()
-        const t = dist / col.len       // 0=near head, 1=tail
-        color = t < 0.3 ? GB : t < 0.7 ? G : GD
+      if (col.on) {
+        if (dist === 0) {
+          ch = '.'; color = RAIN          // tip of drop
+        } else if (dist > 0 && dist <= col.len) {
+          ch = '|'; color = dist < 2 ? RAIN : RAIND
+        }
       }
 
       if (ch && fadeRatio > 0 && Math.random() < fadeRatio) ch = null
 
-      if (ch)       row += color + ch + RESET
-      else if (bg[y][x]) row += GD + bg[y][x] + RESET
-      else          row += ' '
+      if (ch)            row += color + ch + RESET
+      else if (bg[y][x]) row += BG + bg[y][x] + RESET
+      else               row += ' '
     }
     out += row + '\n'
   }
@@ -76,19 +77,8 @@ function renderFrame(cols, bg, fadeRatio = 0) {
 }
 
 // ── Final message ─────────────────────────────────────────────────────────
-const END = `${RESET}
-
-
-
-
-        ${GD}use a browser next time.${RESET}
-
-        ${GB}cause i use arch, by the way.${RESET}
-
-
-
-
-`
+const PAD = ' '.repeat(16)
+const END  = `${RESET}\n\n\n\n\n\n\n\n\n${PAD}\x1b[1;97mJUST USE A REGULAR BROWSER!!!\x1b[0m\n\n\n\n\n\n\n\n\n`
 
 // ── Handler ───────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
