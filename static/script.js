@@ -1304,9 +1304,16 @@ function toggleTheme() {
   };
 
   // ── tab completion ──────────────────────────────────────────
-  var ALL_PATHS = ['projects','projects/byte-space','projects/geno',
-                   'music','music/btop','games','games/untitled-game',
-                   'writing','now'];
+  var ALL_PATHS = (function () {
+    var paths = ['projects','writing','music','games','now'];
+    var td = typeof TERMINAL_DATA !== 'undefined' ? TERMINAL_DATA : {};
+    Object.keys(td).forEach(function (section) {
+      if (section !== 'now' && typeof td[section] === 'object') {
+        Object.keys(td[section]).forEach(function (name) { paths.push(section + '/' + name); });
+      }
+    });
+    return paths;
+  })();
   var CMD_NAMES = Object.keys(CMDS);
 
   function complete(val) {

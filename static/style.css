@@ -93,7 +93,7 @@ header { margin-bottom: 28px; }
 .article-nav { display: flex; justify-content: space-between; margin-top: 40px; }
 .article-nav-next { margin-left: auto; }
 
-.album-cover { display: block; width: 240px; height: 240px; object-fit: cover; margin-bottom: 20px; }
+.album-cover { display: block; width: 280px; height: 280px; object-fit: cover; margin-bottom: 20px; }
 
 .back { display: inline-block; color: var(--muted); margin-bottom: 28px; font-size: 0.88rem; }
 .back:hover { color: var(--accent); text-decoration: none; }
