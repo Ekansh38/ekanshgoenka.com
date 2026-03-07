@@ -4,6 +4,7 @@ title = "Ekansh Goenka"
 
 [markup.goldmark.renderer]
   unsafe = true
+  hardWraps = true
 
 [params]
   tagline = "helly · belly · shmelly"
