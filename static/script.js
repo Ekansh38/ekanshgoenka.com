@@ -1,39 +1,60 @@
-var LIGHT_THEMES = ['rose-pine'];
+/* ── THEME SYSTEM ──────────────────────────────────────────── */
+
+function getOSMode() {
+  return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+}
+
+function applyMode(mode) {
+  document.documentElement.setAttribute('data-mode', mode);
+  var t = document.getElementById('t');
+  if (t) t.textContent = mode === 'light' ? '[day]' : '[night]';
+  var mb = document.getElementById('theme-mode-btn');
+  if (mb) mb.textContent = mode === 'light' ? '○' : '●';
+}
 
 function applyTheme(name) {
-  var h = document.documentElement;
-  h.setAttribute('data-theme', name);
+  document.documentElement.setAttribute('data-theme', name);
   localStorage.setItem('theme', name);
-  // update mobile toggle label
-  var t = document.getElementById('t');
-  if (t) t.textContent = LIGHT_THEMES.indexOf(name) >= 0 ? '[light]' : '[dark]';
-  // update picker active dot
   var dots = document.querySelectorAll('.tp-dot');
   for (var i = 0; i < dots.length; i++)
     dots[i].classList.toggle('active', dots[i].getAttribute('data-t') === name);
 }
 
-// mobile toggle: flip between tokyo-night and rose-pine
-function toggleTheme() {
-  var cur = document.documentElement.getAttribute('data-theme');
-  applyTheme(LIGHT_THEMES.indexOf(cur) >= 0 ? 'tokyo-night' : 'rose-pine');
+function toggleMode() {
+  var cur = document.documentElement.getAttribute('data-mode') || 'dark';
+  var next = cur === 'light' ? 'dark' : 'light';
+  applyMode(next);
+  localStorage.setItem('themeMode', next);
 }
+
+function toggleTheme() { toggleMode(); }
 
 (function () {
   var saved = localStorage.getItem('theme') || 'tokyo-night';
-  // migrate old 'dark'/'light' values
   if (saved === 'dark')  saved = 'tokyo-night';
   if (saved === 'light') saved = 'rose-pine';
+  var savedMode = localStorage.getItem('themeMode') || getOSMode();
   applyTheme(saved);
+  applyMode(savedMode);
+
+  // Auto-follow OS changes — only when user hasn't manually overridden
+  window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', function (e) {
+    if (!localStorage.getItem('themeMode')) {
+      applyMode(e.matches ? 'light' : 'dark');
+    }
+  });
 
   document.addEventListener('DOMContentLoaded', function () {
     applyTheme(document.documentElement.getAttribute('data-theme'));
+    applyMode(document.documentElement.getAttribute('data-mode') || getOSMode());
     var dots = document.querySelectorAll('.tp-dot');
     for (var i = 0; i < dots.length; i++) {
       dots[i].addEventListener('click', (function (d) {
         return function () { applyTheme(d.getAttribute('data-t')); };
       })(dots[i]));
     }
+    var mb = document.getElementById('theme-mode-btn');
+    if (mb) mb.addEventListener('click', toggleMode);
   });
 })();
 
@@ -58,7 +79,7 @@ function toggleTheme() {
   var W, H;
 
   function isDark() {
-    return document.documentElement.getAttribute('data-theme') !== 'rose-pine';
+    return document.documentElement.getAttribute('data-mode') !== 'light';
   }
 
   function updateBtn() {
@@ -420,15 +441,19 @@ function toggleTheme() {
   };
 
   var NEOFETCH = [
-    ' ┌─────────┐  ekansh@site',
-    ' │  >_ ██  │  ───────────',
-    ' │  ████   │  age    : 12',
-    ' │  ██     │  lang   : go',
-    ' └─────────┘  editor : vim',
-    '              os     : macos',
-    '              proj   : byte-space, geno',
-    '              music  : btop (march 22)',
-    '              hobbies: bjj, music'
+    '  ╭───────────────────────╮   ekansh@home',
+    '  │                       │   ─────────────────────────────────────',
+    '  │   ┌─────────────┐     │',
+    '  │   │  >_ ██████  │     │   age        12',
+    '  │   │  ████  ████ │     │   os         macos',
+    '  │   │  ██  ██████ │     │   editor     vim',
+    '  │   └─────────────┘     │   shell      zsh',
+    '  │                       │',
+    '  ╰───────────────────────╯',
+    '',
+    '                              projects    byte-space · geno',
+    '                              music       btop',
+    '                              hobbies     bjj · music · reading',
   ].join('\n');
 
   var HELP = [
@@ -439,6 +464,7 @@ function toggleTheme() {
     '  whoami             who is this',
     '  neofetch           system info',
     '  theme [name]       list or switch theme',
+    '  mode [light|dark]  toggle light / dark mode',
     '  github / youtube / itch   open links',
     '  clear              clear output',
     '  exit / q           close terminal',
@@ -512,10 +538,24 @@ function toggleTheme() {
     },
 
     whoami: function () {
-      line('ekansh goenka. 12. go programmer. bjj. music. vim.');
+      line('ekansh goenka. 12. building things. bjj. music.');
     },
 
     neofetch: function () { line(NEOFETCH, 'term-line-pre'); },
+
+    mode: function (args) {
+      var m = args[0];
+      if (m === 'light' || m === 'dark') {
+        applyMode(m);
+        localStorage.setItem('themeMode', m);
+        line('mode → ' + m, 'term-line-ok');
+      } else if (!m) {
+        var cur = document.documentElement.getAttribute('data-mode') || 'dark';
+        line('mode: ' + cur + ' (light | dark)', 'term-line-ok');
+      } else {
+        line('mode: use "light" or "dark"', 'term-line-err');
+      }
+    },
 
     theme: function (args) {
       var ALL = ['tokyo-night','rose-pine','gruvbox','catppuccin','nord','everforest'];
