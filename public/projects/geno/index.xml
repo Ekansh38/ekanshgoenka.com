@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>GENO on ekansh goenka</title>
-    <link>http://localhost:1313/projects/geno/</link>
-    <description>Recent content in GENO on ekansh goenka</description>
+    <title>GENO on Ekansh Goenka</title>
+    <link>https://ekanshgoenka.com/projects/geno/</link>
+    <description>Recent content in GENO on Ekansh Goenka</description>
     <generator>Hugo</generator>
     <language>en-us</language>
-    <atom:link href="http://localhost:1313/projects/geno/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://ekanshgoenka.com/projects/geno/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>tetst</title>
-      <link>http://localhost:1313/projects/geno/test/</link>
+      <link>https://ekanshgoenka.com/projects/geno/test/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/projects/geno/test/</guid>
+      <guid>https://ekanshgoenka.com/projects/geno/test/</guid>
       <description>&lt;p&gt;asdiasidja&lt;/p&gt;</description>
     </item>
   </channel>

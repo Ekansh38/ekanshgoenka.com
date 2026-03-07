@@ -1,19 +1,37 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
-<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+<html lang="en" data-theme="tokyo-night">
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Projects — ekansh goenka</title>
+  <title>Projects — Ekansh Goenka</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
 
+  
+  <canvas id="bg-canvas"></canvas>
+
   <header>
   <div class="header-top">
-    <h1><a href="/" style="color:var(--fg);text-decoration:none;">ekansh goenka</a></h1>
-    <button class="toggle" id="t" onclick="toggleTheme()">[light]</button>
+    <h1><a href="/" style="color:var(--fg);text-decoration:none;">Ekansh Goenka</a><span class="cursor">_</span></h1>
+    <div class="header-controls">
+      <button class="toggle" id="term-btn">[:]</button>
+      <button class="toggle" id="t" onclick="toggleTheme()">[dark]</button>
+    </div>
   </div>
   <div class="tagline">helly · belly · shmelly</div>
+  <nav class="nav">
+    <a href="/projects">projects</a>
+    <a href="/writing">writing</a>
+    <a href="/games">games</a>
+    <a href="/now">now</a>
+  </nav>
+  <div class="social">
+    <a href="https://github.com/ekansh38" target="_blank">github ↗</a>
+    <a href="https://www.youtube.com/@byte_colony" target="_blank" title="bytecolony">youtube ↗</a>
+    <a href="https://byte-colony.itch.io/" target="_blank">itch.io ↗</a>
+  </div>
 </header>
 
 
@@ -26,14 +44,14 @@
 <ul>
   
   <li>
-    <span class="li-name"><a href="http://localhost:1313/projects/byte-space/">byte-space</a></span> —
-    <span class="li-desc">1980s internet simulator — HTTP, SMTP, DNS, Telnet implemented from scratch.</span>
-    <div class="li-meta">Go · active · <a href="https://github.com/ekanshgoenka/byte-space" target="_blank">source</a></div>
+    <span class="li-name"><a href="https://ekanshgoenka.com/projects/byte-space/">byte-space</a></span> —
+    <span class="li-desc">recreates the early 1980s internet in the terminal</span>
+    <div class="li-meta">Go · active · <a href="https://github.com/Ekansh38/byte-space" target="_blank">source</a></div>
   </li>
   
   <li>
-    <span class="li-name"><a href="http://localhost:1313/projects/geno/">GENO</a></span> —
-    <span class="li-desc">Genetic evolution simulator with real genomes and a Bubbletea TUI.</span>
+    <span class="li-name"><a href="https://ekanshgoenka.com/projects/geno/">GENO</a></span> —
+    <span class="li-desc">a genetic evolution simulator. genomes, natural selection, emergent behavior.</span>
     <div class="li-meta">Go · in progress · <a href="https://github.com/ekanshgoenka/geno" target="_blank">source</a></div>
   </li>
   
@@ -42,11 +60,72 @@
 
 
   <footer>
-  <span>ekansh · 2025</span>
-  <a href="https://github.com/ekanshgoenka" target="_blank">github ↗</a>
-  <a href="https://youtube.com/@bytecolony" target="_blank">bytecolony ↗</a>
+  <div class="footer-meta">ekansh · 2026 · curl -L ekanshgoenka.com</div>
 </footer>
 
+
+  <div id="term-overlay">
+    <div id="term-box">
+      <div id="term-bar">
+        <span>ekansh@site:~</span>
+        <button id="term-close">✕</button>
+      </div>
+      <div id="term-output"></div>
+      <div id="term-input-row">
+        <span class="term-prompt">$&nbsp;</span>
+        <input id="term-input" type="text" autocomplete="off" autocorrect="off" spellcheck="false">
+      </div>
+    </div>
+  </div>
+
+  <script>
+     
+    var SITE_LINKS = {
+      github:  "https:\/\/github.com\/ekansh38",
+      youtube: "https:\/\/www.youtube.com\/@byte_colony",
+      itchio:  "https:\/\/byte-colony.itch.io\/"
+    };
+
+     
+    var TERMINAL_DATA = {
+      projects: {
+        "byte-space": { desc: "recreates the early 1980s internet in the terminal", stack: "Go", status: "active", url: "/projects/byte-space/" },
+        "geno": { desc: "a genetic evolution simulator. genomes, natural selection, emergent behavior.", stack: "Go", status: "in progress", url: "/projects/geno/" },
+        
+      },
+      music: {
+        "btop": { desc: "an experimental electronic music album", status: "in production", url: "/music/btop/" },
+        
+      },
+      games: {
+        "cropocalypse": { desc: "Kill and cook sentient plants, master cooking, and blast bok choy with your arsenal of weapons!", engine: "Godot", url: "https://byte-colony.itch.io/cropocalypse" },
+        
+      },
+      writing: {
+        
+      },
+      now: "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+    };
+  </script>
+
+  <div id="theme-picker">
+    <button id="theme-picker-btn">:colorscheme</button>
+    <div id="theme-picker-menu">
+      <div class="tp-header">select colorscheme</div>
+      <button class="tp-item" data-t="tokyo-night">
+        <span class="tp-arrow">▶</span>tokyo-night<span class="tp-variant">dark</span>
+      </button>
+      <button class="tp-item" data-t="gruvbox">
+        <span class="tp-arrow">▶</span>gruvbox<span class="tp-variant">dark</span>
+      </button>
+      <button class="tp-item" data-t="rose-pine">
+        <span class="tp-arrow">▶</span>rose-pine<span class="tp-variant">light</span>
+      </button>
+      <button class="tp-item" data-t="solarized-light">
+        <span class="tp-arrow">▶</span>solarized-light<span class="tp-variant">light</span>
+      </button>
+    </div>
+  </div>
 
   <script src="/script.js"></script>
 </body>
