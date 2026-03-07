@@ -1230,10 +1230,31 @@ function toggleTheme() {
     q:      function () { close(); },
     echo:   function (args) { line(args.join(' ')); },
     curl:   function (args) {
-      if (args[0] && args[0].indexOf('ekanshgoenka') >= 0)
-        line('nice try. you\'re already in the terminal.', 'term-line-ok');
-      else
-        line('curl: not available here', 'term-line-err');
+      var isSite = args.some(function (a) { return a.indexOf('ekanshgoenka') >= 0; });
+      if (!isSite) { line('curl: not available here', 'term-line-err'); return; }
+      var RAIN = [
+        '|  .  |    |  .   |    |     |  .  |    |',
+        '|  .  |    .  |   |    |  .  |     |    .',
+        '.     |  | .  |   |  . |     |     .    |',
+        '|  .  |    |  .   |    |     |  .  |    |',
+        '|     .    |  .   .    .     |     |  . |',
+        '.  .  |    |  .   |    |  .  |     |    |',
+        '|  .  |    .  |   |    |     |  .  |    .',
+        '|     .    |  .   |  . |     |     |    |',
+        '.    USE  A  BROWSER,  YOU  NERD  . |    |',
+        '|  .  |    |  .   |    |     |  .  |    |',
+        '.     |    .  |   |    |  .  |  .  |    |',
+        '|  .  |    |  .   .    |     |     .    |',
+        '|  .  .    |  .   |    |  .  |     |  . |',
+        '.     |    .  |   |    |     |  .  |    .',
+        '|  .  |    |  .   |    |  .  |     |    |',
+      ];
+      RAIN.forEach(function (l, i) {
+        setTimeout(function () { line(l, 'term-line-pre'); }, i * 100);
+      });
+      setTimeout(function () {
+        line('JUST USE A REGULAR BROWSER!!!', 'term-line-err');
+      }, RAIN.length * 100 + 150);
     },
     sudo:   function ()  { line('ekansh is not in the sudoers file. this incident will be reported.', 'term-line-err'); },
     vim:    function ()  { line('you\'re already in vim (spiritually).', 'term-line-ok'); },
