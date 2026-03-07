@@ -445,6 +445,7 @@ function toggleTheme() {
     '  whoami                 who is this',
     '  neofetch               system info',
     '  colorscheme [name]     list or switch colorscheme',
+    '  vim [on|off]           toggle vim mode',
     '  github / youtube / itch   open links',
     '  clear                  clear output',
     '  exit / q               close terminal',
@@ -565,7 +566,15 @@ function toggleTheme() {
         line('curl: not available here', 'term-line-err');
     },
     sudo: function ()  { line('lol no.', 'term-line-err'); },
-    vim:  function ()  { line('you\'re already in vim (spiritually).', 'term-line-ok'); },
+    vim: function (args) {
+      if (typeof window.toggleVimMode !== 'function') return;
+      var sub = (args[0] || '').toLowerCase();
+      var on  = window.isVimEnabled();
+      if (sub === 'on'  && on)  { line('vim mode already on.', 'term-line-ok'); return; }
+      if (sub === 'off' && !on) { line('vim mode already off.', 'term-line-ok'); return; }
+      window.toggleVimMode();
+      line('vim mode ' + (window.isVimEnabled() ? 'on' : 'off'), 'term-line-ok');
+    },
     pwd:  function ()  { line('/home/ekansh'); },
     date: function ()  { line(new Date().toDateString().toLowerCase()); }
   };
@@ -652,33 +661,23 @@ function toggleTheme() {
 // ================================================================
 
 // ================================================================
-// VIM MODE — keyboard navigation (off by default)
-// j/k scroll  d/u half-page  gg/G top/bottom
-// f  link hints (vimium-style)  H/L history  gh home  t theme
-// Authentic: block cursor, blinking, -- NORMAL -- statusline,
-//            pending-key display, HINT mode label
+// VIM MODE — pure text-file navigation (off by default)
+// j/k  line scroll   gg/G  top/bottom
+// ctrl+d/u  half page   ctrl+f/b  full page
+// Block cursor, blinking, -- NORMAL -- statusline
 // Toggle: click [vim] button in header
 // ================================================================
 (function () {
-  var enabled     = localStorage.getItem('vimMode') === 'true'; // default OFF
-  var waiting     = false;   // for two-key sequences (g+g, g+h)
-  var waitTimer   = null;
-  var hintsActive = false;
-  var hintEls     = [];
-  var hintMap     = {};
+  var enabled   = localStorage.getItem('vimMode') === 'true'; // default OFF
+  var waiting   = false;   // for gg sequence
+  var waitTimer = null;
 
-  // ── DOM refs (set after DOMContentLoaded) ──────────────────
-  var cursorEl, statusEl, modeLabel, pendingEl;
+  var cursorEl, modeLabel, pendingEl;
 
-  // ── statusline helpers ──────────────────────────────────────
-  function setMode(label) {
-    if (modeLabel) modeLabel.textContent = label;
-  }
   function setPending(k) {
     if (pendingEl) pendingEl.textContent = k || '';
   }
 
-  // ── cursor + body class ────────────────────────────────────
   function applyEnabled() {
     document.body.classList.toggle('vim-mode-active', enabled);
     var b = document.getElementById('vim-btn');
@@ -691,11 +690,12 @@ function toggleTheme() {
   function toggleVim() {
     enabled = !enabled;
     localStorage.setItem('vimMode', enabled);
-    if (!enabled) { clearHints(); setPending(''); }
+    if (!enabled) { waiting = false; clearTimeout(waitTimer); setPending(''); }
     applyEnabled();
   }
+  window.toggleVimMode = toggleVim;
+  window.isVimEnabled  = function () { return enabled; };
 
-  // ── cursor tracking ─────────────────────────────────────────
   document.addEventListener('mousemove', function (e) {
     if (cursorEl && enabled) {
       cursorEl.style.left = e.clientX + 'px';
@@ -705,7 +705,6 @@ function toggleTheme() {
 
   document.addEventListener('DOMContentLoaded', function () {
     cursorEl  = document.getElementById('vim-cursor');
-    statusEl  = document.getElementById('vim-statusline');
     modeLabel = document.getElementById('vim-mode-label');
     pendingEl = document.getElementById('vim-pending');
     applyEnabled();
@@ -713,129 +712,54 @@ function toggleTheme() {
     if (b) b.addEventListener('click', toggleVim);
   });
 
-  // ── context guards ──────────────────────────────────────────
-  function termOpen() {
-    var o = document.getElementById('term-overlay');
-    return o && o.classList.contains('open');
-  }
-  function pickerOpen() {
-    var m = document.getElementById('theme-picker-menu');
-    return m && m.classList.contains('open');
-  }
   function isTyping() {
-    if (termOpen() || pickerOpen()) return true;
-    var el  = document.activeElement;
+    var o = document.getElementById('term-overlay');
+    if (o && o.classList.contains('open')) return true;
+    var m = document.getElementById('theme-picker-menu');
+    if (m && m.classList.contains('open')) return true;
+    var el = document.activeElement;
     if (!el) return false;
     var tag = el.tagName;
     return tag === 'INPUT' || tag === 'TEXTAREA' || el.isContentEditable;
   }
 
-  // ── link hints ──────────────────────────────────────────────
-  function clearHints() {
-    for (var i = 0; i < hintEls.length; i++) hintEls[i].remove();
-    hintEls     = [];
-    hintMap     = {};
-    hintsActive = false;
-    setMode('-- NORMAL --');
-    setPending('');
-  }
-
-  function showHints() {
-    clearHints();
-    var links = document.querySelectorAll('a[href]');
-    var chars = 'ASDFJKLGHQWERTYUIOPZXCVBNM';
-    var idx   = 0;
-    for (var i = 0; i < links.length && idx < chars.length; i++) {
-      var rect = links[i].getBoundingClientRect();
-      if (rect.width === 0 || rect.height === 0) continue;
-      if (rect.bottom < 0 || rect.top > window.innerHeight) continue;
-      var hint = document.createElement('span');
-      hint.className   = 'vim-hint';
-      hint.textContent = chars[idx];
-      hint.style.top   = (rect.top  + window.scrollY) + 'px';
-      hint.style.left  = (rect.left + window.scrollX) + 'px';
-      document.body.appendChild(hint);
-      hintEls.push(hint);
-      hintMap[chars[idx]] = links[i];
-      idx++;
-    }
-    hintsActive = true;
-    setMode('-- HINT --');
-    setPending('type key to follow link, Esc to cancel');
-  }
-
-  // ── keydown ─────────────────────────────────────────────────
   document.addEventListener('keydown', function (e) {
-    if (!enabled && !hintsActive) return;
-    if (e.ctrlKey || e.metaKey || e.altKey) return;
-
-    // HINT mode: any key follows or cancels
-    if (hintsActive) {
-      e.preventDefault();
-      var target = hintMap[e.key.toUpperCase()];
-      clearHints();
-      if (target) target.click();
-      return;
-    }
-
+    if (!enabled) return;
+    if (e.metaKey || e.altKey) return;
     if (isTyping()) return;
 
     var k = e.key;
 
-    // resolve two-key sequences
+    // ctrl+d / ctrl+u / ctrl+f / ctrl+b
+    if (e.ctrlKey) {
+      if (k === 'd') { e.preventDefault(); window.scrollBy({ top:  Math.round(window.innerHeight * 0.5), behavior: 'smooth' }); }
+      if (k === 'u') { e.preventDefault(); window.scrollBy({ top: -Math.round(window.innerHeight * 0.5), behavior: 'smooth' }); }
+      if (k === 'f') { e.preventDefault(); window.scrollBy({ top:  window.innerHeight, behavior: 'smooth' }); }
+      if (k === 'b') { e.preventDefault(); window.scrollBy({ top: -window.innerHeight, behavior: 'smooth' }); }
+      return;
+    }
+
+    // gg sequence
     if (waiting) {
       clearTimeout(waitTimer);
       waiting = false;
       setPending('');
-      if (k === 'g') {
-        e.preventDefault();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
-      }
-      if (k === 'h') {
-        e.preventDefault();
-        window.location.href = '/';
-        return;
-      }
-      // unknown second key — fall through
+      if (k === 'g') { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+      return;
     }
 
     switch (k) {
       case 'j':
         e.preventDefault();
-        window.scrollBy({ top: 80, behavior: 'smooth' });
+        window.scrollBy({ top: 60, behavior: 'smooth' });
         break;
       case 'k':
         e.preventDefault();
-        window.scrollBy({ top: -80, behavior: 'smooth' });
+        window.scrollBy({ top: -60, behavior: 'smooth' });
         break;
       case 'G':
         e.preventDefault();
         window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        break;
-      case 'd':
-        e.preventDefault();
-        window.scrollBy({ top: Math.round(window.innerHeight * 0.5), behavior: 'smooth' });
-        break;
-      case 'u':
-        e.preventDefault();
-        window.scrollBy({ top: -Math.round(window.innerHeight * 0.5), behavior: 'smooth' });
-        break;
-      case 'f':
-        e.preventDefault();
-        showHints();
-        break;
-      case 'H':
-        e.preventDefault();
-        history.back();
-        break;
-      case 'L':
-        e.preventDefault();
-        history.forward();
-        break;
-      case 't':
-        e.preventDefault();
-        toggleTheme();
         break;
       case 'g':
         e.preventDefault();
@@ -844,7 +768,9 @@ function toggleTheme() {
         waitTimer = setTimeout(function () { waiting = false; setPending(''); }, 600);
         break;
       case 'Escape':
-        clearHints();
+        waiting = false;
+        clearTimeout(waitTimer);
+        setPending('');
         break;
     }
   });
