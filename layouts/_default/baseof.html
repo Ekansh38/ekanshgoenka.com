@@ -42,12 +42,25 @@
   </script>
 
   <div id="theme-picker">
-    <button class="tp-dot" data-t="tokyo-night"     data-label="tokyo night · dark"></button>
-    <button class="tp-dot" data-t="gruvbox"         data-label="gruvbox · dark"></button>
-    <button class="tp-dot" data-t="rose-pine"       data-label="rosé pine · light"></button>
-    <button class="tp-dot" data-t="catppuccin-latte" data-label="catppuccin latte · light"></button>
+    <button id="theme-picker-btn">:colorscheme</button>
+    <div id="theme-picker-menu">
+      <div class="tp-header">select colorscheme</div>
+      <button class="tp-item" data-t="tokyo-night">
+        <span class="tp-arrow">▶</span>tokyo-night<span class="tp-variant">dark</span>
+      </button>
+      <button class="tp-item" data-t="gruvbox">
+        <span class="tp-arrow">▶</span>gruvbox<span class="tp-variant">dark</span>
+      </button>
+      <button class="tp-item" data-t="rose-pine">
+        <span class="tp-arrow">▶</span>rose-pine<span class="tp-variant">light</span>
+      </button>
+      <button class="tp-item" data-t="solarized-light">
+        <span class="tp-arrow">▶</span>solarized-light<span class="tp-variant">light</span>
+      </button>
+    </div>
   </div>
 
+  <script src="/terminal-data.js"></script>
   <script src="/script.js"></script>
 </body>
 </html>

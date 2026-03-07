@@ -1,5 +1,5 @@
-var THEMES = ['tokyo-night', 'gruvbox', 'rose-pine', 'catppuccin-latte'];
-var LIGHT_THEMES = ['rose-pine', 'catppuccin-latte'];
+var THEMES = ['tokyo-night', 'gruvbox', 'rose-pine', 'solarized-light'];
+var LIGHT_THEMES = ['rose-pine', 'solarized-light'];
 
 function applyTheme(name) {
   document.documentElement.setAttribute('data-theme', name);
@@ -7,9 +7,9 @@ function applyTheme(name) {
   var isLight = LIGHT_THEMES.indexOf(name) >= 0;
   var t = document.getElementById('t');
   if (t) t.textContent = isLight ? '[light]' : '[dark]';
-  var dots = document.querySelectorAll('.tp-dot');
-  for (var i = 0; i < dots.length; i++)
-    dots[i].classList.toggle('active', dots[i].getAttribute('data-t') === name);
+  var items = document.querySelectorAll('.tp-item');
+  for (var i = 0; i < items.length; i++)
+    items[i].classList.toggle('active', items[i].getAttribute('data-t') === name);
 }
 
 function toggleTheme() {
@@ -27,11 +27,28 @@ function toggleTheme() {
 
   document.addEventListener('DOMContentLoaded', function () {
     applyTheme(document.documentElement.getAttribute('data-theme'));
-    var dots = document.querySelectorAll('.tp-dot');
-    for (var i = 0; i < dots.length; i++) {
-      dots[i].addEventListener('click', (function (d) {
-        return function () { applyTheme(d.getAttribute('data-t')); };
-      })(dots[i]));
+
+    // Theme picker (nerdy :colorscheme style)
+    var pickerBtn  = document.getElementById('theme-picker-btn');
+    var pickerMenu = document.getElementById('theme-picker-menu');
+    if (pickerBtn && pickerMenu) {
+      pickerBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        pickerMenu.classList.toggle('open');
+      });
+      document.addEventListener('click', function () {
+        pickerMenu.classList.remove('open');
+      });
+      pickerMenu.addEventListener('click', function (e) { e.stopPropagation(); });
+      var items = document.querySelectorAll('.tp-item');
+      for (var i = 0; i < items.length; i++) {
+        items[i].addEventListener('click', (function (item) {
+          return function () {
+            applyTheme(item.getAttribute('data-t'));
+            pickerMenu.classList.remove('open');
+          };
+        })(items[i]));
+      }
     }
   });
 })();
@@ -58,20 +75,13 @@ function toggleTheme() {
 
   function isDark() {
     var t = document.documentElement.getAttribute('data-theme');
-    return t !== 'rose-pine' && t !== 'catppuccin-latte';
+    return t !== 'rose-pine' && t !== 'solarized-light';
   }
-
-  var MODE_LABELS = { life: '[░ life]', boids: '[↠ boids]', off: '[off]' };
 
   function updateBtn() {
     var btn = document.getElementById('bg-mode-btn');
-    var mode = MODES[modeIdx];
-    if (btn) {
-      btn.textContent = MODE_LABELS[mode] || '[' + mode + ']';
-      btn.classList.toggle('sim-on', mode !== 'off');
-      btn.title = 'bg: conway\'s life  ·  boids  ·  off  (press b)';
-    }
-    canvas.style.display = mode === 'off' ? 'none' : '';
+    if (btn) btn.textContent = '[' + MODES[modeIdx] + ']';
+    canvas.style.display = MODES[modeIdx] === 'off' ? 'none' : '';
   }
 
   function initMode(mode) {
@@ -399,32 +409,14 @@ function toggleTheme() {
 
   var hist = [], histIdx = -1, isOpen = false;
 
-  var DATA = {
-    projects: {
-      'byte-space': {
-        desc: 'terminal-based 1980s internet simulator.\nhttp, smtp, dns, telnet — built from scratch in go.\nmulti-process architecture over unix domain sockets.',
-        stack: 'Go', status: 'active', url: '/projects/byte-space/'
-      },
-      'geno': {
-        desc: 'genetic evolution simulator with a live multi-panel terminal ui.\nbubbletea + lipgloss. simulates trait evolution across generations.',
-        stack: 'Go', status: 'in progress', url: '/projects/geno/'
-      }
-    },
-    music: {
-      'btop': {
-        desc: 'experimental electronic album.\nbitcrushed percussion, degraded jazz samples, terminal textures.\nfive tracks. releases march 22, 2026.',
-        status: 'in production', url: '/music/btop/'
-      }
-    },
-    games: {
-      'untitled-game': {
-        desc: 'a game. made in godot.', engine: 'Godot',
-        url: (typeof SITE_LINKS !== 'undefined' ? SITE_LINKS.itchio : '#')
-      }
-    },
-    writing: {},
-    now: 'filling in the site. btop drops march 22.'
-  };
+  // DATA comes from /terminal-data.js — edit that file to update terminal content
+  var DATA = (typeof TERMINAL_DATA !== 'undefined') ? TERMINAL_DATA : { projects:{}, music:{}, games:{}, writing:{}, now:'' };
+  // patch game URLs from site params (itch.io link lives in hugo.toml, not terminal-data.js)
+  if (DATA.games) {
+    Object.keys(DATA.games).forEach(function (k) {
+      if (!DATA.games[k].url) DATA.games[k].url = (typeof SITE_LINKS !== 'undefined' ? SITE_LINKS.itchio : '#');
+    });
+  }
 
   var NEOFETCH = [
     '  ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄   ekansh@home',
@@ -532,7 +524,7 @@ function toggleTheme() {
     neofetch: function () { line(NEOFETCH, 'term-line-pre'); },
 
     theme: function (args) {
-      var ALL = ['tokyo-night', 'gruvbox', 'rose-pine', 'catppuccin-latte'];
+      var ALL = ['tokyo-night', 'gruvbox', 'rose-pine', 'solarized-light'];
       var name = args[0];
       if (!name) {
         line('themes: ' + ALL.join('  '));
@@ -653,4 +645,138 @@ function toggleTheme() {
 })();
 // ================================================================
 // END HIDDEN TERMINAL
+// ================================================================
+
+// ================================================================
+// VIM MODE — keyboard navigation
+// j/k scroll  d/u half-page  gg/G top/bottom
+// f  link hints (vimium-style)  H/L history  gh home  t theme
+// ================================================================
+(function () {
+  var waiting   = false;   // for two-key sequences (g+g, g+h)
+  var waitTimer = null;
+  var hintsActive = false;
+  var hintEls  = [];
+  var hintMap  = {};
+
+  function termOpen() {
+    var o = document.getElementById('term-overlay');
+    return o && o.classList.contains('open');
+  }
+  function pickerOpen() {
+    var m = document.getElementById('theme-picker-menu');
+    return m && m.classList.contains('open');
+  }
+  function isTyping() {
+    if (termOpen() || pickerOpen()) return true;
+    var el  = document.activeElement;
+    if (!el) return false;
+    var tag = el.tagName;
+    return tag === 'INPUT' || tag === 'TEXTAREA' || el.isContentEditable;
+  }
+
+  function clearHints() {
+    for (var i = 0; i < hintEls.length; i++) hintEls[i].remove();
+    hintEls  = [];
+    hintMap  = {};
+    hintsActive = false;
+  }
+
+  function showHints() {
+    clearHints();
+    var links = document.querySelectorAll('a[href]');
+    var chars = 'ASDFJKLGHQWERTYUIOPZXCVBNM';
+    var idx   = 0;
+    for (var i = 0; i < links.length && idx < chars.length; i++) {
+      var rect = links[i].getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) continue;
+      if (rect.bottom < 0 || rect.top > window.innerHeight) continue;
+      var hint = document.createElement('span');
+      hint.className  = 'vim-hint';
+      hint.textContent = chars[idx];
+      hint.style.top  = (rect.top  + window.scrollY) + 'px';
+      hint.style.left = (rect.left + window.scrollX) + 'px';
+      document.body.appendChild(hint);
+      hintEls.push(hint);
+      hintMap[chars[idx]] = links[i];
+      idx++;
+    }
+    hintsActive = true;
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+    // hint mode: any key either follows a hint or cancels
+    if (hintsActive) {
+      e.preventDefault();
+      var target = hintMap[e.key.toUpperCase()];
+      clearHints();
+      if (target) target.click();
+      return;
+    }
+
+    if (isTyping()) return;
+
+    var k = e.key;
+
+    // two-key sequence resolution
+    if (waiting) {
+      clearTimeout(waitTimer);
+      waiting = false;
+      if (k === 'g') { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; } // gg → top
+      if (k === 'h') { e.preventDefault(); window.location.href = '/'; return; }                      // gh → home
+      // unknown second key — fall through to handle normally below
+    }
+
+    switch (k) {
+      case 'j':
+        e.preventDefault();
+        window.scrollBy({ top: 80, behavior: 'smooth' });
+        break;
+      case 'k':
+        e.preventDefault();
+        window.scrollBy({ top: -80, behavior: 'smooth' });
+        break;
+      case 'G':
+        e.preventDefault();
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        break;
+      case 'd':
+        e.preventDefault();
+        window.scrollBy({ top: Math.round(window.innerHeight * 0.5), behavior: 'smooth' });
+        break;
+      case 'u':
+        e.preventDefault();
+        window.scrollBy({ top: -Math.round(window.innerHeight * 0.5), behavior: 'smooth' });
+        break;
+      case 'f':
+        e.preventDefault();
+        showHints();
+        break;
+      case 'H':
+        e.preventDefault();
+        history.back();
+        break;
+      case 'L':
+        e.preventDefault();
+        history.forward();
+        break;
+      case 't':
+        e.preventDefault();
+        toggleTheme();
+        break;
+      case 'g':
+        e.preventDefault();
+        waiting   = true;
+        waitTimer = setTimeout(function () { waiting = false; }, 600);
+        break;
+      case 'Escape':
+        clearHints();
+        break;
+    }
+  });
+})();
+// ================================================================
+// END VIM MODE
 // ================================================================

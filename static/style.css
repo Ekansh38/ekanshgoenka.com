@@ -33,13 +33,13 @@
   --shadow: rgba(0,0,0,0.55);
 }
 
-/* Catppuccin Latte (light) */
-[data-theme="catppuccin-latte"] {
-  --bg: #eff1f5;
-  --fg: #4c4f69;
-  --muted: #9ca0b0;
-  --accent: #1e66f5;
-  --border: #ccd0da;
+/* Solarized Light */
+[data-theme="solarized-light"] {
+  --bg: #fdf6e3;
+  --fg: #586e75;
+  --muted: #93a1a1;
+  --accent: #268bd2;
+  --border: #eee8d5;
   --shadow: transparent;
 }
 
@@ -251,66 +251,97 @@ body { background: transparent; text-shadow: 0 0 18px var(--shadow), 0 0 6px var
 .term-line-pre  { white-space: pre; font-family: inherit; margin: 0; }
 
 /* ── THEME PICKER (desktop only) ────────────────────────────── */
-#theme-picker {
-  display: none; /* hidden on mobile by default */
-}
+#theme-picker { display: none; }
 
 @media (hover: hover) and (pointer: fine) {
-  /* hide the old toggle button — picker replaces it */
   #t { display: none; }
 
   #theme-picker {
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
+    display: block;
     position: fixed;
     bottom: 22px;
     right: 22px;
     z-index: 200;
-  }
-
-  .tp-dot {
-    position: relative;
-    width: 11px;
-    height: 11px;
-    border-radius: 50%;
-    border: 1.5px solid transparent;
-    padding: 0;
-    cursor: pointer;
-    transition: transform 0.15s, border-color 0.2s;
-    outline: none;
-  }
-  .tp-dot:hover { transform: scale(1.45); }
-  .tp-dot.active { border-color: var(--fg); }
-
-  /* Dark themes — filled dot */
-  .tp-dot[data-t="tokyo-night"]     { background: #7aa2f7; }
-  .tp-dot[data-t="gruvbox"]         { background: #d79921; }
-
-  /* Light themes — hollow ring (background = transparent, border shows color) */
-  .tp-dot[data-t="rose-pine"]       { background: transparent; border-color: #1e8eb5; }
-  .tp-dot[data-t="catppuccin-latte"]{ background: transparent; border-color: #1e66f5; }
-
-  /* Active state overrides border to current fg */
-  .tp-dot.active { border-color: var(--fg); }
-
-  /* Highlight bg-mode-btn when sim is running */
-  #bg-mode-btn.sim-on { color: var(--accent); }
-
-  /* tooltip — appears to the left of each dot */
-  .tp-dot::before {
-    content: attr(data-label);
-    position: absolute;
-    right: 18px;
-    top: 50%;
-    transform: translateY(-50%);
+    font-size: 0.72rem;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.65rem;
-    color: var(--muted);
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.15s;
   }
-  .tp-dot:hover::before { opacity: 1; }
+
+  #theme-picker-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.72rem;
+    padding: 0;
+    outline: none;
+    transition: color 0.15s;
+  }
+  #theme-picker-btn:hover { color: var(--fg); }
+
+  #theme-picker-menu {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    right: 0;
+    min-width: 200px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 20px var(--shadow);
+  }
+  #theme-picker-menu.open { display: block; }
+
+  .tp-header {
+    padding: 5px 10px 5px;
+    color: var(--accent);
+    border-bottom: 1px solid var(--border);
+    font-size: 0.68rem;
+    user-select: none;
+  }
+
+  .tp-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 5px 10px;
+    background: none;
+    border: none;
+    font: inherit;
+    font-size: 0.72rem;
+    color: var(--muted);
+    cursor: pointer;
+    text-align: left;
+    gap: 6px;
+    transition: background 0.1s, color 0.1s;
+  }
+  .tp-item:hover { color: var(--fg); background: var(--border); }
+  .tp-item.active { color: var(--fg); }
+
+  .tp-arrow { width: 8px; flex-shrink: 0; font-size: 0.6rem; }
+  .tp-item:not(.active) .tp-arrow { visibility: hidden; }
+
+  .tp-variant {
+    margin-left: auto;
+    font-size: 0.62rem;
+    color: var(--muted);
+    opacity: 0.6;
+  }
+  .tp-item.active .tp-variant { color: var(--accent); opacity: 1; }
+}
+
+/* ── VIM LINK HINTS ──────────────────────────────────────────── */
+.vim-hint {
+  position: fixed;
+  z-index: 9999;
+  background: #f7d26a;
+  color: #1a1a1a;
+  border: 1px solid #c9a500;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 0 3px;
+  pointer-events: none;
+  border-radius: 2px;
+  text-transform: uppercase;
+  line-height: 1.5;
 }
