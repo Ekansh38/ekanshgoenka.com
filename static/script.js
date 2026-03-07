@@ -439,15 +439,15 @@ function toggleTheme() {
 
   var HELP = [
     'commands:',
-    '  ls [path]          list contents',
-    '  cat <path>         read a section or project',
-    '  open <path>        navigate to a page',
-    '  whoami             who is this',
-    '  neofetch           system info',
-    '  theme [name]       list or switch theme',
+    '  ls [path]              list contents',
+    '  cat <path>             read a section or project',
+    '  open <path>            navigate to a page',
+    '  whoami                 who is this',
+    '  neofetch               system info',
+    '  colorscheme [name]     list or switch colorscheme',
     '  github / youtube / itch   open links',
-    '  clear              clear output',
-    '  exit / q           close terminal',
+    '  clear                  clear output',
+    '  exit / q               close terminal',
     '',
     'paths: projects  projects/byte-space  projects/geno',
     '       music  music/btop  games  writing  now'
@@ -523,19 +523,23 @@ function toggleTheme() {
 
     neofetch: function () { line(NEOFETCH, 'term-line-pre'); },
 
-    theme: function (args) {
+    colorscheme: function (args) {
       var ALL = ['tokyo-night', 'gruvbox', 'rose-pine', 'solarized-light'];
+      var cur  = document.documentElement.getAttribute('data-theme');
       var name = args[0];
       if (!name) {
-        line('themes: ' + ALL.join('  '));
-        line('active: ' + document.documentElement.getAttribute('data-theme'), 'term-line-ok');
+        var out = ALL.map(function (t) {
+          return (t === cur ? '* ' : '  ') + t;
+        }).join('\n');
+        line(out, 'term-line-pre');
       } else if (ALL.indexOf(name) >= 0) {
         applyTheme(name);
-        line('theme → ' + name, 'term-line-ok');
+        line('colorscheme → ' + name, 'term-line-ok');
       } else {
-        line('unknown theme. try: ' + ALL.join(', '), 'term-line-err');
+        line('unknown colorscheme. try: ' + ALL.join(', '), 'term-line-err');
       }
     },
+    theme: function (args) { CMDS.colorscheme(args); },
 
     github: function () {
       line('opening github...', 'term-line-ok');
@@ -648,16 +652,38 @@ function toggleTheme() {
 // ================================================================
 
 // ================================================================
-// VIM MODE — keyboard navigation
+// VIM MODE — keyboard navigation (off by default)
 // j/k scroll  d/u half-page  gg/G top/bottom
 // f  link hints (vimium-style)  H/L history  gh home  t theme
+// Toggle: click [vim] button in header
 // ================================================================
 (function () {
+  var enabled   = localStorage.getItem('vimMode') === 'true'; // default OFF
   var waiting   = false;   // for two-key sequences (g+g, g+h)
   var waitTimer = null;
   var hintsActive = false;
   var hintEls  = [];
   var hintMap  = {};
+
+  function updateBtn() {
+    var b = document.getElementById('vim-btn');
+    if (!b) return;
+    b.classList.toggle('vim-on', enabled);
+    b.textContent = enabled ? '[vim:on]' : '[vim]';
+  }
+
+  function toggleVim() {
+    enabled = !enabled;
+    localStorage.setItem('vimMode', enabled);
+    if (!enabled) clearHints();
+    updateBtn();
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    updateBtn();
+    var b = document.getElementById('vim-btn');
+    if (b) b.addEventListener('click', toggleVim);
+  });
 
   function termOpen() {
     var o = document.getElementById('term-overlay');
@@ -705,6 +731,7 @@ function toggleTheme() {
   }
 
   document.addEventListener('keydown', function (e) {
+    if (!enabled && !hintsActive) return;  // vim mode off — do nothing (but still cancel active hints)
     if (e.ctrlKey || e.metaKey || e.altKey) return;
 
     // hint mode: any key either follows a hint or cancels
