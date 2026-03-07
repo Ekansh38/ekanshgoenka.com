@@ -85,7 +85,6 @@ header { margin-bottom: 28px; }
 .bio { margin-bottom: 12px; }
 .toggle { background: none; border: none; padding: 0; font: inherit; cursor: pointer; color: var(--muted); }
 .toggle:hover { color: var(--accent); }
-#vim-btn.vim-on { color: var(--accent); }
 .header-controls { display: flex; gap: 10px; align-items: center; }
 
 .writing-li { display: flex; justify-content: space-between; gap: 8px; }
@@ -330,39 +329,4 @@ body { background: transparent; text-shadow: 0 0 18px var(--shadow), 0 0 6px var
   .tp-item.active .tp-variant { color: var(--accent); opacity: 1; }
 }
 
-/* ── VIM CURSOR + STATUSLINE ─────────────────────────────────── */
-#vim-cursor {
-  display: none;
-  position: fixed;
-  pointer-events: none;
-  z-index: 99999;
-  width: 9px;
-  height: 16px;
-  background: var(--fg);
-  mix-blend-mode: difference;
-}
-body.vim-mode-active #vim-cursor {
-  display: block;
-  animation: vim-blink 1.2s step-end infinite;
-}
-@keyframes vim-blink {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0; }
-}
-
-#vim-statusline {
-  display: none;
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  padding: 1px 8px;
-  background: var(--fg);
-  color: var(--bg);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  font-weight: 700;
-  z-index: 99998;
-  pointer-events: none;
-  user-select: none;
-}
-body.vim-mode-active #vim-statusline { display: flex; justify-content: space-between; }
 

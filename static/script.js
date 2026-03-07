@@ -393,6 +393,26 @@ function toggleTheme() {
   updateBtn();
   window.addEventListener('resize', resize);
   requestAnimationFrame(loop);
+
+  // expose controls for terminal commands
+  window.setBgMode = function (m) {
+    var idx = MODES.indexOf(m);
+    if (idx < 0) return false;
+    modeIdx = idx;
+    localStorage.setItem('bgMode', m);
+    updateBtn();
+    initMode(m);
+    return true;
+  };
+  window.getBgMode  = function () { return MODES[modeIdx]; };
+  window.setBgSpeed = function (n) {
+    speedLevel = Math.max(1, Math.min(10, n));
+    localStorage.setItem('bgSpeed', speedLevel);
+    var s = document.getElementById('speed-slider');
+    if (s) s.value = speedLevel;
+  };
+  window.getBgSpeed = function () { return speedLevel; };
+  window.resetBg    = function () { initMode(MODES[modeIdx]); };
 })();
 // ================================================================
 // END BG EFFECT
@@ -408,6 +428,25 @@ function toggleTheme() {
   if (!overlay || !output || !inp) return;
 
   var hist = [], histIdx = -1, isOpen = false;
+  var PAGE_START = Date.now();
+
+  var QUOTES = [
+    '"the best code is no code at all."  — jeff atwood',
+    '"walking on water and developing software from a spec are easy if both are frozen."  — e.v. berard',
+    '"first, solve the problem. then, write the code."  — john johnson',
+    '"make it work, make it right, make it fast."  — kent beck',
+    '"any fool can write code a computer understands. good programmers write code humans understand."  — fowler',
+    '"debugging is twice as hard as writing the code in the first place."  — brian kernighan',
+    '"the most dangerous phrase: \'we\'ve always done it this way\'."  — grace hopper',
+    '"talk is cheap. show me the code."  — linus torvalds',
+    '"programs must be written for people to read, and only incidentally for machines to execute."  — abelson',
+    '"simplicity is the soul of efficiency."  — austin freeman',
+    '"it works on my machine."  — every developer',
+    '"weeks of coding can save you hours of planning."  — unknown',
+    '"a language that doesn\'t affect the way you think about programming is not worth knowing."  — alan perlis',
+    '"the computer was born to solve problems that did not exist before."  — bill gates',
+    '"software is like entropy: it is difficult to grasp, weighs nothing, and obeys the second law of thermodynamics."  — norman augustine',
+  ];
 
   // DATA comes from /terminal-data.js — edit that file to update terminal content
   var DATA = (typeof TERMINAL_DATA !== 'undefined') ? TERMINAL_DATA : { projects:{}, music:{}, games:{}, writing:{}, now:'' };
@@ -438,20 +477,37 @@ function toggleTheme() {
   ].join('\n');
 
   var HELP = [
-    'commands:',
-    '  ls [path]              list contents',
-    '  cat <path>             read a section or project',
-    '  open <path>            navigate to a page',
-    '  whoami                 who is this',
-    '  neofetch               system info',
-    '  colorscheme [name]     list or switch colorscheme',
-    '  vim [on|off]           toggle vim mode',
-    '  github / youtube / itch   open links',
-    '  clear                  clear output',
-    '  exit / q               close terminal',
+    'navigation',
+    '  ls [path]         list contents',
+    '  cat <path>        read a section or project',
+    '  open <path>       navigate to a page',
     '',
-    'paths: projects  projects/byte-space  projects/geno',
-    '       music  music/btop  games  writing  now'
+    'system',
+    '  neofetch          system info',
+    '  uname             kernel info',
+    '  uptime            time since page load',
+    '  ps                running processes',
+    '  history           command history',
+    '  color             current theme palette',
+    '  whoami            who is this',
+    '',
+    'background',
+    '  bg [life|boids|off]   get or set background mode',
+    '  speed [1-10]          get or set simulation speed',
+    '  reset                 reset current simulation',
+    '',
+    'appearance',
+    '  colorscheme [name]    list or switch colorscheme',
+    '',
+    'fun',
+    '  matrix            wake up',
+    '  hack              breach',
+    '  fortune           random quote',
+    '  cowsay [text]     a cow says something',
+    '  echo <text>       echo',
+    '  github / youtube / itch   open links',
+    '  clear             clear output',
+    '  exit / q          close',
   ].join('\n');
 
   // ── output helpers ──────────────────────────────────────────
@@ -555,6 +611,143 @@ function toggleTheme() {
       setTimeout(function () { window.open((SITE_LINKS||{}).itchio||'#', '_blank'); }, 200);
     },
 
+    // ── background control ──────────────────────────────────────
+    bg: function (args) {
+      var m = args[0];
+      if (!m) {
+        line('bg: ' + (window.getBgMode ? window.getBgMode() : '?'), 'term-line-ok');
+        return;
+      }
+      if (!window.setBgMode || !window.setBgMode(m))
+        line('bg: unknown mode. try: life  boids  off', 'term-line-err');
+      else
+        line('bg → ' + m, 'term-line-ok');
+    },
+
+    speed: function (args) {
+      if (!args[0]) {
+        line('speed: ' + (window.getBgSpeed ? window.getBgSpeed() : '?') + ' / 10', 'term-line-ok');
+        return;
+      }
+      var n = parseInt(args[0]);
+      if (isNaN(n) || n < 1 || n > 10) { line('speed: enter a value 1–10', 'term-line-err'); return; }
+      if (window.setBgSpeed) window.setBgSpeed(n);
+      line('speed → ' + n, 'term-line-ok');
+    },
+
+    reset: function () {
+      if (window.resetBg) window.resetBg();
+      line('simulation reset.', 'term-line-ok');
+    },
+
+    // ── system ──────────────────────────────────────────────────
+    uname: function (args) {
+      var full = args.indexOf('-a') >= 0;
+      if (full)
+        line('Browser 1.0.0 ekansh-site #1 SMP ' + new Date().toDateString() + ' x86_64 WebKit', 'term-line-pre');
+      else
+        line('Browser');
+    },
+
+    uptime: function () {
+      var s = Math.floor((Date.now() - PAGE_START) / 1000);
+      var m = Math.floor(s / 60); s %= 60;
+      var h = Math.floor(m / 60); m %= 60;
+      var t = (h ? h + 'h ' : '') + (m ? m + 'm ' : '') + s + 's';
+      line('up ' + t + '   load avg: 0.42 0.13 0.07');
+    },
+
+    ps: function () {
+      line([
+        '  PID  COMMAND              CPU%   MEM%',
+        '─────────────────────────────────────────',
+        '    1  kernel               0.0    0.1',
+        '   88  boids.wasm           2.1    1.4',
+        '   89  life.sim             1.7    0.9',
+        '  102  terminal.js          0.3    0.2',
+        '  256  music-brain          0.1    ?.?',
+        '  512  bjj-scheduler        0.0    0.0',
+        ' 1337  ekansh               99.9   ∞',
+      ].join('\n'), 'term-line-pre');
+    },
+
+    history: function () {
+      if (!hist.length) { line('(no history)', 'term-line-err'); return; }
+      var out = hist.slice().reverse().map(function (cmd, i) {
+        var n = String(i + 1); while (n.length < 4) n = ' ' + n;
+        return n + '  ' + cmd;
+      }).join('\n');
+      line(out, 'term-line-pre');
+    },
+
+    color: function () {
+      var theme = document.documentElement.getAttribute('data-theme');
+      var vars  = ['--bg', '--fg', '--accent', '--muted', '--border'];
+      var cs    = getComputedStyle(document.documentElement);
+      var out   = 'colorscheme: ' + theme + '\n';
+      vars.forEach(function (v) {
+        var val = cs.getPropertyValue(v).trim();
+        var pad = v; while (pad.length < 10) pad += ' ';
+        out += '\n  ' + pad + '  ' + val;
+      });
+      line(out, 'term-line-pre');
+    },
+
+    echo: function (args) { line(args.join(' ')); },
+
+    // ── fun ─────────────────────────────────────────────────────
+    matrix: function () {
+      var chars = 'ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ01';
+      var W = 42, rows = 14, count = 0;
+      var iv = setInterval(function () {
+        var s = '';
+        for (var i = 0; i < W; i++) s += chars[Math.floor(Math.random() * chars.length)];
+        line(s, 'term-line-ok');
+        if (++count >= rows) {
+          clearInterval(iv);
+          setTimeout(function () { line(''); line('wake up, neo.', 'term-line-ok'); }, 120);
+        }
+      }, 55);
+    },
+
+    hack: function () {
+      var steps = [
+        [0,    '> initiating breach sequence...'],
+        [450,  '> scanning target: ekanshgoenka.com'],
+        [900,  '> open ports: 80, 443, 1337'],
+        [1350, '> attempting sql injection... failed.'],
+        [1800, '> trying xss... failed.'],
+        [2250, '> trying social engineering...'],
+        [2700, '> ...'],
+        [3100, '> ...wait.'],
+        [3500, '> you ARE ekansh.'],
+        [3900, '> nevermind. aborting.'],
+      ];
+      steps.forEach(function (s) {
+        setTimeout(function () { line(s[1], 'term-line-ok'); }, s[0]);
+      });
+    },
+
+    fortune: function () {
+      line(QUOTES[Math.floor(Math.random() * QUOTES.length)]);
+    },
+
+    cowsay: function (args) {
+      var text = args.join(' ') || 'moo';
+      var bar  = '-'.repeat(text.length + 2);
+      line([
+        ' ' + bar,
+        '< ' + text + ' >',
+        ' ' + bar,
+        '        \\   ^__^',
+        '         \\  (oo)\\_______',
+        '            (__)\\       )',
+        '                ||----w |',
+        '                ||     ||',
+      ].join('\n'), 'term-line-pre');
+    },
+
+    // ── misc ────────────────────────────────────────────────────
     clear: function () { output.innerHTML = ''; },
     exit:  function () { close(); },
     q:     function () { close(); },
@@ -566,17 +759,19 @@ function toggleTheme() {
         line('curl: not available here', 'term-line-err');
     },
     sudo: function ()  { line('lol no.', 'term-line-err'); },
-    vim: function (args) {
-      if (typeof window.toggleVimMode !== 'function') return;
-      var sub = (args[0] || '').toLowerCase();
-      var on  = window.isVimEnabled();
-      if (sub === 'on'  && on)  { line('vim mode already on.', 'term-line-ok'); return; }
-      if (sub === 'off' && !on) { line('vim mode already off.', 'term-line-ok'); return; }
-      window.toggleVimMode();
-      line('vim mode ' + (window.isVimEnabled() ? 'on' : 'off'), 'term-line-ok');
-    },
+    vim:  function ()  { line('you\'re already in vim (spiritually).', 'term-line-ok'); },
     pwd:  function ()  { line('/home/ekansh'); },
-    date: function ()  { line(new Date().toDateString().toLowerCase()); }
+    date: function ()  { line(new Date().toDateString().toLowerCase()); },
+    rm:   function (a) {
+      if (a.join('').indexOf('rf') >= 0) line('nice try.', 'term-line-err');
+      else line('rm: ' + (a[0] || '?') + ': permission denied', 'term-line-err');
+    },
+    sl:   function ()  { line('        🚂 choo choo'); },
+    man:  function (a) {
+      if (!a[0]) { line('what manual page do you want?', 'term-line-err'); return; }
+      if (!CMDS[a[0]]) { line('no manual entry for ' + a[0], 'term-line-err'); return; }
+      line('RTFS.', 'term-line-ok');
+    }
   };
 
   // ── tab completion ──────────────────────────────────────────
@@ -660,198 +855,3 @@ function toggleTheme() {
 // END HIDDEN TERMINAL
 // ================================================================
 
-// ================================================================
-// VIM MODE — cursor-based text navigation (off by default)
-// The cursor sits on a line element and moves with hjkl.
-// The page auto-scrolls to keep the cursor visible (scrolloff).
-// gg/G  top/bottom    ctrl+d/u  half page    0/$  line start/end
-// Toggle: [vim] button in header, or `vim` in terminal
-// ================================================================
-(function () {
-  var enabled   = localStorage.getItem('vimMode') === 'true';
-  var waiting   = false;
-  var waitTimer = null;
-  var lineEls   = [];
-  var lineIdx   = 0;
-  var charIdx   = 0;
-  var SCROLLOFF = 80; // px to keep above/below cursor (≈3 lines)
-
-  var cursorEl, pendingEl;
-
-  // ── collect navigable lines ──────────────────────────────────
-  function getLines() {
-    var sel = 'h1, .tagline, .nav a, .social a, h2, h3, p, li';
-    var all = document.querySelectorAll(sel);
-    var out = [];
-    for (var i = 0; i < all.length; i++) {
-      var el = all[i];
-      if (el.offsetParent !== null && el.textContent.trim().length > 0)
-        out.push(el);
-    }
-    return out;
-  }
-
-  // ── get bounding rect of character at idx in element ────────
-  function charRect(el, idx) {
-    var fullText = el.textContent;
-    idx = Math.max(0, Math.min(fullText.length - 1, idx));
-
-    function walk(node, state) {
-      if (state.done) return;
-      if (node.nodeType === 3) {
-        var len = node.textContent.length;
-        if (state.rem < len) {
-          try {
-            var r = document.createRange();
-            r.setStart(node, state.rem);
-            r.setEnd(node, Math.min(state.rem + 1, len));
-            var rect = r.getBoundingClientRect();
-            if (rect.width > 0 || rect.height > 0) { state.rect = rect; state.done = true; }
-          } catch (e) {}
-        } else {
-          state.rem -= len;
-        }
-        return;
-      }
-      for (var i = 0; i < node.childNodes.length && !state.done; i++)
-        walk(node.childNodes[i], state);
-    }
-
-    var state = { rem: idx, rect: null, done: false };
-    walk(el, state);
-    return state.rect || el.getBoundingClientRect();
-  }
-
-  // ── cursor rendering (RAF loop keeps it glued during scroll) ─
-  function updateCursor() {
-    if (!cursorEl || !lineEls[lineIdx]) return;
-    var rect = charRect(lineEls[lineIdx], charIdx);
-    cursorEl.style.left   = rect.left + 'px';
-    cursorEl.style.top    = rect.top  + 'px';
-    cursorEl.style.height = Math.max(rect.height, 14) + 'px';
-  }
-
-  (function raf() {
-    if (enabled) updateCursor();
-    requestAnimationFrame(raf);
-  })();
-
-  // ── scrolloff ────────────────────────────────────────────────
-  function ensureVisible() {
-    var el = lineEls[lineIdx];
-    if (!el) return;
-    var rect = el.getBoundingClientRect();
-    if (rect.top < SCROLLOFF)
-      window.scrollBy({ top: rect.top - SCROLLOFF, behavior: 'smooth' });
-    else if (rect.bottom > window.innerHeight - SCROLLOFF)
-      window.scrollBy({ top: rect.bottom - window.innerHeight + SCROLLOFF, behavior: 'smooth' });
-  }
-
-  // ── movement helpers ─────────────────────────────────────────
-  function moveLine(delta) {
-    lineIdx = Math.max(0, Math.min(lineEls.length - 1, lineIdx + delta));
-    charIdx = Math.min(charIdx, Math.max(0, lineEls[lineIdx].textContent.length - 1));
-    ensureVisible();
-  }
-
-  function moveChar(delta) {
-    charIdx = Math.max(0, Math.min(lineEls[lineIdx].textContent.length - 1, charIdx + delta));
-  }
-
-  // ── enable/disable ───────────────────────────────────────────
-  function applyEnabled() {
-    document.body.classList.toggle('vim-mode-active', enabled);
-    var b = document.getElementById('vim-btn');
-    if (b) {
-      b.classList.toggle('vim-on', enabled);
-      b.textContent = enabled ? '[vim:on]' : '[vim]';
-    }
-    if (enabled) {
-      lineEls = getLines();
-      lineIdx = 0;
-      charIdx = 0;
-    }
-  }
-
-  function toggleVim() {
-    enabled = !enabled;
-    localStorage.setItem('vimMode', enabled);
-    if (!enabled) { waiting = false; clearTimeout(waitTimer); if (pendingEl) pendingEl.textContent = ''; }
-    applyEnabled();
-  }
-  window.toggleVimMode = toggleVim;
-  window.isVimEnabled  = function () { return enabled; };
-
-  document.addEventListener('DOMContentLoaded', function () {
-    cursorEl  = document.getElementById('vim-cursor');
-    pendingEl = document.getElementById('vim-pending');
-    lineEls   = getLines();
-    applyEnabled();
-    var b = document.getElementById('vim-btn');
-    if (b) b.addEventListener('click', toggleVim);
-  });
-
-  // ── guards ───────────────────────────────────────────────────
-  function isTyping() {
-    var o = document.getElementById('term-overlay');
-    if (o && o.classList.contains('open')) return true;
-    var m = document.getElementById('theme-picker-menu');
-    if (m && m.classList.contains('open')) return true;
-    var el = document.activeElement;
-    if (!el) return false;
-    var tag = el.tagName;
-    return tag === 'INPUT' || tag === 'TEXTAREA' || el.isContentEditable;
-  }
-
-  // ── keydown ──────────────────────────────────────────────────
-  document.addEventListener('keydown', function (e) {
-    if (!enabled) return;
-    if (e.metaKey || e.altKey) return;
-    if (isTyping()) return;
-
-    var k    = e.key;
-    var half = Math.max(5, Math.floor(window.innerHeight / 48));
-
-    if (e.ctrlKey) {
-      if (k === 'd') { e.preventDefault(); moveLine(half);      }
-      if (k === 'u') { e.preventDefault(); moveLine(-half);     }
-      if (k === 'f') { e.preventDefault(); moveLine(half * 2);  }
-      if (k === 'b') { e.preventDefault(); moveLine(-half * 2); }
-      return;
-    }
-
-    if (waiting) {
-      clearTimeout(waitTimer);
-      waiting = false;
-      if (pendingEl) pendingEl.textContent = '';
-      if (k === 'g') { e.preventDefault(); lineIdx = 0; charIdx = 0; ensureVisible(); }
-      return;
-    }
-
-    switch (k) {
-      case 'j': e.preventDefault(); moveLine(1);  break;
-      case 'k': e.preventDefault(); moveLine(-1); break;
-      case 'h': e.preventDefault(); moveChar(-1); break;
-      case 'l': e.preventDefault(); moveChar(1);  break;
-      case '0': e.preventDefault(); charIdx = 0; break;
-      case '$': e.preventDefault(); charIdx = Math.max(0, lineEls[lineIdx].textContent.length - 1); break;
-      case 'G':
-        e.preventDefault();
-        lineIdx = lineEls.length - 1; charIdx = 0; ensureVisible();
-        break;
-      case 'g':
-        e.preventDefault();
-        waiting = true;
-        if (pendingEl) pendingEl.textContent = 'g';
-        waitTimer = setTimeout(function () { waiting = false; if (pendingEl) pendingEl.textContent = ''; }, 600);
-        break;
-      case 'Escape':
-        waiting = false; clearTimeout(waitTimer);
-        if (pendingEl) pendingEl.textContent = '';
-        break;
-    }
-  });
-})();
-// ================================================================
-// END VIM MODE
-// ================================================================
