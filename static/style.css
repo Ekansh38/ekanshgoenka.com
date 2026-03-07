@@ -93,7 +93,16 @@ header { margin-bottom: 28px; }
 .article-nav { display: flex; justify-content: space-between; margin-top: 40px; }
 .article-nav-next { margin-left: auto; }
 
-.album-cover { display: block; width: 200px; height: 200px; object-fit: cover; margin-bottom: 20px; }
+.album-cover { display: block; width: 100%; height: auto; margin-bottom: 28px; }
+
+.back { display: inline-block; color: var(--muted); margin-bottom: 28px; font-size: 0.88rem; }
+.back:hover { color: var(--accent); text-decoration: none; }
+
+.project-title { font-size: 1.1rem; margin-bottom: 6px; }
+.project-meta  { color: var(--muted); font-size: 0.88rem; margin-bottom: 20px; }
+
+.links { display: flex; gap: 16px; margin-top: 24px; flex-wrap: wrap; }
+.links a { color: var(--accent); font-size: 0.88rem; }
 
 footer { margin-top: 48px; font-size: 0.77rem; }
 .footer-meta { color: var(--muted); margin-bottom: 4px; }
