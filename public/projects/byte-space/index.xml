@@ -6,6 +6,14 @@
     <description>Recent content in byte-space on Ekansh Goenka</description>
     <generator>Hugo</generator>
     <language>en-us</language>
+    <lastBuildDate>Sun, 01 Mar 2026 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://ekanshgoenka.com/projects/byte-space/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>The IPC System</title>
+      <link>https://ekanshgoenka.com/projects/byte-space/ipc/</link>
+      <pubDate>Sun, 01 Mar 2026 00:00:00 +0000</pubDate>
+      <guid>https://ekanshgoenka.com/projects/byte-space/ipc/</guid>
+      <description>&lt;p&gt;How byte-space handles IPC using Unix sockets.&lt;/p&gt;</description>
+    </item>
   </channel>
 </rss>

@@ -2,18 +2,28 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://ekanshgoenka.com/games/cropocalypse/</loc>
-    <lastmod>2025-07-27T00:00:00+00:00</lastmod>
+    <loc>https://ekanshgoenka.com/projects/byte-space/</loc>
+    <lastmod>2026-03-01T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://ekanshgoenka.com/</loc>
+    <lastmod>2026-03-01T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://ekanshgoenka.com/projects/</loc>
+    <lastmod>2026-03-01T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://ekanshgoenka.com/projects/byte-space/ipc/</loc>
+    <lastmod>2026-03-01T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://ekanshgoenka.com/games/cropocalypse/</loc>
     <lastmod>2025-07-27T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://ekanshgoenka.com/games/</loc>
     <lastmod>2025-07-27T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://ekanshgoenka.com/music/btop/</loc>
+    <loc>https://ekanshgoenka.com/games/starlight-odyssey/</loc>
+    <lastmod>2025-07-20T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://ekanshgoenka.com/projects/byte-space/</loc>
+    <loc>https://ekanshgoenka.com/music/btop/</loc>
   </url><url>
     <loc>https://ekanshgoenka.com/categories/</loc>
   </url><url>
@@ -22,8 +32,6 @@
     <loc>https://ekanshgoenka.com/music/</loc>
   </url><url>
     <loc>https://ekanshgoenka.com/now/</loc>
-  </url><url>
-    <loc>https://ekanshgoenka.com/projects/</loc>
   </url><url>
     <loc>https://ekanshgoenka.com/tags/</loc>
   </url><url>

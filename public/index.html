@@ -92,6 +92,11 @@
     <span class="li-desc">Kill and cook sentient plants, master cooking, and blast bok choy with your arsenal of weapons!</span>
   </li>
   
+  <li>
+    <span class="li-name"><a href="https://byte-colony.itch.io/starlight-odyssey" target="_blank">Starlight Odyssey</a></span> —
+    <span class="li-desc">Explore space. Save your race. Eat yourself to survive.</span>
+  </li>
+  
 </ul>
 
 
@@ -111,12 +116,12 @@
   <div id="term-overlay">
     <div id="term-box">
       <div id="term-bar">
-        <span>ekansh@site:~</span>
+        <span id="term-path">ekansh@site:~</span>
         <button id="term-close">✕</button>
       </div>
       <div id="term-output"></div>
       <div id="term-input-row">
-        <span class="term-prompt">$&nbsp;</span>
+        <span id="term-prompt" class="term-prompt">~$&nbsp;</span>
         <input id="term-input" type="text" autocomplete="off" autocorrect="off" spellcheck="false">
       </div>
     </div>
@@ -132,23 +137,23 @@
 
      
     var TERMINAL_DATA = {
-      projects: {
-        "byte-space": { desc: "recreates the early 1980s internet in the terminal", stack: "Go", status: "active", url: "/projects/byte-space/" },
-        "geno": { desc: "a genetic evolution simulator. genomes, natural selection, emergent behavior.", stack: "Go", status: "in progress", url: "/projects/geno/" },
-        
-      },
-      music: {
-        "btop": { desc: "an experimental electronic music album", status: "in production", url: "/music/btop/" },
-        
-      },
-      games: {
-        "cropocalypse": { desc: "Kill and cook sentient plants, master cooking, and blast bok choy with your arsenal of weapons!", engine: "Godot", url: "https://byte-colony.itch.io/cropocalypse" },
-        
-      },
-      writing: {
-        
-      },
-      now: "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+      '': { type: 'dir' },
+      'projects': { type: 'dir' },
+      "projects/byte-space": { type: "dir", desc: "recreates the early 1980s internet in the terminal", stack: "Go", status: "active", url: "/projects/byte-space/" },
+      "projects/byte-space/ipc": { type: "file", title: "The IPC System", body: "How byte-space handles IPC using Unix sockets.\n", date: "2026-03-01", url: "/projects/byte-space/ipc/" },
+      "projects/geno": { type: "dir", desc: "a genetic evolution simulator. genomes, natural selection, emergent behavior.", stack: "Go", status: "in progress", url: "/projects/geno/" },
+      "projects/geno/test": { type: "file", title: "tetst", body: "asdiasidja\n", date: "0001-01-01", url: "/projects/geno/test/" },
+      
+      'music': { type: 'dir' },
+      "music/btop": { type: "file", title: "btop", body: "Bitcrushed and degraded samples. Layered percussion and synths.\n\u0026ldquo;btop\u0026rdquo; spans 5 tracks:\n01: buFfer overflow someday\n02: chewing on copper wire\n03: soft reboot in the rain\n04: flUorescent rice water\n05: wet Concrete handshaKe\nReleasing on 22-03-2026.\u0026lt;\\em\u0026gt;\n", status: "in production", url: "/music/btop/" },
+      
+      'games': { type: 'dir' },
+      "games/cropocalypse": { type: "file", title: "Cropocalypse", body: "Kill and cook sentient plants, master cooking, and blast bok choy with your arsenal of weapons!", engine: "Godot", url: "https://byte-colony.itch.io/cropocalypse" },
+      "games/starlight-odyssey": { type: "file", title: "Starlight Odyssey", body: "Explore space. Save your race. Eat yourself to survive.", engine: "Godot", url: "https://byte-colony.itch.io/starlight-odyssey" },
+      
+      'writing': { type: 'dir' },
+      
+      'now': { type: 'file', body: "ASDLorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n" }
     };
   </script>
 

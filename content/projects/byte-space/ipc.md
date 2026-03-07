@@ -1,7 +1,7 @@
 ---
 title: "The IPC System"
 project: "byte-space"
-date: 2026-03-08
+date: 2026-03-01
 status: "complete"
 ---
 

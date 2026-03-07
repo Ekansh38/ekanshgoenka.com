@@ -6,14 +6,28 @@
     <description>Recent content in ekansh goenka on Ekansh Goenka</description>
     <generator>Hugo</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 27 Jul 2025 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 01 Mar 2026 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://ekanshgoenka.com/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>The IPC System</title>
+      <link>https://ekanshgoenka.com/projects/byte-space/ipc/</link>
+      <pubDate>Sun, 01 Mar 2026 00:00:00 +0000</pubDate>
+      <guid>https://ekanshgoenka.com/projects/byte-space/ipc/</guid>
+      <description>&lt;p&gt;How byte-space handles IPC using Unix sockets.&lt;/p&gt;</description>
+    </item>
     <item>
       <title>Cropocalypse</title>
       <link>https://ekanshgoenka.com/games/cropocalypse/</link>
       <pubDate>Sun, 27 Jul 2025 00:00:00 +0000</pubDate>
       <guid>https://ekanshgoenka.com/games/cropocalypse/</guid>
       <description>Kill and cook sentient plants, master cooking, and blast bok choy with your arsenal of weapons!</description>
+    </item>
+    <item>
+      <title>Starlight Odyssey</title>
+      <link>https://ekanshgoenka.com/games/starlight-odyssey/</link>
+      <pubDate>Sun, 20 Jul 2025 00:00:00 +0000</pubDate>
+      <guid>https://ekanshgoenka.com/games/starlight-odyssey/</guid>
+      <description>Explore space. Save your race. Eat yourself to survive.</description>
     </item>
     <item>
       <title>btop</title>

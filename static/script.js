@@ -472,13 +472,46 @@ function toggleTheme() {
     '"software is like entropy: it is difficult to grasp, weighs nothing, and obeys the second law of thermodynamics."  — norman augustine',
   ];
 
-  // DATA comes from /terminal-data.js — edit that file to update terminal content
-  var DATA = (typeof TERMINAL_DATA !== 'undefined') ? TERMINAL_DATA : { projects:{}, music:{}, games:{}, writing:{}, now:'' };
-  // patch game URLs from site params (itch.io link lives in hugo.toml, not terminal-data.js)
-  if (DATA.games) {
-    Object.keys(DATA.games).forEach(function (k) {
-      if (!DATA.games[k].url) DATA.games[k].url = (typeof SITE_LINKS !== 'undefined' ? SITE_LINKS.itchio : '#');
+  // ── filesystem — populated by Hugo via baseof.html ─────────────────────────
+  var FS = (typeof TERMINAL_DATA !== 'undefined') ? TERMINAL_DATA : { '': { type: 'dir' } };
+  var cwd = '';
+
+  function resolvePath(p) {
+    if (!p || p === '~' || p === '/') return '';
+    var base = (p[0] === '/') ? '' : (cwd ? cwd + '/' : '');
+    var full = base + p.replace(/^\//, '');
+    var parts = full.split('/').filter(Boolean);
+    var stack = [];
+    for (var i = 0; i < parts.length; i++) {
+      if (parts[i] === '..') { if (stack.length) stack.pop(); }
+      else if (parts[i] !== '.') { stack.push(parts[i]); }
+    }
+    return stack.join('/');
+  }
+
+  function lsChildren(dirPath) {
+    var prefix = dirPath ? dirPath + '/' : '';
+    var names = Object.keys(FS).filter(function (p) {
+      if (!p || p === dirPath) return false;
+      if (prefix && p.indexOf(prefix) !== 0) return false;
+      if (!prefix && p.indexOf('/') !== -1) return false;
+      return p.slice(prefix.length).indexOf('/') === -1;
+    }).map(function (p) { return p.slice(prefix.length); });
+    return names.sort(function (a, b) {
+      var aDir = FS[prefix + a] && FS[prefix + a].type === 'dir';
+      var bDir = FS[prefix + b] && FS[prefix + b].type === 'dir';
+      if (aDir && !bDir) return -1;
+      if (!aDir && bDir) return 1;
+      return a.localeCompare(b);
     });
+  }
+
+  function updatePrompt() {
+    var ps = document.getElementById('term-prompt');
+    var pb = document.getElementById('term-path');
+    var loc = cwd ? '~/' + cwd : '~';
+    if (ps) ps.textContent = loc + '$ ';
+    if (pb) pb.textContent = 'ekansh@site:' + loc;
   }
 
   var NEOFETCH = [
@@ -533,10 +566,11 @@ function toggleTheme() {
       '─────────────────────────────────────────────',
       '  ls [path]         list directory contents',
       '  cat <path>        read a file',
+      '  cd <path>         change directory',
+      '  pwd               print working directory',
       '  open <path>       navigate to a page',
       '',
-      'paths: projects  projects/byte-space  projects/geno',
-      '       music  music/btop  games  writing  now',
+      'use tab to complete paths. ls to explore.',
     ].join('\n'),
 
     bg: [
@@ -612,9 +646,11 @@ function toggleTheme() {
   };
 
   var HELP_CMDS = {
-    ls:      'ls [path]\n  list directory contents.\n\n  ls              → top-level dirs\n  ls projects     → list projects\n  ls music        → list albums',
-    cat:     'cat <path>\n  print a file.\n\n  cat now                → current status\n  cat projects/geno      → project info\n  cat music/btop         → album info',
-    open:    'open <path>\n  navigate to a page.\n\n  open projects          → /projects/\n  open projects/geno     → project page',
+    ls:      'ls [path]\n  list directory contents.\n\n  ls                   → top-level\n  ls projects          → project dirs\n  ls projects/geno     → articles\n  ls now               → error (file)',
+    cat:     'cat <path>\n  print a file.\n\n  cat now                    → current status\n  cat music/btop             → album info\n  cat projects/geno/article  → article body',
+    cd:      'cd [path]\n  change directory.\n\n  cd projects          → into projects/\n  cd byte-space        → relative path\n  cd ..                → go up\n  cd                   → back to root',
+    pwd:     'pwd\n  print working directory.',
+    open:    'open <path>\n  navigate to a page.\n\n  open projects          → /projects/\n  open projects/geno     → project page\n  open music/btop        → album page',
     bg:      'bg [life|boids|off]\n  get or set background mode.\n\n  bg             → show current mode\n  bg life        → Conway\'s Game of Life\n  bg boids       → flocking simulation\n  bg off         → disable',
     speed:   'speed [1-10]\n  get or set simulation speed (syncs with the slider).\n\n  speed          → show current\n  speed 1        → slowest\n  speed 10       → fastest',
     reset:   'reset\n  reinitialize the current simulation from scratch.',
@@ -653,7 +689,7 @@ function toggleTheme() {
     output.appendChild(el);
     output.scrollTop = output.scrollHeight;
   }
-  function echoCmd(raw) { line('$ ' + raw, 'term-line-cmd'); }
+  function echoCmd(raw) { line((cwd ? '~/' + cwd : '~') + '$ ' + raw, 'term-line-cmd'); }
 
   // ── rm -rf / degradation ─────────────────────────────────────
   function startDegradation() {
@@ -867,50 +903,75 @@ function toggleTheme() {
     },
 
     ls: function (args) {
-      var p = args[0] || '';
-      if (!p) {
-        line('projects  writing  music  games  now');
-      } else if (DATA[p] && typeof DATA[p] === 'object' && p !== 'now') {
-        var keys = Object.keys(DATA[p]);
-        line(keys.length ? keys.join('  ') : '(empty)');
-      } else if (p === 'now') {
-        line('now');
-      } else {
-        line('ls: ' + p + ': no such directory', 'term-line-err');
+      var target = args[0] ? resolvePath(args[0]) : cwd;
+      var node = FS[target !== undefined ? target : ''];
+      if (node === undefined) node = FS[''];
+      var displayTarget = args[0] || '.';
+      if (!FS.hasOwnProperty(target)) {
+        line('ls: ' + displayTarget + ': no such file or directory', 'term-line-err'); return;
       }
+      if (node.type !== 'dir') {
+        line('ls: ' + displayTarget + ': not a directory', 'term-line-err'); return;
+      }
+      var kids = lsChildren(target);
+      if (!kids.length) { line('(empty)'); return; }
+      var prefix = target ? target + '/' : '';
+      line(kids.map(function (n) {
+        return FS[prefix + n] && FS[prefix + n].type === 'dir' ? n + '/' : n;
+      }).join('  '));
     },
 
     cat: function (args) {
-      var path  = (args[0] || '').replace(/^\//, '');
-      var parts = path.split('/');
-      if (path === 'now') {
-        line(DATA.now);
-      } else if (parts.length === 2 && DATA[parts[0]] && DATA[parts[0]][parts[1]]) {
-        var item = DATA[parts[0]][parts[1]];
-        var out  = parts[1] + '\n' + '─'.repeat(parts[1].length) + '\n' + item.desc;
-        if (item.stack)  out += '\n\nstack : ' + item.stack;
-        if (item.status) out += '\nstatus: ' + item.status;
-        line(out, 'term-line-pre');
+      if (!args[0]) { line('usage: cat <path>', 'term-line-err'); return; }
+      var target = resolvePath(args[0]);
+      if (!FS.hasOwnProperty(target)) {
+        line('cat: ' + args[0] + ': no such file or directory', 'term-line-err'); return;
+      }
+      var node = FS[target];
+      if (node.type === 'dir') {
+        line('cat: ' + args[0] + ': is a directory', 'term-line-err'); return;
+      }
+      var name = target.split('/').pop();
+      var head = node.title || name;
+      var out  = head + '\n' + '─'.repeat(head.length);
+      if (node.date)   out += '\n' + node.date;
+      if (node.stack)  out += '\nstack:  ' + node.stack;
+      if (node.status) out += '\nstatus: ' + node.status;
+      if (node.engine) out += '\nengine: ' + node.engine;
+      var body = node.body || node.desc || '';
+      if (body) out += '\n\n' + body.trim();
+      line(out, 'term-line-pre');
+    },
+
+    cd: function (args) {
+      var target = args[0] || '';
+      if (!target || target === '~' || target === '/') { cwd = ''; updatePrompt(); return; }
+      var resolved = resolvePath(target);
+      if (!FS.hasOwnProperty(resolved)) {
+        line('cd: ' + target + ': no such file or directory', 'term-line-err');
+      } else if (FS[resolved].type !== 'dir') {
+        line('cd: ' + target + ': not a directory', 'term-line-err');
       } else {
-        line('cat: ' + (path || '?') + ': no such file', 'term-line-err');
+        cwd = resolved; updatePrompt();
       }
     },
 
+    pwd: function () { line('/' + cwd, 'term-line-ok'); },
+
     open: function (args) {
-      var path  = (args[0] || '').replace(/^\//, '');
-      var parts = path.split('/');
-      var url   = null;
-      var top   = ['projects','writing','music','games','now'];
-      if (top.indexOf(path) >= 0) {
-        url = '/' + path + '/';
-      } else if (parts.length === 2 && DATA[parts[0]] && DATA[parts[0]][parts[1]]) {
-        url = DATA[parts[0]][parts[1]].url;
+      var target = resolvePath((args[0] || '').replace(/^\//, ''));
+      var node = FS.hasOwnProperty(target) ? FS[target] : null;
+      var url = null;
+      if (!target) {
+        url = '/';
+      } else if (node && node.url) {
+        url = node.url;
       }
       if (url) {
         line('→ ' + url, 'term-line-ok');
         setTimeout(function () { window.location.href = url; }, 280);
       } else {
-        line('open: ' + (path || '?') + ': not found', 'term-line-err');
+        line('open: ' + (args[0] || '?') + ': not found', 'term-line-err');
       }
     },
 
@@ -1081,14 +1142,16 @@ function toggleTheme() {
     },
 
     du: function (args) {
-      var target = args.join(' ') || '.';
-      line([
-        '4.0K    ' + target + '/now',
-        '12K     ' + target + '/projects/byte-space',
-        '8.0K    ' + target + '/projects/geno',
-        '4.0K    ' + target + '/music/btop',
-        '28K     ' + target + '/',
-      ].join('\n'), 'term-line-pre');
+      var target = args.length ? resolvePath(args.join(' ')) : cwd;
+      if (!FS.hasOwnProperty(target)) { line('du: ' + (args.join(' ') || '.') + ': no such file', 'term-line-err'); return; }
+      var prefix = target ? target + '/' : '';
+      var kids = lsChildren(target);
+      var out = kids.map(function (n) {
+        var full = prefix + n;
+        return (FS[full] && FS[full].type === 'dir' ? '12K' : '4.0K') + '\t./' + n;
+      });
+      out.push('28K\t./');
+      line(out.join('\n'), 'term-line-pre');
     },
 
     ping: function (args) {
@@ -1113,22 +1176,15 @@ function toggleTheme() {
     },
 
     find: function (args) {
-      var name = '';
       var ni = args.indexOf('-name');
-      if (ni >= 0) name = args[ni + 1] || '';
+      var name = ni >= 0 ? (args[ni + 1] || '') : '';
       if (!name) { line('usage: find . -name <pattern>', 'term-line-err'); return; }
-      var files = [
-        './projects/byte-space/ipc.md',
-        './projects/byte-space/dns.md',
-        './projects/geno/overview.md',
-        './music/btop/tracklist.md',
-        './now/index.md',
-        './writing/index.md',
-      ].filter(function (f) {
-        return !name || name === '*' || name.replace(/\*/g,'') === '' ||
-               f.indexOf(name.replace(/\*/g,'')) >= 0;
+      var pat = name.replace(/\*/g, '');
+      var files = Object.keys(FS).filter(function (p) {
+        return p && FS[p].type === 'file' && (!pat || p.indexOf(pat) >= 0);
       });
-      line(files.length ? files.join('\n') : '(no matches)', files.length ? 'term-line-pre' : 'term-line-err');
+      line(files.length ? files.map(function (p) { return './' + p; }).join('\n') : '(no matches)',
+           files.length ? 'term-line-pre' : 'term-line-err');
     },
 
     wc: function (args) {
@@ -1286,7 +1342,6 @@ function toggleTheme() {
     },
     sudo:   function ()  { line('ekansh is not in the sudoers file. this incident will be reported.', 'term-line-err'); },
     vim:    function ()  { line('you\'re already in vim (spiritually).', 'term-line-ok'); },
-    pwd:    function ()  { line('/home/ekansh'); },
     date:   function ()  { line(new Date().toString().toLowerCase()); },
     rm: function (a) {
       var flags = a.filter(function (x) { return x[0] === '-'; }).join('');
@@ -1304,22 +1359,13 @@ function toggleTheme() {
   };
 
   // ── tab completion ──────────────────────────────────────────
-  var ALL_PATHS = (function () {
-    var paths = ['projects','writing','music','games','now'];
-    var td = typeof TERMINAL_DATA !== 'undefined' ? TERMINAL_DATA : {};
-    Object.keys(td).forEach(function (section) {
-      if (section !== 'now' && typeof td[section] === 'object') {
-        Object.keys(td[section]).forEach(function (name) { paths.push(section + '/' + name); });
-      }
-    });
-    return paths;
-  })();
+  var ALL_PATHS = Object.keys(FS).filter(function (p) { return p; });
   var CMD_NAMES = Object.keys(CMDS);
 
   function complete(val) {
     var parts = val.trimStart().split(/\s+/);
     var prefix = parts[parts.length - 1];
-    var pool = parts.length === 1 ? CMD_NAMES : ALL_PATHS;
+    var pool = parts.length === 1 ? CMD_NAMES : ALL_PATHS.concat(lsChildren(cwd));
     var hits = pool.filter(function (c) { return c.indexOf(prefix) === 0; });
     if (hits.length === 1) {
       parts[parts.length - 1] = hits[0];
