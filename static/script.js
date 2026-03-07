@@ -635,7 +635,7 @@ function toggleTheme() {
       '  make [target]       build',
       '  tar                 archive',
       '  yes [text]          infinite output',
-      '  sl                  train',
+
       '  sudo <cmd>          nope',
       '  rm -rf /            nice try',
       '  vim                 spiritual',
@@ -738,8 +738,7 @@ function toggleTheme() {
       }, 70);
 
       // ── phase 2: element deletion ───────────────────────────
-      setTimeout(function () {
-        var sel = 'nav, .social, .tagline, li, p, h3, h2, footer, ' +
+      setTimeout(function () {        var sel = 'nav, .social, .tagline, li, p, h3, h2, footer, ' +
                   '.nav, h1, header, section, article, #theme-picker, main';
         var nodeList = document.querySelectorAll(sel);
         var els = [];
@@ -766,7 +765,7 @@ function toggleTheme() {
             })(el);
           }
         }, 100);
-      }, 1400);
+      }, 3000);
 
       // ── phase 3: color corruption ───────────────────────────
       setTimeout(function () {
@@ -794,7 +793,7 @@ function toggleTheme() {
             document.body.style.cssText = 'background:#000;margin:0;padding:0;height:100vh;';
           }, 1300);
         }, 1600);
-      }, 3200);
+      }, 6500);
 
     }, deletions.length * 190 + 250);
   }
@@ -1190,7 +1189,6 @@ function toggleTheme() {
       if (isRF) { line('rm: ' + (paths[0] || '/') + ': permission denied', 'term-line-err'); return; }
       line('rm: ' + (a[0] || '?') + ': permission denied', 'term-line-err');
     },
-    sl:     function ()  { line('        🚂 choo choo'); },
     yes:    function (a) { line(a.join(' ') || 'y'); line('(use ctrl+c to stop — kidding, you can\'t)'); },
     true:   function ()  { /* exits 0, outputs nothing, as god intended */ },
     false:  function ()  { line('false: exited with status 1', 'term-line-err'); },
