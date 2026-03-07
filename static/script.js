@@ -413,6 +413,46 @@ function toggleTheme() {
   };
   window.getBgSpeed = function () { return speedLevel; };
   window.resetBg    = function () { initMode(MODES[modeIdx]); };
+
+  window.getBgParams = function () {
+    return {
+      'life.cell':         CELL,
+      'boids.n':           N,
+      'boids.size':        BOID_LEN,
+      'boids.speed':       MAX_SPEED,
+      'boids.perception':  PERCEPTION,
+      'boids.separation':  SEP_DIST,
+    };
+  };
+
+  window.setParam = function (key, val) {
+    switch (key) {
+      case 'life.cell':
+        CELL = Math.max(3, Math.min(20, Math.round(val)));
+        if (MODES[modeIdx] === 'life') initLife();
+        return true;
+      case 'boids.n':
+        N = Math.max(10, Math.min(500, Math.round(val)));
+        if (MODES[modeIdx] === 'boids') initBoids();
+        return true;
+      case 'boids.size':
+        BOID_LEN  = Math.max(4, Math.min(40, val));
+        BOID_HALF = BOID_LEN * 0.393;
+        return true;
+      case 'boids.speed':
+        MAX_SPEED = Math.max(0.3, Math.min(6, val));
+        MIN_SPEED = Math.min(MIN_SPEED, MAX_SPEED * 0.33);
+        return true;
+      case 'boids.perception':
+        PERCEPTION = Math.max(20, Math.min(400, val));
+        return true;
+      case 'boids.separation':
+        SEP_DIST = Math.max(5, Math.min(200, val));
+        return true;
+      default:
+        return false;
+    }
+  };
 })();
 // ================================================================
 // END BG EFFECT
@@ -476,39 +516,163 @@ function toggleTheme() {
     '                        hobbies   bjj · cs · music · reading',
   ].join('\n');
 
-  var HELP = [
-    'navigation',
-    '  ls [path]         list contents',
-    '  cat <path>        read a section or project',
-    '  open <path>       navigate to a page',
+  // ── help system ─────────────────────────────────────────────
+  var HELP_INDEX = [
+    'help [topic|command]',
     '',
-    'system',
-    '  neofetch          system info',
-    '  uname             kernel info',
-    '  uptime            time since page load',
-    '  ps                running processes',
-    '  history           command history',
-    '  color             current theme palette',
-    '  whoami            who is this',
+    'topics:',
+    '  nav     navigating site content',
+    '  bg      background simulation & tuning',
+    '  sys     system information',
+    '  look    themes & appearance',
+    '  fun     the fun stuff',
     '',
-    'background',
-    '  bg [life|boids|off]   get or set background mode',
-    '  speed [1-10]          get or set simulation speed',
-    '  reset                 reset current simulation',
-    '',
-    'appearance',
-    '  colorscheme [name]    list or switch colorscheme',
-    '',
-    'fun',
-    '  matrix            wake up',
-    '  hack              breach',
-    '  fortune           random quote',
-    '  cowsay [text]     a cow says something',
-    '  echo <text>       echo',
-    '  github / youtube / itch   open links',
-    '  clear             clear output',
-    '  exit / q          close',
+    'type  help <topic>     to list commands in a topic',
+    'type  help <command>   for detailed help on a command',
+    'type  help help        to learn about this help system',
   ].join('\n');
+
+  var HELP_TOPICS = {
+    help: [
+      'help [topic|command]',
+      '─────────────────────────────────────────────',
+      'with no args:         show topic list',
+      'help <topic>:         list commands in that topic',
+      'help <command>:       detailed usage for a command',
+      'help help:            you\'re looking at it',
+      '',
+      'topics: nav  bg  sys  look  fun',
+    ].join('\n'),
+
+    nav: [
+      'nav — navigating site content',
+      '─────────────────────────────────────────────',
+      '  ls [path]         list directory contents',
+      '  cat <path>        read a file',
+      '  open <path>       navigate to a page',
+      '',
+      'paths: projects  projects/byte-space  projects/geno',
+      '       music  music/btop  games  writing  now',
+    ].join('\n'),
+
+    bg: [
+      'bg — background simulation',
+      '─────────────────────────────────────────────',
+      '  bg [life|boids|off]    get or set mode',
+      '  speed [1-10]           get or set speed',
+      '  reset                  reinit simulation',
+      '  params                 show all tunable params',
+      '  set <param> <val>      change a parameter',
+      '',
+      'life params:',
+      '  life.cell         cell size px       (3–20,   default 7)',
+      '',
+      'boids params:',
+      '  boids.n           boid count         (10–500, default 120)',
+      '  boids.size        boid length px     (4–40,   default 14)',
+      '  boids.speed       max speed          (0.3–6,  default 1.8)',
+      '  boids.perception  sight radius px    (20–400, default 85)',
+      '  boids.separation  separation px      (5–200,  default 50)',
+    ].join('\n'),
+
+    sys: [
+      'sys — system information',
+      '─────────────────────────────────────────────',
+      '  neofetch          system overview + ascii art',
+      '  uname [-a]        kernel / browser info',
+      '  uptime            time since page load',
+      '  ps                process list',
+      '  history           command history',
+      '  color             current theme palette',
+      '  whoami            identity',
+      '  date              current date',
+      '  pwd               working directory',
+    ].join('\n'),
+
+    look: [
+      'look — appearance',
+      '─────────────────────────────────────────────',
+      '  colorscheme [name]    list or apply a colorscheme',
+      '  color                 print current palette',
+      '',
+      'colorschemes:',
+      '  tokyo-night    dark   (default)',
+      '  gruvbox        dark',
+      '  rose-pine      light',
+      '  solarized-light light',
+    ].join('\n'),
+
+    sys: [
+      'sys — system',
+      '─────────────────────────────────────────────',
+      '  neofetch          system overview',
+      '  uname [-a]        kernel / browser info',
+      '  uptime            time since page load',
+      '  top               live process view',
+      '  ps                process list',
+      '  df                disk usage',
+      '  du [path]         directory sizes',
+      '  env               environment variables',
+      '  history           command history',
+      '  color             current theme palette',
+      '  whoami            identity',
+      '  date              current date',
+      '  pwd               working directory',
+    ].join('\n'),
+
+    fun: [
+      'fun',
+      '─────────────────────────────────────────────',
+      '  cowsay [text]       cow',
+      '  fortune             random quote',
+      '  ping <host>         ping',
+      '  find . -name <pat>  find files',
+      '  grep <pat> <path>   search',
+      '  wc [-l] <path>      word/line count',
+      '  which <cmd>         locate a command',
+      '  git log             commit history',
+      '  git status          repo status',
+      '  make [target]       build',
+      '  tar                 archive',
+      '  yes [text]          infinite output',
+      '  sl                  train',
+      '  sudo <cmd>          nope',
+      '  rm -rf /            nice try',
+      '  vim                 spiritual',
+    ].join('\n'),
+  };
+
+  var HELP_CMDS = {
+    ls:      'ls [path]\n  list directory contents.\n\n  ls              → top-level dirs\n  ls projects     → list projects\n  ls music        → list albums',
+    cat:     'cat <path>\n  print a file.\n\n  cat now                → current status\n  cat projects/geno      → project info\n  cat music/btop         → album info',
+    open:    'open <path>\n  navigate to a page.\n\n  open projects          → /projects/\n  open projects/geno     → project page',
+    bg:      'bg [life|boids|off]\n  get or set background mode.\n\n  bg             → show current mode\n  bg life        → Conway\'s Game of Life\n  bg boids       → flocking simulation\n  bg off         → disable',
+    speed:   'speed [1-10]\n  get or set simulation speed (syncs with the slider).\n\n  speed          → show current\n  speed 1        → slowest\n  speed 10       → fastest',
+    reset:   'reset\n  reinitialize the current simulation from scratch.',
+    params:  'params\n  show all tunable simulation parameters with current values.',
+    set:     'set <param> <value>\n  tune a simulation parameter live.\n\n  set life.cell 4           → tiny cells\n  set life.cell 12          → chunky cells\n  set boids.n 50            → sparse flock\n  set boids.n 300           → dense flock\n  set boids.size 8          → small boids\n  set boids.speed 3.5       → fast boids\n  set boids.perception 150  → wide awareness\n  set boids.separation 20   → tight packing\n\n  see: help bg  for all params and ranges',
+    colorscheme: 'colorscheme [name]\n  list or apply a colorscheme.\n\n  colorscheme              → list (active marked *)\n  colorscheme gruvbox      → apply\n\n  available: tokyo-night  gruvbox  rose-pine  solarized-light',
+    cowsay:  'cowsay [text]\n  a cow says something.\n\n  cowsay hello world',
+    fortune: 'fortune\n  print a random programming quote.',
+    ping:    'ping <host>\n  send 3 ICMP echo requests.\n\n  ping ekanshgoenka.com',
+    find:    'find . -name <pattern>\n  find files matching a pattern.\n\n  find . -name "*.go"\n  find . -name "*.md"',
+    grep:    'grep <pattern> <path>\n  search file contents.',
+    wc:      'wc [-l] <path>\n  count lines, words, and bytes.',
+    which:   'which <command>\n  show path of a command.',
+    top:     'top\n  show live process monitor.',
+    ps:      'ps\n  show process list.',
+    df:      'df\n  show disk usage.',
+    du:      'du [path]\n  show directory sizes.',
+    env:     'env\n  print environment variables.',
+    uname:   'uname [-a]\n  print kernel info.\n  -a    all info',
+    uptime:  'uptime\n  time since page load, with load averages.',
+    history: 'history\n  show command history for this session.',
+    color:   'color\n  print current theme CSS variables.',
+    whoami:  'whoami\n  print user identity.',
+    git:     'git <subcommand>\n  git plumbing.\n\n  git log     → recent commits\n  git status  → working tree status\n  git diff    → diff',
+    make:    'make [target]\n  build target.\n\n  make\n  make clean',
+    tar:     'tar [flags] [file]\n  archive utility.\n\n  tar -xzf archive.tar.gz',
+  };
 
   // ── output helpers ──────────────────────────────────────────
   function line(text, cls) {
@@ -524,7 +688,13 @@ function toggleTheme() {
 
   // ── commands ────────────────────────────────────────────────
   var CMDS = {
-    help: function ()    { line(HELP, 'term-line-pre'); },
+    help: function (args) {
+      var t = (args[0] || '').toLowerCase();
+      if (!t)                    { line(HELP_INDEX,        'term-line-pre'); return; }
+      if (HELP_TOPICS[t])        { line(HELP_TOPICS[t],    'term-line-pre'); return; }
+      if (HELP_CMDS[t])          { line(HELP_CMDS[t],      'term-line-pre'); return; }
+      line('no help for "' + t + '"  —  try: help', 'term-line-err');
+    },
 
     ls: function (args) {
       var p = args[0] || '';
@@ -614,10 +784,7 @@ function toggleTheme() {
     // ── background control ──────────────────────────────────────
     bg: function (args) {
       var m = args[0];
-      if (!m) {
-        line('bg: ' + (window.getBgMode ? window.getBgMode() : '?'), 'term-line-ok');
-        return;
-      }
+      if (!m) { line('bg: ' + (window.getBgMode ? window.getBgMode() : '?'), 'term-line-ok'); return; }
       if (!window.setBgMode || !window.setBgMode(m))
         line('bg: unknown mode. try: life  boids  off', 'term-line-err');
       else
@@ -625,26 +792,49 @@ function toggleTheme() {
     },
 
     speed: function (args) {
-      if (!args[0]) {
-        line('speed: ' + (window.getBgSpeed ? window.getBgSpeed() : '?') + ' / 10', 'term-line-ok');
-        return;
-      }
+      if (!args[0]) { line('speed: ' + (window.getBgSpeed ? window.getBgSpeed() : '?') + ' / 10', 'term-line-ok'); return; }
       var n = parseInt(args[0]);
-      if (isNaN(n) || n < 1 || n > 10) { line('speed: enter a value 1–10', 'term-line-err'); return; }
+      if (isNaN(n) || n < 1 || n > 10) { line('speed: value must be 1–10', 'term-line-err'); return; }
       if (window.setBgSpeed) window.setBgSpeed(n);
       line('speed → ' + n, 'term-line-ok');
     },
 
     reset: function () {
       if (window.resetBg) window.resetBg();
-      line('simulation reset.', 'term-line-ok');
+      line('simulation reinitialized.', 'term-line-ok');
+    },
+
+    params: function () {
+      var p = window.getBgParams ? window.getBgParams() : {};
+      line([
+        'simulation parameters  (set <param> <val> to change)',
+        '',
+        'life:',
+        '  life.cell         ' + (p['life.cell']        || '?') + '    cell size px  (3–20)',
+        '',
+        'boids:',
+        '  boids.n           ' + (p['boids.n']          || '?') + '   count         (10–500)',
+        '  boids.size        ' + (p['boids.size']        || '?') + '   length px     (4–40)',
+        '  boids.speed       ' + (p['boids.speed']       || '?') + '  max speed      (0.3–6)',
+        '  boids.perception  ' + (p['boids.perception']  || '?') + '   sight radius  (20–400)',
+        '  boids.separation  ' + (p['boids.separation']  || '?') + '   separation px (5–200)',
+      ].join('\n'), 'term-line-pre');
+    },
+
+    set: function (args) {
+      var key = args[0] || '';
+      var val = parseFloat(args[1]);
+      if (!key || isNaN(val)) { line('usage: set <param> <value>   (see: params)', 'term-line-err'); return; }
+      if (!window.setParam || !window.setParam(key, val))
+        line('unknown param "' + key + '"  —  see: params', 'term-line-err');
+      else
+        line(key + ' = ' + val, 'term-line-ok');
     },
 
     // ── system ──────────────────────────────────────────────────
     uname: function (args) {
-      var full = args.indexOf('-a') >= 0;
-      if (full)
-        line('Browser 1.0.0 ekansh-site #1 SMP ' + new Date().toDateString() + ' x86_64 WebKit', 'term-line-pre');
+      if (args.indexOf('-a') >= 0)
+        line('Browser 1.0.0 ekansh-site #1 SMP ' + new Date().toDateString() + ' x86_64 WebKit');
       else
         line('Browser');
     },
@@ -666,8 +856,26 @@ function toggleTheme() {
         '   89  life.sim             1.7    0.9',
         '  102  terminal.js          0.3    0.2',
         '  256  music-brain          0.1    ?.?',
-        '  512  bjj-scheduler        0.0    0.0',
         ' 1337  ekansh               99.9   ∞',
+      ].join('\n'), 'term-line-pre');
+    },
+
+    top: function () {
+      var p = window.getBgParams ? window.getBgParams() : {};
+      line([
+        'top - ' + new Date().toTimeString().slice(0,8) + '  up ' + (function(){
+          var s=Math.floor((Date.now()-PAGE_START)/1000),m=Math.floor(s/60)%60,h=Math.floor(s/3600);
+          return (h?h+'h ':'')+m+'m';
+        })() + ',  tasks: 6 total',
+        'cpu: usr 14.2%  sys 3.1%  idle 82.7%',
+        'mem: 512M total  341M used  171M free',
+        '',
+        '  PID  USER     %CPU  %MEM  COMMAND',
+        ' 1337  ekansh   99.9  ∞     ekansh',
+        '   88  www      ' + (p['boids.n']||120)/6|0 + '.1   1.4   boids (n=' + (p['boids.n']||120) + ')',
+        '   89  www       1.7   0.9   life (cell=' + (p['life.cell']||7) + 'px)',
+        '  102  www       0.3   0.2   terminal.js',
+        '    1  root      0.0   0.1   kernel',
       ].join('\n'), 'term-line-pre');
     },
 
@@ -693,45 +901,133 @@ function toggleTheme() {
       line(out, 'term-line-pre');
     },
 
-    echo: function (args) { line(args.join(' ')); },
+    df: function () {
+      line([
+        'Filesystem        Size    Used   Avail  Use%  Mounted on',
+        '/dev/brain        256G    201G    55G    79%   /home/ekansh',
+        '/dev/internet      ∞       ∞      ∞     ??%   /www',
+        'tmpfs             16G     0.2G   15.8G   1%   /tmp',
+      ].join('\n'), 'term-line-pre');
+    },
+
+    du: function (args) {
+      var target = args.join(' ') || '.';
+      line([
+        '4.0K    ' + target + '/now',
+        '12K     ' + target + '/projects/byte-space',
+        '8.0K    ' + target + '/projects/geno',
+        '4.0K    ' + target + '/music/btop',
+        '28K     ' + target + '/',
+      ].join('\n'), 'term-line-pre');
+    },
+
+    ping: function (args) {
+      var host = args[0] || 'ekanshgoenka.com';
+      var steps = [
+        'PING ' + host + ': 56 data bytes',
+        '64 bytes from ' + host + ': icmp_seq=0 ttl=64 time=' + (Math.random()*8+1).toFixed(3) + ' ms',
+        '64 bytes from ' + host + ': icmp_seq=1 ttl=64 time=' + (Math.random()*8+1).toFixed(3) + ' ms',
+        '64 bytes from ' + host + ': icmp_seq=2 ttl=64 time=' + (Math.random()*8+1).toFixed(3) + ' ms',
+        '',
+        '--- ' + host + ' ping statistics ---',
+        '3 packets transmitted, 3 received, 0% packet loss',
+      ];
+      steps.forEach(function (s, i) { setTimeout(function () { line(s); }, i * 300); });
+    },
+
+    grep: function (args) {
+      if (args.length < 2) { line('usage: grep <pattern> <path>', 'term-line-err'); return; }
+      var pat = args[0], path = args[1];
+      line('grep: ' + path + ': permission denied', 'term-line-err');
+      line('(hint: try  cat <path>  instead)');
+    },
+
+    find: function (args) {
+      var name = '';
+      var ni = args.indexOf('-name');
+      if (ni >= 0) name = args[ni + 1] || '';
+      if (!name) { line('usage: find . -name <pattern>', 'term-line-err'); return; }
+      var files = [
+        './projects/byte-space/ipc.md',
+        './projects/byte-space/dns.md',
+        './projects/geno/overview.md',
+        './music/btop/tracklist.md',
+        './now/index.md',
+        './writing/index.md',
+      ].filter(function (f) {
+        return !name || name === '*' || name.replace(/\*/g,'') === '' ||
+               f.indexOf(name.replace(/\*/g,'')) >= 0;
+      });
+      line(files.length ? files.join('\n') : '(no matches)', files.length ? 'term-line-pre' : 'term-line-err');
+    },
+
+    wc: function (args) {
+      var path = args[args.length - 1] || '';
+      var lines = Math.floor(Math.random()*80+20);
+      var words = Math.floor(lines * (Math.random()*8+4));
+      var bytes = Math.floor(words * 5.2);
+      line('  ' + lines + '  ' + words + '  ' + bytes + '  ' + (path || '-'));
+    },
+
+    which: function (args) {
+      var cmd = args[0];
+      if (!cmd) { line('usage: which <command>', 'term-line-err'); return; }
+      if (CMDS[cmd]) line('/usr/local/bin/' + cmd);
+      else line('which: ' + cmd + ': not found', 'term-line-err');
+    },
+
+    env: function () {
+      var theme = document.documentElement.getAttribute('data-theme');
+      line([
+        'TERM=xterm-256color',
+        'SHELL=/bin/zsh',
+        'USER=ekansh',
+        'HOME=/home/ekansh',
+        'EDITOR=vim',
+        'COLORSCHEME=' + theme,
+        'BG_MODE=' + (window.getBgMode ? window.getBgMode() : 'life'),
+        'LANG=en_US.UTF-8',
+        'PATH=/usr/local/bin:/usr/bin:/bin',
+      ].join('\n'), 'term-line-pre');
+    },
+
+    'git': function (args) {
+      var sub = args[0] || '';
+      if (sub === 'log') {
+        line([
+          'commit 07bdea8  changes',
+          'commit 46c5a36  changes',
+          'commit 11d038b  changes',
+          'commit 4010bb1  changes',
+          'commit ecdab13  changes',
+        ].join('\n'), 'term-line-pre');
+      } else if (sub === 'status') {
+        line('On branch main\nnothing to commit, working tree clean', 'term-line-pre');
+      } else if (sub === 'diff') {
+        line('(clean)', 'term-line-ok');
+      } else {
+        line('git: ' + (sub||'') + ': try  git log  or  git status', 'term-line-err');
+      }
+    },
+
+    make: function (args) {
+      var target = args[0] || 'all';
+      var steps = [
+        'cc -O2 -Wall -o ' + target + ' main.c util.c',
+        'ld -o ' + target + ' main.o util.o',
+        'make: \'' + target + '\' is up to date.',
+      ];
+      steps.forEach(function (s, i) { setTimeout(function () { line(s); }, i * 180); });
+    },
+
+    tar: function (args) {
+      if (args.join('').indexOf('x') >= 0)
+        line('tar: checksum error\ntar: error exit delayed from previous errors.', 'term-line-err');
+      else
+        line('tar: refusing to create empty archive', 'term-line-err');
+    },
 
     // ── fun ─────────────────────────────────────────────────────
-    matrix: function () {
-      var chars = 'ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ01';
-      var W = 42, rows = 14, count = 0;
-      var iv = setInterval(function () {
-        var s = '';
-        for (var i = 0; i < W; i++) s += chars[Math.floor(Math.random() * chars.length)];
-        line(s, 'term-line-ok');
-        if (++count >= rows) {
-          clearInterval(iv);
-          setTimeout(function () { line(''); line('wake up, neo.', 'term-line-ok'); }, 120);
-        }
-      }, 55);
-    },
-
-    hack: function () {
-      var steps = [
-        [0,    '> initiating breach sequence...'],
-        [450,  '> scanning target: ekanshgoenka.com'],
-        [900,  '> open ports: 80, 443, 1337'],
-        [1350, '> attempting sql injection... failed.'],
-        [1800, '> trying xss... failed.'],
-        [2250, '> trying social engineering...'],
-        [2700, '> ...'],
-        [3100, '> ...wait.'],
-        [3500, '> you ARE ekansh.'],
-        [3900, '> nevermind. aborting.'],
-      ];
-      steps.forEach(function (s) {
-        setTimeout(function () { line(s[1], 'term-line-ok'); }, s[0]);
-      });
-    },
-
-    fortune: function () {
-      line(QUOTES[Math.floor(Math.random() * QUOTES.length)]);
-    },
-
     cowsay: function (args) {
       var text = args.join(' ') || 'moo';
       var bar  = '-'.repeat(text.length + 2);
@@ -747,31 +1043,40 @@ function toggleTheme() {
       ].join('\n'), 'term-line-pre');
     },
 
-    // ── misc ────────────────────────────────────────────────────
-    clear: function () { output.innerHTML = ''; },
-    exit:  function () { close(); },
-    q:     function () { close(); },
+    fortune: function () {
+      line(QUOTES[Math.floor(Math.random() * QUOTES.length)]);
+    },
 
-    curl: function (args) {
+    // ── misc ────────────────────────────────────────────────────
+    man: function (a) {
+      if (!a[0]) { line('what manual page do you want?', 'term-line-err'); return; }
+      var entry = HELP_CMDS[a[0]] || HELP_TOPICS[a[0]];
+      if (entry) line(entry, 'term-line-pre');
+      else line('no manual entry for ' + a[0], 'term-line-err');
+    },
+    clear:  function () { output.innerHTML = ''; },
+    exit:   function () { close(); },
+    q:      function () { close(); },
+    echo:   function (args) { line(args.join(' ')); },
+    curl:   function (args) {
       if (args[0] && args[0].indexOf('ekanshgoenka') >= 0)
         line('nice try. you\'re already in the terminal.', 'term-line-ok');
       else
         line('curl: not available here', 'term-line-err');
     },
-    sudo: function ()  { line('lol no.', 'term-line-err'); },
-    vim:  function ()  { line('you\'re already in vim (spiritually).', 'term-line-ok'); },
-    pwd:  function ()  { line('/home/ekansh'); },
-    date: function ()  { line(new Date().toDateString().toLowerCase()); },
-    rm:   function (a) {
+    sudo:   function ()  { line('ekansh is not in the sudoers file. this incident will be reported.', 'term-line-err'); },
+    vim:    function ()  { line('you\'re already in vim (spiritually).', 'term-line-ok'); },
+    pwd:    function ()  { line('/home/ekansh'); },
+    date:   function ()  { line(new Date().toString().toLowerCase()); },
+    rm:     function (a) {
       if (a.join('').indexOf('rf') >= 0) line('nice try.', 'term-line-err');
       else line('rm: ' + (a[0] || '?') + ': permission denied', 'term-line-err');
     },
-    sl:   function ()  { line('        🚂 choo choo'); },
-    man:  function (a) {
-      if (!a[0]) { line('what manual page do you want?', 'term-line-err'); return; }
-      if (!CMDS[a[0]]) { line('no manual entry for ' + a[0], 'term-line-err'); return; }
-      line('RTFS.', 'term-line-ok');
-    }
+    sl:     function ()  { line('        🚂 choo choo'); },
+    yes:    function (a) { line(a.join(' ') || 'y'); line('(use ctrl+c to stop — kidding, you can\'t)'); },
+    true:   function ()  { /* exits 0, outputs nothing, as god intended */ },
+    false:  function ()  { line('false: exited with status 1', 'term-line-err'); },
+    ':':    function ()  { /* the shell builtin : always succeeds */ },
   };
 
   // ── tab completion ──────────────────────────────────────────
