@@ -8,7 +8,8 @@ cover: /images/btop-cover.png
 ---
 
 
-Bitcrushed and degraded samples. Layered percussion and synths. Catchy airy arps. "btop" spans 5 tracks:
+Bitcrushed and degraded samples. Layered percussion and synths.
+"btop" spans 5 tracks:
 
 <br>
 
@@ -21,4 +22,4 @@ Bitcrushed and degraded samples. Layered percussion and synths. Catchy airy arps
 
 <br>
 
-Releasing on 22-03-2026.
+<em>Releasing on 22-03-2026.<\em>
