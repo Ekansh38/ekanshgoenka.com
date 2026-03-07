@@ -380,3 +380,263 @@ function toggleTheme() {
 // ================================================================
 // END BG EFFECT
 // ================================================================
+
+// ================================================================
+// HIDDEN TERMINAL — press ':' or click [:] to open
+// ================================================================
+(function () {
+  var overlay = document.getElementById('term-overlay');
+  var output  = document.getElementById('term-output');
+  var inp     = document.getElementById('term-input');
+  if (!overlay || !output || !inp) return;
+
+  var hist = [], histIdx = -1, isOpen = false;
+
+  var DATA = {
+    projects: {
+      'byte-space': {
+        desc: 'terminal-based 1980s internet simulator.\nhttp, smtp, dns, telnet — built from scratch in go.\nmulti-process architecture over unix domain sockets.',
+        stack: 'Go', status: 'active', url: '/projects/byte-space/'
+      },
+      'geno': {
+        desc: 'genetic evolution simulator with a live multi-panel terminal ui.\nbubbletea + lipgloss. simulates trait evolution across generations.',
+        stack: 'Go', status: 'in progress', url: '/projects/geno/'
+      }
+    },
+    music: {
+      'btop': {
+        desc: 'experimental electronic album.\nbitcrushed percussion, degraded jazz samples, terminal textures.\nfive tracks. releases march 22, 2026.',
+        status: 'in production', url: '/music/btop/'
+      }
+    },
+    games: {
+      'untitled-game': {
+        desc: 'a game. made in godot.', engine: 'Godot',
+        url: (typeof SITE_LINKS !== 'undefined' ? SITE_LINKS.itchio : '#')
+      }
+    },
+    writing: {},
+    now: 'filling in the site. btop drops march 22.'
+  };
+
+  var NEOFETCH = [
+    ' ┌─────────┐  ekansh@site',
+    ' │  >_ ██  │  ───────────',
+    ' │  ████   │  age    : 12',
+    ' │  ██     │  lang   : go',
+    ' └─────────┘  editor : vim',
+    '              os     : macos',
+    '              proj   : byte-space, geno',
+    '              music  : btop (march 22)',
+    '              hobbies: bjj, music'
+  ].join('\n');
+
+  var HELP = [
+    'commands:',
+    '  ls [path]          list contents',
+    '  cat <path>         read a section or project',
+    '  open <path>        navigate to a page',
+    '  whoami             who is this',
+    '  neofetch           system info',
+    '  theme [name]       list or switch theme',
+    '  github / youtube / itch   open links',
+    '  clear              clear output',
+    '  exit / q           close terminal',
+    '',
+    'paths: projects  projects/byte-space  projects/geno',
+    '       music  music/btop  games  writing  now'
+  ].join('\n');
+
+  // ── output helpers ──────────────────────────────────────────
+  function line(text, cls) {
+    var el = cls === 'term-line-pre'
+      ? document.createElement('pre')
+      : document.createElement('div');
+    if (cls) el.className = cls;
+    el.textContent = text;
+    output.appendChild(el);
+    output.scrollTop = output.scrollHeight;
+  }
+  function echoCmd(raw) { line('$ ' + raw, 'term-line-cmd'); }
+
+  // ── commands ────────────────────────────────────────────────
+  var CMDS = {
+    help: function ()    { line(HELP, 'term-line-pre'); },
+
+    ls: function (args) {
+      var p = args[0] || '';
+      if (!p) {
+        line('projects  writing  music  games  now');
+      } else if (DATA[p] && typeof DATA[p] === 'object' && p !== 'now') {
+        var keys = Object.keys(DATA[p]);
+        line(keys.length ? keys.join('  ') : '(empty)');
+      } else if (p === 'now') {
+        line('now');
+      } else {
+        line('ls: ' + p + ': no such directory', 'term-line-err');
+      }
+    },
+
+    cat: function (args) {
+      var path  = (args[0] || '').replace(/^\//, '');
+      var parts = path.split('/');
+      if (path === 'now') {
+        line(DATA.now);
+      } else if (parts.length === 2 && DATA[parts[0]] && DATA[parts[0]][parts[1]]) {
+        var item = DATA[parts[0]][parts[1]];
+        var out  = parts[1] + '\n' + '─'.repeat(parts[1].length) + '\n' + item.desc;
+        if (item.stack)  out += '\n\nstack : ' + item.stack;
+        if (item.status) out += '\nstatus: ' + item.status;
+        line(out, 'term-line-pre');
+      } else {
+        line('cat: ' + (path || '?') + ': no such file', 'term-line-err');
+      }
+    },
+
+    open: function (args) {
+      var path  = (args[0] || '').replace(/^\//, '');
+      var parts = path.split('/');
+      var url   = null;
+      var top   = ['projects','writing','music','games','now'];
+      if (top.indexOf(path) >= 0) {
+        url = '/' + path + '/';
+      } else if (parts.length === 2 && DATA[parts[0]] && DATA[parts[0]][parts[1]]) {
+        url = DATA[parts[0]][parts[1]].url;
+      }
+      if (url) {
+        line('→ ' + url, 'term-line-ok');
+        setTimeout(function () { window.location.href = url; }, 280);
+      } else {
+        line('open: ' + (path || '?') + ': not found', 'term-line-err');
+      }
+    },
+
+    whoami: function () {
+      line('ekansh goenka. 12. go programmer. bjj. music. vim.');
+    },
+
+    neofetch: function () { line(NEOFETCH, 'term-line-pre'); },
+
+    theme: function (args) {
+      var ALL = ['tokyo-night','rose-pine','gruvbox','catppuccin','nord','everforest'];
+      var name = args[0];
+      if (!name) {
+        line('themes: ' + ALL.join('  '));
+        line('active: ' + document.documentElement.getAttribute('data-theme'), 'term-line-ok');
+      } else if (ALL.indexOf(name) >= 0) {
+        applyTheme(name);
+        line('theme → ' + name, 'term-line-ok');
+      } else {
+        line('unknown theme. try: ' + ALL.join(', '), 'term-line-err');
+      }
+    },
+
+    github: function () {
+      line('opening github...', 'term-line-ok');
+      setTimeout(function () { window.open((SITE_LINKS||{}).github||'#', '_blank'); }, 200);
+    },
+    youtube: function () {
+      line('opening bytecolony...', 'term-line-ok');
+      setTimeout(function () { window.open((SITE_LINKS||{}).youtube||'#', '_blank'); }, 200);
+    },
+    itch: function () {
+      line('opening itch.io...', 'term-line-ok');
+      setTimeout(function () { window.open((SITE_LINKS||{}).itchio||'#', '_blank'); }, 200);
+    },
+
+    clear: function () { output.innerHTML = ''; },
+    exit:  function () { close(); },
+    q:     function () { close(); },
+
+    curl: function (args) {
+      if (args[0] && args[0].indexOf('ekanshgoenka') >= 0)
+        line('nice try. you\'re already in the terminal.', 'term-line-ok');
+      else
+        line('curl: not available here', 'term-line-err');
+    },
+    sudo: function ()  { line('lol no.', 'term-line-err'); },
+    vim:  function ()  { line('you\'re already in vim (spiritually).', 'term-line-ok'); },
+    pwd:  function ()  { line('/home/ekansh'); },
+    date: function ()  { line(new Date().toDateString().toLowerCase()); }
+  };
+
+  // ── tab completion ──────────────────────────────────────────
+  var ALL_PATHS = ['projects','projects/byte-space','projects/geno',
+                   'music','music/btop','games','games/untitled-game',
+                   'writing','now'];
+  var CMD_NAMES = Object.keys(CMDS);
+
+  function complete(val) {
+    var parts = val.trimStart().split(/\s+/);
+    var prefix = parts[parts.length - 1];
+    var pool = parts.length === 1 ? CMD_NAMES : ALL_PATHS;
+    var hits = pool.filter(function (c) { return c.indexOf(prefix) === 0; });
+    if (hits.length === 1) {
+      parts[parts.length - 1] = hits[0];
+      return parts.join(' ');
+    }
+    if (hits.length > 1) { echoCmd(val); line(hits.join('  ')); }
+    return val;
+  }
+
+  // ── open / close ────────────────────────────────────────────
+  function open() {
+    overlay.classList.add('open');
+    inp.focus();
+    isOpen = true;
+  }
+  function close() {
+    overlay.classList.remove('open');
+    isOpen = false;
+  }
+
+  // ── run a command ───────────────────────────────────────────
+  function run(raw) {
+    var cmd = raw.trim();
+    if (!cmd) return;
+    hist.unshift(cmd); histIdx = -1;
+    echoCmd(cmd);
+    var tokens = cmd.split(/\s+/);
+    var fn = CMDS[tokens[0].toLowerCase()];
+    if (fn) fn(tokens.slice(1));
+    else line('command not found: ' + tokens[0], 'term-line-err');
+  }
+
+  // ── event wiring ────────────────────────────────────────────
+  document.addEventListener('keydown', function (e) {
+    if (e.key === ':' && !e.ctrlKey && !e.metaKey && !e.altKey &&
+        e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault(); open();
+    }
+    if (e.key === 'Escape' && isOpen) close();
+  });
+
+  inp.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      var v = inp.value; inp.value = ''; run(v);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (histIdx < hist.length - 1) inp.value = hist[++histIdx] || '';
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (histIdx > 0) inp.value = hist[--histIdx] || '';
+      else { histIdx = -1; inp.value = ''; }
+    } else if (e.key === 'Tab') {
+      e.preventDefault(); inp.value = complete(inp.value);
+    } else if (e.key === 'Escape') {
+      close();
+    }
+  });
+
+  overlay.addEventListener('click', function (e) {
+    if (e.target === overlay) close();
+  });
+
+  var btn = document.getElementById('term-btn');
+  if (btn) btn.addEventListener('click', open);
+  var cls = document.getElementById('term-close');
+  if (cls) cls.addEventListener('click', close);
+})();
+// ================================================================
+// END HIDDEN TERMINAL
+// ================================================================

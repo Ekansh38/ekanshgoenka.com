@@ -18,6 +18,29 @@
 
   {{ partial "footer.html" . }}
 
+  <div id="term-overlay">
+    <div id="term-box">
+      <div id="term-bar">
+        <span>ekansh@site:~</span>
+        <button id="term-close">✕</button>
+      </div>
+      <div id="term-output"></div>
+      <div id="term-input-row">
+        <span class="term-prompt">$&nbsp;</span>
+        <input id="term-input" type="text" autocomplete="off" autocorrect="off" spellcheck="false">
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* site params for terminal — injected by Hugo */
+    var SITE_LINKS = {
+      github:  "{{ .Site.Params.github }}",
+      youtube: "{{ .Site.Params.youtube }}",
+      itchio:  "{{ .Site.Params.itchio }}"
+    };
+  </script>
+
   <div id="theme-picker">
     <button class="tp-dot" data-t="tokyo-night" data-label="tokyo night"></button>
     <button class="tp-dot" data-t="rose-pine"   data-label="rosé pine"></button>

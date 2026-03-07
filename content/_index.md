@@ -2,6 +2,6 @@
 title: "ekansh goenka"
 ---
 
-I like learning low-level systems stuff not front-end slop. I like learning things that I read and so I use a Zettelkastan system to keep track of it all. I also like Vim cuz its fire. I also do stuff outside of CS like BJJ and music, cuz I'm well rounded like that.
+I'm 12. I like learning low-level systems stuff. I read a lot and use a Zettelkasten system to keep track of it. I also do hobbies outside of CS like BJJ and music, cause I'm well rounded like that.
 
 
