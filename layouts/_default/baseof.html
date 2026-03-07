@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="tokyo-night">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,6 +17,15 @@
   {{ block "main" . }}{{ end }}
 
   {{ partial "footer.html" . }}
+
+  <div id="theme-picker">
+    <button class="tp-dot" data-t="tokyo-night" data-label="tokyo night"></button>
+    <button class="tp-dot" data-t="rose-pine"   data-label="rosé pine"></button>
+    <button class="tp-dot" data-t="gruvbox"      data-label="gruvbox"></button>
+    <button class="tp-dot" data-t="catppuccin"   data-label="catppuccin"></button>
+    <button class="tp-dot" data-t="nord"         data-label="nord"></button>
+    <button class="tp-dot" data-t="everforest"   data-label="everforest"></button>
+  </div>
 
   <script src="/script.js"></script>
 </body>

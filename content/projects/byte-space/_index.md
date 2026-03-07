@@ -1,7 +1,7 @@
 ---
 title: "byte-space"
 layout: "list"
-summary: "A terminal-based internet simulator from the early internet era"
+summary: "Recreates the early 1980s internet"
 stack: "Go"
 status: "active"
 github: "https://github.com/Ekansh38/byte-space"

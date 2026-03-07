@@ -1,7 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap');
 
+/* ── THEMES ─────────────────────────────────────────────────── */
+
 /* Rosé Pine Dawn — light */
-:root {
+:root,
+[data-theme="rose-pine"] {
   --bg: #faf4ed;
   --fg: #575279;
   --muted: #797593;
@@ -11,12 +14,53 @@
 }
 
 /* Tokyo Night — dark */
-[data-theme="dark"] {
+[data-theme="dark"],
+[data-theme="tokyo-night"] {
   --bg: #1a1b26;
   --fg: #a9b1d6;
   --muted: #565f89;
   --accent: #7aa2f7;
   --border: #292e42;
+  --shadow: rgba(0,0,0,0.55);
+}
+
+/* Gruvbox Dark */
+[data-theme="gruvbox"] {
+  --bg: #282828;
+  --fg: #ebdbb2;
+  --muted: #928374;
+  --accent: #d79921;
+  --border: #3c3836;
+  --shadow: rgba(0,0,0,0.55);
+}
+
+/* Catppuccin Mocha */
+[data-theme="catppuccin"] {
+  --bg: #1e1e2e;
+  --fg: #cdd6f4;
+  --muted: #6c7086;
+  --accent: #89b4fa;
+  --border: #313244;
+  --shadow: rgba(0,0,0,0.55);
+}
+
+/* Nord */
+[data-theme="nord"] {
+  --bg: #2e3440;
+  --fg: #d8dee9;
+  --muted: #4c566a;
+  --accent: #88c0d0;
+  --border: #3b4252;
+  --shadow: rgba(0,0,0,0.55);
+}
+
+/* Everforest Dark */
+[data-theme="everforest"] {
+  --bg: #2d353b;
+  --fg: #d3c6aa;
+  --muted: #859289;
+  --accent: #a7c080;
+  --border: #374145;
   --shadow: rgba(0,0,0,0.55);
 }
 
@@ -154,4 +198,63 @@ body { background: transparent; text-shadow: 0 0 18px var(--shadow), 0 0 6px var
 @media (hover: none) and (pointer: coarse) {
   #speed-slider, #bg-mode-btn, #bg-canvas { display: none !important; }
   body { text-shadow: none !important; background: var(--bg) !important; }
+}
+
+/* ── THEME PICKER (desktop only) ────────────────────────────── */
+#theme-picker {
+  display: none; /* hidden on mobile by default */
+}
+
+@media (hover: hover) and (pointer: fine) {
+  /* hide the old toggle button — picker replaces it */
+  #t { display: none; }
+
+  #theme-picker {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    position: fixed;
+    bottom: 22px;
+    right: 22px;
+    z-index: 200;
+  }
+
+  .tp-dot {
+    position: relative;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    border: 1.5px solid transparent;
+    padding: 0;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.2s;
+    outline: none;
+  }
+  .tp-dot:hover { transform: scale(1.45); }
+  .tp-dot.active { border-color: var(--fg); }
+
+  /* per-theme dot colours — hardcoded so they're always visible */
+  .tp-dot[data-t="tokyo-night"] { background: #7aa2f7; }
+  .tp-dot[data-t="rose-pine"]   { background: #1e8eb5; }
+  .tp-dot[data-t="gruvbox"]     { background: #d79921; }
+  .tp-dot[data-t="catppuccin"]  { background: #89b4fa; }
+  .tp-dot[data-t="nord"]        { background: #88c0d0; }
+  .tp-dot[data-t="everforest"]  { background: #a7c080; }
+
+  /* tooltip — appears to the left of each dot */
+  .tp-dot::before {
+    content: attr(data-label);
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+  }
+  .tp-dot:hover::before { opacity: 1; }
 }

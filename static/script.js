@@ -1,19 +1,39 @@
+var LIGHT_THEMES = ['rose-pine'];
+
+function applyTheme(name) {
+  var h = document.documentElement;
+  h.setAttribute('data-theme', name);
+  localStorage.setItem('theme', name);
+  // update mobile toggle label
+  var t = document.getElementById('t');
+  if (t) t.textContent = LIGHT_THEMES.indexOf(name) >= 0 ? '[light]' : '[dark]';
+  // update picker active dot
+  var dots = document.querySelectorAll('.tp-dot');
+  for (var i = 0; i < dots.length; i++)
+    dots[i].classList.toggle('active', dots[i].getAttribute('data-t') === name);
+}
+
+// mobile toggle: flip between tokyo-night and rose-pine
 function toggleTheme() {
-  const h = document.documentElement;
-  const t = document.getElementById('t');
-  const dark = h.getAttribute('data-theme') === 'dark';
-  const next = dark ? 'light' : 'dark';
-  h.setAttribute('data-theme', next);
-  t.textContent = dark ? '[light]' : '[dark]';
-  localStorage.setItem('theme', next);
+  var cur = document.documentElement.getAttribute('data-theme');
+  applyTheme(LIGHT_THEMES.indexOf(cur) >= 0 ? 'tokyo-night' : 'rose-pine');
 }
 
 (function () {
-  const saved = localStorage.getItem('theme') || 'dark';
-  document.documentElement.setAttribute('data-theme', saved);
+  var saved = localStorage.getItem('theme') || 'tokyo-night';
+  // migrate old 'dark'/'light' values
+  if (saved === 'dark')  saved = 'tokyo-night';
+  if (saved === 'light') saved = 'rose-pine';
+  applyTheme(saved);
+
   document.addEventListener('DOMContentLoaded', function () {
-    const t = document.getElementById('t');
-    if (t) t.textContent = saved === 'dark' ? '[dark]' : '[light]';
+    applyTheme(document.documentElement.getAttribute('data-theme'));
+    var dots = document.querySelectorAll('.tp-dot');
+    for (var i = 0; i < dots.length; i++) {
+      dots[i].addEventListener('click', (function (d) {
+        return function () { applyTheme(d.getAttribute('data-t')); };
+      })(dots[i]));
+    }
   });
 })();
 
@@ -38,7 +58,7 @@ function toggleTheme() {
   var W, H;
 
   function isDark() {
-    return document.documentElement.getAttribute('data-theme') !== 'light';
+    return document.documentElement.getAttribute('data-theme') !== 'rose-pine';
   }
 
   function updateBtn() {
