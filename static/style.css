@@ -33,13 +33,13 @@
   --shadow: rgba(0,0,0,0.55);
 }
 
-/* Catppuccin Latte */
-[data-theme="catppuccin-latte"] {
-  --bg: #eff1f5;
-  --fg: #4c4f69;
-  --muted: #9ca0b0;
-  --accent: #1e66f5;
-  --border: #ccd0da;
+/* Flexoki Light */
+[data-theme="flexoki-light"] {
+  --bg: #fffcf0;
+  --fg: #100f0f;
+  --muted: #6f6e69;
+  --accent: #4385be;
+  --border: #e6e4d9;
   --shadow: transparent;
 }
 
@@ -57,10 +57,12 @@ body {
   font-family: 'JetBrains Mono', monospace;
   font-size: 14px;
   line-height: 1.7;
-  max-width: min(860px, 90vw);
+  max-width: 560px;
   margin: 0 auto;
   padding: 48px 20px 64px;
 }
+
+body.page { max-width: min(860px, 90vw); }
 
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }

@@ -1,5 +1,5 @@
-var THEMES = ['tokyo-night', 'gruvbox', 'rose-pine', 'catppuccin-latte'];
-var LIGHT_THEMES = ['rose-pine', 'catppuccin-latte'];
+var THEMES = ['tokyo-night', 'gruvbox', 'rose-pine', 'flexoki-light'];
+var LIGHT_THEMES = ['rose-pine', 'flexoki-light'];
 
 function applyTheme(name) {
   document.documentElement.setAttribute('data-theme', name);
@@ -22,7 +22,7 @@ function toggleTheme() {
   var saved = localStorage.getItem('theme') || 'tokyo-night';
   if (saved === 'dark') saved = 'tokyo-night';
   if (saved === 'light') saved = 'rose-pine';
-  if (saved === 'solarized-light') saved = 'catppuccin-latte';
+  if (saved === 'solarized-light') saved = 'flexoki-light';
   if (THEMES.indexOf(saved) < 0) saved = 'tokyo-night';
   applyTheme(saved);
 
@@ -110,11 +110,12 @@ function toggleTheme() {
 
   var N          = 120;
   var MAX_SPEED  = 1.8,  MIN_SPEED  = 0.6;
-  var PERCEPTION = 85,   SEP_DIST   = 50;
-  var SEP_W      = 0.15, ALI_W      = 0.06, COH_W = 0.009;
+  var PERCEPTION = 70,   SEP_DIST   = 50;
+  var SEP_W      = 0.15, ALI_W      = 0.06, COH_W = 0.005;
   var MAX_FORCE  = 0.12;
   var MARGIN     = 100,  TURN       = 0.22;
-  var SPREAD_R   = 200,  SPREAD_W   = 0.03;
+  var SPREAD_R   = 180,  SPREAD_W   = 0.08;
+  var WANDER     = 0.04;
   var BOID_LEN   = 14;
   var BOID_HALF  = 5.5;
 
@@ -181,7 +182,8 @@ function toggleTheme() {
       if (b.y < MARGIN)   fy += TURN*(1-b.y/MARGIN);
       if (b.y > H-MARGIN) fy -= TURN*(1-(H-b.y)/MARGIN);
 
-      b.vx += fx; b.vy += fy;
+      b.vx += fx + (Math.random()-0.5)*WANDER;
+      b.vy += fy + (Math.random()-0.5)*WANDER;
       spd = Math.sqrt(b.vx*b.vx + b.vy*b.vy);
       if (spd > MAX_SPEED) { b.vx = b.vx/spd*MAX_SPEED; b.vy = b.vy/spd*MAX_SPEED; }
       else if (spd < MIN_SPEED && spd > 1e-4) { b.vx = b.vx/spd*MIN_SPEED; b.vy = b.vy/spd*MIN_SPEED; }
@@ -603,7 +605,7 @@ function toggleTheme() {
       '  tokyo-night    dark   (default)',
       '  gruvbox        dark',
       '  rose-pine      light',
-      '  catppuccin-latte light',
+      '  flexoki-light light',
     ].join('\n'),
 
     sys: [
@@ -656,7 +658,7 @@ function toggleTheme() {
     reset:   'reset\n  reinitialize the current simulation from scratch.',
     params:  'params\n  show all tunable simulation parameters with current values.',
     set:     'set <param> <value>\n  tune a simulation parameter live. ranges are intentionally wide.\n\n  set life.cell 1           → single pixel cells\n  set life.cell 40          → chunky blocks\n  set boids.n 1000          → chaos\n  set boids.n 5             → lonely\n  set boids.size 100        → massive\n  set boids.speed 20        → unhinged\n  set boids.speed 0         → frozen\n  set boids.perception 2000 → hive mind\n  set boids.perception 1    → blind\n  set boids.separation 0    → merge\n\n  see: help bg  for all params and defaults',
-    colorscheme: 'colorscheme [name]\n  list or apply a colorscheme.\n\n  colorscheme              → list (active marked *)\n  colorscheme gruvbox      → apply\n\n  available: tokyo-night  gruvbox  rose-pine  catppuccin-latte',
+    colorscheme: 'colorscheme [name]\n  list or apply a colorscheme.\n\n  colorscheme              → list (active marked *)\n  colorscheme gruvbox      → apply\n\n  available: tokyo-night  gruvbox  rose-pine  flexoki-light',
     cowsay:  'cowsay [text]\n  a cow says something.\n\n  cowsay hello world',
     fortune: 'fortune\n  print a random programming quote.',
     ping:    'ping <host>\n  send 3 ICMP echo requests.\n\n  ping ekanshgoenka.com',
@@ -998,7 +1000,7 @@ function toggleTheme() {
 
     colorscheme: function (args) {
       if (args.length > 1) { tooMany('colorscheme'); return; }
-      var ALL = ['tokyo-night', 'gruvbox', 'rose-pine', 'catppuccin-latte'];
+      var ALL = ['tokyo-night', 'gruvbox', 'rose-pine', 'flexoki-light'];
       var cur  = document.documentElement.getAttribute('data-theme');
       var name = args[0];
       if (!name) {
@@ -1435,8 +1437,8 @@ function toggleTheme() {
 
   function completeArg(cmd, pos, typed) {
     var CMAP = {
-      colorscheme: function (p) { return p === 0 ? ['tokyo-night', 'gruvbox', 'rose-pine', 'catppuccin-latte'] : []; },
-      theme:       function (p) { return p === 0 ? ['tokyo-night', 'gruvbox', 'rose-pine', 'catppuccin-latte'] : []; },
+      colorscheme: function (p) { return p === 0 ? ['tokyo-night', 'gruvbox', 'rose-pine', 'flexoki-light'] : []; },
+      theme:       function (p) { return p === 0 ? ['tokyo-night', 'gruvbox', 'rose-pine', 'flexoki-light'] : []; },
       bg:          function (p) { return p === 0 ? ['life', 'boids', 'off'] : []; },
       speed:       function (p) { return p === 0 ? ['1','2','3','4','5','6','7','8','9','10'] : []; },
       set:         function (p) { return p === 0 ? ['life.cell','boids.n','boids.size','boids.speed','boids.perception','boids.separation'] : []; },

@@ -3,5 +3,5 @@ title: "Now"
 summary: "doing life"
 ---
 
-doing life doing life doing life doing life doing life doing life doing life doing life doing life doing life
+Going to school. Working on byte-space. Learning math. Taking notes and reading.
 
