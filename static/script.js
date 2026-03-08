@@ -1082,15 +1082,8 @@ function toggleTheme() {
     set: function (args) {
       if (args.length > 2) { tooMany('set'); return; }
       var key = args[0] || '';
-      if (!key) { line('usage: set <param> <value>   (see: params)', 'term-line-err'); return; }
-      var p = window.getBgParams ? window.getBgParams() : {};
-      if (args.length === 1) {
-        if (p.hasOwnProperty(key)) line(key + ' = ' + p[key], 'term-line-ok');
-        else line('unknown param "' + key + '"  —  see: params', 'term-line-err');
-        return;
-      }
       var val = parseFloat(args[1]);
-      if (isNaN(val)) { line('usage: set <param> <value>   (see: params)', 'term-line-err'); return; }
+      if (!key || isNaN(val)) { line('usage: set <param> <value>   (see: params)', 'term-line-err'); return; }
       if (!window.setParam || !window.setParam(key, val))
         line('unknown param "' + key + '"  —  see: params', 'term-line-err');
       else
@@ -1523,7 +1516,11 @@ function toggleTheme() {
     var tokens = cmd.split(/\s+/);
     var fn = CMDS[tokens[0].toLowerCase()];
     if (fn) fn(tokens.slice(1));
-    else line('command not found: ' + tokens[0], 'term-line-err');
+    else {
+      var p = window.getBgParams ? window.getBgParams() : {};
+      if (p.hasOwnProperty(tokens[0])) line(tokens[0] + ' = ' + p[tokens[0]], 'term-line-ok');
+      else line('command not found: ' + tokens[0], 'term-line-err');
+    }
   }
 
   // ── event wiring ────────────────────────────────────────────
