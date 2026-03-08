@@ -63,7 +63,7 @@
 <hr>
 
 {{ $now := .Site.GetPage "/now" }}
-<h2>Now</h2>
-<p class="now">{{ $now.Params.summary }}</p>
+<h2><a href="/now" class="now-link">now</a></h2>
+{{ $now.Content }}
 
 {{ end }}
