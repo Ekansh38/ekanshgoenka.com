@@ -1,6 +1,7 @@
 ---
 title: "Now"
-summary: "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+summary: "doing life"
 ---
 
-ASDLorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+doing life doing life doing life doing life doing life doing life doing life doing life doing life doing life
+
