@@ -454,14 +454,49 @@ function toggleTheme() {
   };
   window.getBgSpeed = function () { return speedLevel; };
   window.resetBg    = function () { initMode(MODES[modeIdx]); };
+
+  function ensureLife() {
+    if (MODES[modeIdx] !== 'life') { modeIdx = MODES.indexOf('life'); initMode('life'); updateBtn(); }
+  }
+
   window.spawnPattern = function (name) {
     var pat = SPAWN_PATTERNS[name];
     if (!pat) return false;
-    if (MODES[modeIdx] !== 'life') { modeIdx = MODES.indexOf('life'); initMode('life'); updateBtn(); }
+    ensureLife();
     if (!grid) return false;
     placePattern(Math.floor(Math.random() * GW), Math.floor(Math.random() * GH), pat);
     return true;
   };
+
+  window.queueSpawn = function (name) {
+    if (!SPAWN_PATTERNS[name]) return false;
+    ensureLife();
+    window._pendingSpawn = name;
+    canvas.style.cursor = 'crosshair';
+    return true;
+  };
+
+  window.clearLife = function () {
+    ensureLife();
+    if (!grid) return false;
+    grid.fill(0);
+    liveCount = 0;
+    return true;
+  };
+
+  canvas.addEventListener('click', function (e) {
+    if (!window._pendingSpawn) return;
+    var name = window._pendingSpawn;
+    var pat  = SPAWN_PATTERNS[name];
+    window._pendingSpawn = null;
+    canvas.style.cursor = '';
+    if (!pat || !grid) return;
+    var rect = canvas.getBoundingClientRect();
+    var gx = Math.floor((e.clientX - rect.left) / CELL);
+    var gy = Math.floor((e.clientY - rect.top)  / CELL);
+    placePattern(gx, gy, pat);
+  });
+
   window.spawnPatternNames = function () { return Object.keys(SPAWN_PATTERNS); };
 
   window.getBgParams = function () {
@@ -722,6 +757,8 @@ function toggleTheme() {
     bg:      'bg [life|boids|off]\n  get or set background mode.\n\n  bg             → show current mode\n  bg life        → Conway\'s Game of Life\n  bg boids       → flocking simulation\n  bg off         → disable',
     speed:   'speed [1-10]\n  get or set simulation speed (syncs with the slider).\n\n  speed          → show current\n  speed 1        → slowest\n  speed 10       → fastest',
     reset:   'reset\n  reinitialize the current simulation from scratch.',
+    spawn:   'spawn [pattern] [click]\n  drop a complex life structure onto the grid.\n  switches to life mode automatically.\n\n  spawn                    → list available patterns\n  spawn pulsar             → place at random location\n  spawn pulsar click       → click canvas to place it\n\n  patterns:\n  gosper-gun     infinite glider factory\n  pulsar         period-3 oscillator (48 cells)\n  lwss           lightweight spaceship\n  pentadecathlon period-15 oscillator\n  switch-engine  infinite growth pattern\n\n  tip: use wipe first for a clean grid',
+    wipe:    'wipe\n  clear the life grid to empty.\n  use with spawn to build from scratch.\n\n  wipe → clear\n  spawn gosper-gun → place on blank canvas',
     params:  'params\n  show all tunable simulation parameters with current values.',
     set:     'set <param> <value>\n  tune a simulation parameter live. ranges are intentionally wide.\n\n  set life.cell 1           → single pixel cells\n  set life.cell 40          → chunky blocks\n  set boids.n 1000          → chaos\n  set boids.n 5             → lonely\n  set boids.size 100        → massive\n  set boids.speed 20        → unhinged\n  set boids.speed 0         → frozen\n  set boids.perception 2000 → hive mind\n  set boids.perception 1    → blind\n  set boids.separation 0    → merge\n\n  see: help bg  for all params and defaults',
     colorscheme: 'colorscheme [name]\n  list or apply a colorscheme.\n\n  colorscheme              → list (active marked *)\n  colorscheme gruvbox      → apply\n\n  available: tokyo-night  gruvbox  kanagawa  flexoki-light  rose-pine  ayu-light',
@@ -1126,13 +1163,45 @@ function toggleTheme() {
     },
 
     spawn: function (args) {
-      if (!args[0]) { needArg('spawn', 'spawn <pattern>'); return; }
-      if (args.length > 1) { tooMany('spawn'); return; }
+      if (args.length > 2) { tooMany('spawn'); return; }
       var names = window.spawnPatternNames ? window.spawnPatternNames() : [];
-      if (!window.spawnPattern || !window.spawnPattern(args[0]))
-        line('unknown pattern. available: ' + names.join(', '), 'term-line-err');
+      if (!args[0]) {
+        line([
+          'available patterns:',
+          '  gosper-gun     infinite glider factory',
+          '  pulsar         period-3 oscillator',
+          '  lwss           lightweight spaceship',
+          '  pentadecathlon period-15 oscillator',
+          '  switch-engine  infinite growth',
+          '',
+          'usage: spawn <pattern> [click]',
+          '  spawn pulsar          → place at random location',
+          '  spawn pulsar click    → click canvas to place',
+        ].join('\n'), 'term-line-pre');
+        return;
+      }
+      var name = args[0];
+      var clickMode = args[1] === 'click';
+      if (args[1] && !clickMode) { line('unknown flag "' + args[1] + '". did you mean: click?', 'term-line-err'); return; }
+      if (clickMode) {
+        if (!window.queueSpawn || !window.queueSpawn(name))
+          line('unknown pattern. try: ' + names.join(', '), 'term-line-err');
+        else
+          line('click anywhere on the canvas to place ' + name, 'term-line-ok');
+      } else {
+        if (!window.spawnPattern || !window.spawnPattern(name))
+          line('unknown pattern. try: ' + names.join(', '), 'term-line-err');
+        else
+          line('spawned ' + name, 'term-line-ok');
+      }
+    },
+
+    wipe: function (args) {
+      if (args.length) { tooMany('wipe'); return; }
+      if (!window.clearLife || !window.clearLife())
+        line('wipe: failed', 'term-line-err');
       else
-        line('spawned ' + args[0], 'term-line-ok');
+        line('grid cleared. spawn something.', 'term-line-ok');
     },
 
     params: function (args) {
@@ -1525,7 +1594,7 @@ function toggleTheme() {
       bg:          function (p) { return p === 0 ? ['life', 'boids', 'off'] : []; },
       speed:       function (p) { return p === 0 ? ['1','2','3','4','5','6','7','8','9','10'] : []; },
       set:         function (p) { return p === 0 ? ['life.cell','boids.n','boids.size','boids.speed','boids.perception','boids.separation'] : []; },
-      spawn:       function (p) { return p === 0 ? ['gosper-gun','pulsar','lwss','pentadecathlon','switch-engine'] : []; },
+      spawn:       function (p) { return p === 0 ? ['gosper-gun','pulsar','lwss','pentadecathlon','switch-engine'] : p === 1 ? ['click'] : []; },
       help:        function (p) { return p === 0 ? Object.keys(HELP_TOPICS).concat(Object.keys(HELP_CMDS)).sort() : []; },
       man:         function (p) { return p === 0 ? CMD_NAMES.concat(Object.keys(HELP_TOPICS)).sort() : []; },
       which:       function (p) { return p === 0 ? CMD_NAMES : []; },
