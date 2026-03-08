@@ -246,7 +246,10 @@ function toggleTheme() {
   // (R-pentomino, Acorn, gliders, oscillators) plus a sparse random
   // base. Auto-fertilises by dropping structured patterns, not blobs.
 
-  var CELL = 7;
+  var CELL            = 7;
+  var LIFE_DENSITY    = 0.12;  // initial random fill (0.01–0.5)
+  var LIFE_THRESHOLD  = 0.05;  // auto-fertilise below this fraction (0.01–0.3)
+  var LIFE_GLIDERS    = 16;    // initial glider count (0–60)
   var GW, GH;
   var grid, next;
   var lifeFrame = 0;
@@ -281,14 +284,14 @@ function toggleTheme() {
     liveCount = 0;
     lifeFrame = 0;
 
-    // Sparse random base (~12%) — enough for organic interaction without dying
+    // Sparse random base — density controlled by LIFE_DENSITY
     for (var i = 0; i < GW * GH; i++) {
-      if (Math.random() < 0.12) { grid[i] = 1; liveCount++; }
+      if (Math.random() < LIFE_DENSITY) { grid[i] = 1; liveCount++; }
     }
 
     // Scatter gliders in all four directions
     var gliders = [PAT_GLIDER_SE, PAT_GLIDER_SW, PAT_GLIDER_NE, PAT_GLIDER_NW];
-    for (var k = 0; k < 16; k++) {
+    for (var k = 0; k < LIFE_GLIDERS; k++) {
       placePattern(Math.floor(Math.random() * GW), Math.floor(Math.random() * GH), gliders[k % 4]);
     }
     // Long-lived chaos seeds that produce gliders and complex structures
@@ -326,7 +329,7 @@ function toggleTheme() {
     }
     var tmp = grid; grid = next; next = tmp;
     // Auto-fertilise: keep activity up so the sim never looks like it stalled
-    if (liveCount < GW * GH * 0.05) {
+    if (liveCount < GW * GH * LIFE_THRESHOLD) {
       var seeds = [PAT_RPENTO, PAT_ACORN, PAT_DIEHARD, PAT_GLIDER_SE, PAT_GLIDER_NW];
       for (var k = 0; k < 5; k++) {
         placePattern(
@@ -402,12 +405,15 @@ function toggleTheme() {
 
   window.getBgParams = function () {
     return {
-      'life.cell':         CELL,
-      'boids.n':           N,
-      'boids.size':        BOID_LEN,
-      'boids.speed':       MAX_SPEED,
-      'boids.perception':  PERCEPTION,
-      'boids.separation':  SEP_DIST,
+      'life.cell':       CELL,
+      'life.density':    LIFE_DENSITY,
+      'life.threshold':  LIFE_THRESHOLD,
+      'life.gliders':    LIFE_GLIDERS,
+      'boids.n':         N,
+      'boids.size':      BOID_LEN,
+      'boids.speed':     MAX_SPEED,
+      'boids.perception': PERCEPTION,
+      'boids.separation': SEP_DIST,
     };
   };
 
@@ -416,6 +422,15 @@ function toggleTheme() {
       case 'life.cell':
         CELL = Math.max(1, Math.min(80, Math.round(val)));
         if (MODES[modeIdx] === 'life') initLife();
+        return true;
+      case 'life.density':
+        LIFE_DENSITY = Math.max(0.01, Math.min(0.5, val));
+        return true;
+      case 'life.threshold':
+        LIFE_THRESHOLD = Math.max(0.01, Math.min(0.3, val));
+        return true;
+      case 'life.gliders':
+        LIFE_GLIDERS = Math.max(0, Math.min(60, Math.round(val)));
         return true;
       case 'boids.n':
         N = Math.max(1, Math.min(1000, Math.round(val)));
@@ -1068,14 +1083,17 @@ function toggleTheme() {
         'simulation parameters  (set <param> <val> to change)',
         '',
         'life:',
-        '  life.cell         ' + (p['life.cell']        || '?') + '    cell size px  (1–80)',
+        '  life.cell        ' + (p['life.cell']       || '?') + '      cell size px         (1–80)',
+        '  life.density     ' + (p['life.density']    || '?') + '   initial fill fraction  (0.01–0.5)',
+        '  life.threshold   ' + (p['life.threshold']  || '?') + '   refill below fraction  (0.01–0.3)',
+        '  life.gliders     ' + (p['life.gliders']    || '?') + '      starting gliders      (0–60)',
         '',
         'boids:',
-        '  boids.n           ' + (p['boids.n']          || '?') + '   count         (1–1000)',
-        '  boids.size        ' + (p['boids.size']        || '?') + '   length px     (1–200)',
-        '  boids.speed       ' + (p['boids.speed']       || '?') + '  max speed      (0–30)',
-        '  boids.perception  ' + (p['boids.perception']  || '?') + '   sight radius  (1–2000)',
-        '  boids.separation  ' + (p['boids.separation']  || '?') + '   separation px (0–1000)',
+        '  boids.n          ' + (p['boids.n']          || '?') + '    count         (1–1000)',
+        '  boids.size       ' + (p['boids.size']        || '?') + '    length px     (1–200)',
+        '  boids.speed      ' + (p['boids.speed']       || '?') + '   max speed      (0–30)',
+        '  boids.perception ' + (p['boids.perception']  || '?') + '    sight radius  (1–2000)',
+        '  boids.separation ' + (p['boids.separation']  || '?') + '    separation px (0–1000)',
       ].join('\n'), 'term-line-pre');
     },
 
@@ -1443,7 +1461,7 @@ function toggleTheme() {
       theme:       function (p) { return p === 0 ? ['tokyo-night', 'gruvbox', 'kanagawa', 'flexoki-light', 'rose-pine', 'ayu-light'] : []; },
       bg:          function (p) { return p === 0 ? ['life', 'boids', 'off'] : []; },
       speed:       function (p) { return p === 0 ? ['1','2','3','4','5','6','7','8','9','10'] : []; },
-      set:         function (p) { return p === 0 ? ['life.cell','boids.n','boids.size','boids.speed','boids.perception','boids.separation'] : []; },
+      set:         function (p) { return p === 0 ? ['life.cell','life.density','life.threshold','life.gliders','boids.n','boids.size','boids.speed','boids.perception','boids.separation'] : []; },
       help:        function (p) { return p === 0 ? Object.keys(HELP_TOPICS).concat(Object.keys(HELP_CMDS)).sort() : []; },
       man:         function (p) { return p === 0 ? CMD_NAMES.concat(Object.keys(HELP_TOPICS)).sort() : []; },
       which:       function (p) { return p === 0 ? CMD_NAMES : []; },
