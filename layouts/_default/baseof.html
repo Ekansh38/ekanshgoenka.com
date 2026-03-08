@@ -62,7 +62,6 @@
       {{ with .Site.GetPage "/writing" }}{{ range .Pages -}}
       {{ printf "writing/%s" .File.BaseFileName | jsonify | safeJS }}: { type: "file", title: {{ .Title | jsonify | safeJS }}, body: {{ .Plain | jsonify | safeJS }}, url: {{ .RelPermalink | jsonify | safeJS }} },
       {{ end }}{{ end }}
-      'now': { type: 'file', body: {{ with .Site.GetPage "/now" }}{{ .Plain | jsonify | safeJS }}{{ else }}""{{ end }} }
     };
   </script>
 

@@ -1558,3 +1558,44 @@ function toggleTheme() {
 // END HIDDEN TERMINAL
 // ================================================================
 
+// ================================================================
+// TITLE GLITCH — "Ekansh Goenka" ↔ "Byte Colony"
+// ================================================================
+(function () {
+  var CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&';
+  var A = 'Ekansh Goenka';
+  var B = 'Byte Colony';
+
+  function rchar() { return CHARS[Math.floor(Math.random() * CHARS.length)]; }
+
+  function scramble(to, steps, ms, onDone) {
+    var el = document.getElementById('site-title');
+    if (!el) return;
+    var frame = 0;
+    var t = setInterval(function () {
+      frame++;
+      var revealed = Math.floor((frame / steps) * to.length);
+      var out = '';
+      for (var i = 0; i < to.length; i++) {
+        out += i < revealed ? to[i] : rchar();
+      }
+      el.textContent = out;
+      if (frame >= steps) {
+        clearInterval(t);
+        el.textContent = to;
+        if (onDone) onDone();
+      }
+    }, ms);
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    setTimeout(function () {
+      scramble(B, 18, 45, function () {       // A → B
+        setTimeout(function () {
+          scramble(A, 18, 45, null);          // B → A, settle
+        }, 750);
+      });
+    }, 900);
+  });
+})();
+
