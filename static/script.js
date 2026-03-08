@@ -1433,14 +1433,40 @@ function toggleTheme() {
       });
   }
 
+  function completeArg(cmd, pos, typed) {
+    var CMAP = {
+      colorscheme: function (p) { return p === 0 ? ['tokyo-night', 'gruvbox', 'rose-pine', 'catppuccin-latte'] : []; },
+      theme:       function (p) { return p === 0 ? ['tokyo-night', 'gruvbox', 'rose-pine', 'catppuccin-latte'] : []; },
+      bg:          function (p) { return p === 0 ? ['life', 'boids', 'off'] : []; },
+      speed:       function (p) { return p === 0 ? ['1','2','3','4','5','6','7','8','9','10'] : []; },
+      set:         function (p) { return p === 0 ? ['life.cell','boids.n','boids.size','boids.speed','boids.perception','boids.separation'] : []; },
+      help:        function (p) { return p === 0 ? Object.keys(HELP_TOPICS).concat(Object.keys(HELP_CMDS)).sort() : []; },
+      man:         function (p) { return p === 0 ? CMD_NAMES.concat(Object.keys(HELP_TOPICS)).sort() : []; },
+      which:       function (p) { return p === 0 ? CMD_NAMES : []; },
+      uname:       function ()  { return ['-a']; },
+      make:        function (p) { return p === 0 ? ['all', 'clean', 'install'] : []; },
+    };
+    var fn = CMAP[cmd];
+    if (fn) return fn(pos).filter(function (s) { return s.indexOf(typed) === 0; });
+    if (['ls','cat','cd','open','du','rm','wc'].indexOf(cmd) >= 0) return completePath(typed);
+    if (cmd === 'grep' && pos === 1) return completePath(typed);
+    if (cmd === 'find' && pos === 0) return completePath(typed);
+    return [];
+  }
+
   function complete(val) {
     var parts = val.trimStart().split(/\s+/);
-    var isCmd   = parts.length === 1;
-    var typed   = parts[parts.length - 1];
+    var isCmd = parts.length === 1;
+    var typed = parts[parts.length - 1];
 
-    var hits = isCmd
-      ? CMD_NAMES.filter(function (c) { return c.indexOf(typed) === 0; })
-      : completePath(typed);
+    var hits;
+    if (isCmd) {
+      hits = CMD_NAMES.filter(function (c) { return c.indexOf(typed) === 0; });
+    } else {
+      var cmd = parts[0].toLowerCase();
+      var pos = parts.length - 2;  // 0-indexed arg position
+      hits = completeArg(cmd, pos, typed);
+    }
 
     if (!hits.length) return val;
 
