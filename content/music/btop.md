@@ -3,7 +3,7 @@ title: btop
 status: in production
 tools: Logic Pro
 year: "2026"
-summary: "an experimental electronic music album"
+summary: "An experimental electronic music album"
 cover: /images/btop-cover.png
 ---
 

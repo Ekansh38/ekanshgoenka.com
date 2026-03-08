@@ -1,4 +1,4 @@
-var THEMES = ['tokyo-night', 'gruvbox', 'rose-pine', 'flexoki-light'];
+var THEMES = ['tokyo-night', 'gruvbox', 'flexoki-light', 'rose-pine'];
 var LIGHT_THEMES = ['rose-pine', 'flexoki-light'];
 
 function applyTheme(name) {
@@ -1000,7 +1000,7 @@ function toggleTheme() {
 
     colorscheme: function (args) {
       if (args.length > 1) { tooMany('colorscheme'); return; }
-      var ALL = ['tokyo-night', 'gruvbox', 'rose-pine', 'flexoki-light'];
+      var ALL = ['tokyo-night', 'gruvbox', 'flexoki-light', 'rose-pine'];
       var cur  = document.documentElement.getAttribute('data-theme');
       var name = args[0];
       if (!name) {
