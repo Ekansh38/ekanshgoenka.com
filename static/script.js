@@ -1559,43 +1559,49 @@ function toggleTheme() {
 // ================================================================
 
 // ================================================================
-// TITLE GLITCH — "Ekansh Goenka" ↔ "Byte Colony"
+// TITLE TYPEWRITER — "Ekansh Goenka" ↔ "Byte Colony"
 // ================================================================
 (function () {
-  var CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&';
   var A = 'Ekansh Goenka';
   var B = 'Byte Colony';
 
-  function rchar() { return CHARS[Math.floor(Math.random() * CHARS.length)]; }
+  function el() { return document.getElementById('site-title'); }
+  function pause(ms, fn) { setTimeout(fn, ms); }
 
-  function scramble(to, steps, ms, onDone) {
-    var el = document.getElementById('site-title');
-    if (!el) return;
-    var frame = 0;
+  function erase(speed, onDone) {
     var t = setInterval(function () {
-      frame++;
-      var revealed = Math.floor((frame / steps) * to.length);
-      var out = '';
-      for (var i = 0; i < to.length; i++) {
-        out += i < revealed ? to[i] : rchar();
-      }
-      el.textContent = out;
-      if (frame >= steps) {
-        clearInterval(t);
-        el.textContent = to;
-        if (onDone) onDone();
-      }
-    }, ms);
+      var e = el(); if (!e) { clearInterval(t); return; }
+      var s = e.textContent;
+      if (!s) { clearInterval(t); if (onDone) onDone(); return; }
+      e.textContent = s.slice(0, -1);
+    }, speed);
+  }
+
+  function type(text, speed, onDone) {
+    var i = 0;
+    var t = setInterval(function () {
+      var e = el(); if (!e) { clearInterval(t); return; }
+      e.textContent = text.slice(0, ++i);
+      if (i >= text.length) { clearInterval(t); if (onDone) onDone(); }
+    }, speed);
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    setTimeout(function () {
-      scramble(B, 18, 45, function () {       // A → B
-        setTimeout(function () {
-          scramble(A, 18, 45, null);          // B → A, settle
-        }, 750);
+    pause(1400, function () {
+      erase(55, function () {
+        pause(150, function () {
+          type(B, 70, function () {
+            pause(900, function () {
+              erase(55, function () {
+                pause(150, function () {
+                  type(A, 70, null);
+                });
+              });
+            });
+          });
+        });
       });
-    }, 900);
+    });
   });
 })();
 
