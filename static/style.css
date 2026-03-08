@@ -100,8 +100,7 @@ hr { border: none; border-top: 1px solid var(--border); margin: 24px 0 0; }
 h3 { color: var(--muted); margin: 28px 0 6px; font-size: 0.82rem; }
 
 header { margin-bottom: 28px; }
-.header-top { display: flex; justify-content: space-between; align-items: flex-start; }
-.byline { color: var(--muted); font-size: 0.78rem; margin-top: 2px; }
+.header-top { display: flex; justify-content: space-between; align-items: center; }
 .nav { display: flex; gap: 20px; margin-top: 10px; }
 .nav a { color: var(--accent); font-size: 0.88rem; text-decoration: none; }
 .nav a:hover { color: var(--fg); }
