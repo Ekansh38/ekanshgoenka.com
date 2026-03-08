@@ -1,7 +1,7 @@
 ---
 title: "byte-space"
 layout: "list"
-summary: "recreates the early 1980s internet in the terminal"
+summary: "Recreates the early 1980s internet in the terminal"
 stack: "Go"
 status: "active"
 github: "https://github.com/Ekansh38/byte-space"

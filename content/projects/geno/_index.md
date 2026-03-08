@@ -1,6 +1,6 @@
 ---
 title: "GENO"
-summary: "a genetic evolution simulator. genomes, natural selection, emergent behavior."
+summary: "A genetic evolution simulator. genomes, natural selection, emergent behavior."
 stack: "Go"
 status: "in progress"
 github: "https://github.com/ekanshgoenka/geno"
