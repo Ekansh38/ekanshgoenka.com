@@ -33,6 +33,16 @@
   --shadow: rgba(0,0,0,0.55);
 }
 
+/* Kanagawa (dark) */
+[data-theme="kanagawa"] {
+  --bg: #1f1f28;
+  --fg: #dcd7ba;
+  --muted: #727169;
+  --accent: #7e9cd8;
+  --border: #2a2a37;
+  --shadow: rgba(0,0,0,0.55);
+}
+
 /* Flexoki Light */
 [data-theme="flexoki-light"] {
   --bg: #fffcf0;
@@ -40,6 +50,16 @@
   --muted: #6f6e69;
   --accent: #4385be;
   --border: #e6e4d9;
+  --shadow: transparent;
+}
+
+/* Ayu Light */
+[data-theme="ayu-light"] {
+  --bg: #fafafa;
+  --fg: #5c6166;
+  --muted: #abb0b6;
+  --accent: #f2ae49;
+  --border: #e7e8e9;
   --shadow: transparent;
 }
 

@@ -1,5 +1,5 @@
-var THEMES = ['tokyo-night', 'gruvbox', 'flexoki-light', 'rose-pine'];
-var LIGHT_THEMES = ['rose-pine', 'flexoki-light'];
+var THEMES = ['tokyo-night', 'gruvbox', 'kanagawa', 'flexoki-light', 'rose-pine', 'ayu-light'];
+var LIGHT_THEMES = ['flexoki-light', 'rose-pine', 'ayu-light'];
 
 function applyTheme(name) {
   document.documentElement.setAttribute('data-theme', name);
@@ -604,8 +604,10 @@ function toggleTheme() {
       'colorschemes:',
       '  tokyo-night    dark   (default)',
       '  gruvbox        dark',
+      '  kanagawa       dark',
+      '  flexoki-light  light',
       '  rose-pine      light',
-      '  flexoki-light light',
+      '  ayu-light      light',
     ].join('\n'),
 
     sys: [
@@ -658,7 +660,7 @@ function toggleTheme() {
     reset:   'reset\n  reinitialize the current simulation from scratch.',
     params:  'params\n  show all tunable simulation parameters with current values.',
     set:     'set <param> <value>\n  tune a simulation parameter live. ranges are intentionally wide.\n\n  set life.cell 1           → single pixel cells\n  set life.cell 40          → chunky blocks\n  set boids.n 1000          → chaos\n  set boids.n 5             → lonely\n  set boids.size 100        → massive\n  set boids.speed 20        → unhinged\n  set boids.speed 0         → frozen\n  set boids.perception 2000 → hive mind\n  set boids.perception 1    → blind\n  set boids.separation 0    → merge\n\n  see: help bg  for all params and defaults',
-    colorscheme: 'colorscheme [name]\n  list or apply a colorscheme.\n\n  colorscheme              → list (active marked *)\n  colorscheme gruvbox      → apply\n\n  available: tokyo-night  gruvbox  rose-pine  flexoki-light',
+    colorscheme: 'colorscheme [name]\n  list or apply a colorscheme.\n\n  colorscheme              → list (active marked *)\n  colorscheme gruvbox      → apply\n\n  available: tokyo-night  gruvbox  kanagawa  flexoki-light  rose-pine  ayu-light',
     cowsay:  'cowsay [text]\n  a cow says something.\n\n  cowsay hello world',
     fortune: 'fortune\n  print a random programming quote.',
     ping:    'ping <host>\n  send 3 ICMP echo requests.\n\n  ping ekanshgoenka.com',
@@ -1000,7 +1002,7 @@ function toggleTheme() {
 
     colorscheme: function (args) {
       if (args.length > 1) { tooMany('colorscheme'); return; }
-      var ALL = ['tokyo-night', 'gruvbox', 'flexoki-light', 'rose-pine'];
+      var ALL = ['tokyo-night', 'gruvbox', 'kanagawa', 'flexoki-light', 'rose-pine', 'ayu-light'];
       var cur  = document.documentElement.getAttribute('data-theme');
       var name = args[0];
       if (!name) {
@@ -1437,8 +1439,8 @@ function toggleTheme() {
 
   function completeArg(cmd, pos, typed) {
     var CMAP = {
-      colorscheme: function (p) { return p === 0 ? ['tokyo-night', 'gruvbox', 'rose-pine', 'flexoki-light'] : []; },
-      theme:       function (p) { return p === 0 ? ['tokyo-night', 'gruvbox', 'rose-pine', 'flexoki-light'] : []; },
+      colorscheme: function (p) { return p === 0 ? ['tokyo-night', 'gruvbox', 'kanagawa', 'flexoki-light', 'rose-pine', 'ayu-light'] : []; },
+      theme:       function (p) { return p === 0 ? ['tokyo-night', 'gruvbox', 'kanagawa', 'flexoki-light', 'rose-pine', 'ayu-light'] : []; },
       bg:          function (p) { return p === 0 ? ['life', 'boids', 'off'] : []; },
       speed:       function (p) { return p === 0 ? ['1','2','3','4','5','6','7','8','9','10'] : []; },
       set:         function (p) { return p === 0 ? ['life.cell','boids.n','boids.size','boids.speed','boids.perception','boids.separation'] : []; },
