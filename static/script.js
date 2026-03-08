@@ -1082,8 +1082,15 @@ function toggleTheme() {
     set: function (args) {
       if (args.length > 2) { tooMany('set'); return; }
       var key = args[0] || '';
+      if (!key) { line('usage: set <param> <value>   (see: params)', 'term-line-err'); return; }
+      var p = window.getBgParams ? window.getBgParams() : {};
+      if (args.length === 1) {
+        if (p.hasOwnProperty(key)) line(key + ' = ' + p[key], 'term-line-ok');
+        else line('unknown param "' + key + '"  —  see: params', 'term-line-err');
+        return;
+      }
       var val = parseFloat(args[1]);
-      if (!key || isNaN(val)) { line('usage: set <param> <value>   (see: params)', 'term-line-err'); return; }
+      if (isNaN(val)) { line('usage: set <param> <value>   (see: params)', 'term-line-err'); return; }
       if (!window.setParam || !window.setParam(key, val))
         line('unknown param "' + key + '"  —  see: params', 'term-line-err');
       else
