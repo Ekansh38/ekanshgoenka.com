@@ -246,10 +246,7 @@ function toggleTheme() {
   // (R-pentomino, Acorn, gliders, oscillators) plus a sparse random
   // base. Auto-fertilises by dropping structured patterns, not blobs.
 
-  var CELL            = 7;
-  var LIFE_DENSITY    = 0.12;  // initial random fill (0.01–0.5)
-  var LIFE_THRESHOLD  = 0.05;  // auto-fertilise below this fraction (0.01–0.3)
-  var LIFE_GLIDERS    = 16;    // initial glider count (0–60)
+  var CELL = 7;
   var GW, GH;
   var grid, next;
   var lifeFrame = 0;
@@ -268,6 +265,61 @@ function toggleTheme() {
   var PAT_TOAD      = [[1,0],[2,0],[3,0],[0,1],[1,1],[2,1]];      // period-2
   var PAT_BEACON    = [[0,0],[1,0],[0,1],[3,2],[2,3],[3,3]];      // period-2
 
+  // ── Spawnable complex structures ──────────────────────────
+  var PAT_GOSPER_GUN = [                                          // infinite glider factory
+    [24,0],
+    [22,1],[24,1],
+    [12,2],[13,2],[20,2],[21,2],[34,2],[35,2],
+    [11,3],[15,3],[20,3],[21,3],[34,3],[35,3],
+    [0,4],[1,4],[10,4],[16,4],[20,4],[21,4],
+    [0,5],[1,5],[10,5],[14,5],[16,5],[17,5],[22,5],[24,5],
+    [10,6],[16,6],[24,6],
+    [11,7],[15,7],
+    [12,8],[13,8]
+  ];
+  var PAT_PULSAR = [                                              // period-3 oscillator
+    [2,0],[3,0],[4,0],[8,0],[9,0],[10,0],
+    [0,2],[5,2],[7,2],[12,2],
+    [0,3],[5,3],[7,3],[12,3],
+    [0,4],[5,4],[7,4],[12,4],
+    [2,5],[3,5],[4,5],[8,5],[9,5],[10,5],
+    [2,7],[3,7],[4,7],[8,7],[9,7],[10,7],
+    [0,8],[5,8],[7,8],[12,8],
+    [0,9],[5,9],[7,9],[12,9],
+    [0,10],[5,10],[7,10],[12,10],
+    [2,12],[3,12],[4,12],[8,12],[9,12],[10,12]
+  ];
+  var PAT_LWSS = [                                                // lightweight spaceship
+    [1,0],[2,0],[3,0],[4,0],
+    [0,1],[4,1],
+    [4,2],
+    [0,3],[3,3]
+  ];
+  var PAT_PENTADECATHLON = [                                      // period-15 oscillator
+    [1,0],[2,0],[3,0],
+    [0,1],[4,1],
+    [1,2],[2,2],[3,2],
+    [1,3],[2,3],[3,3],
+    [1,4],[2,4],[3,4],
+    [1,5],[2,5],[3,5],
+    [0,6],[4,6],
+    [1,7],[2,7],[3,7]
+  ];
+  var PAT_SWITCHENGINE = [                                        // infinite growth
+    [0,0],[2,0],
+    [1,1],[2,1],[4,2],[5,2],[6,2],
+    [0,2],[1,4],[2,4],[4,4],[5,4],[6,4],
+    [1,5],[4,5]
+  ];
+
+  var SPAWN_PATTERNS = {
+    'gosper-gun':     PAT_GOSPER_GUN,
+    'pulsar':         PAT_PULSAR,
+    'lwss':           PAT_LWSS,
+    'pentadecathlon': PAT_PENTADECATHLON,
+    'switch-engine':  PAT_SWITCHENGINE,
+  };
+
   function placePattern(cx, cy, cells) {
     for (var i = 0; i < cells.length; i++) {
       var x = ((cx + cells[i][0]) % GW + GW) % GW;
@@ -284,14 +336,14 @@ function toggleTheme() {
     liveCount = 0;
     lifeFrame = 0;
 
-    // Sparse random base — density controlled by LIFE_DENSITY
+    // Sparse random base (~12%)
     for (var i = 0; i < GW * GH; i++) {
-      if (Math.random() < LIFE_DENSITY) { grid[i] = 1; liveCount++; }
+      if (Math.random() < 0.12) { grid[i] = 1; liveCount++; }
     }
 
     // Scatter gliders in all four directions
     var gliders = [PAT_GLIDER_SE, PAT_GLIDER_SW, PAT_GLIDER_NE, PAT_GLIDER_NW];
-    for (var k = 0; k < LIFE_GLIDERS; k++) {
+    for (var k = 0; k < 16; k++) {
       placePattern(Math.floor(Math.random() * GW), Math.floor(Math.random() * GH), gliders[k % 4]);
     }
     // Long-lived chaos seeds that produce gliders and complex structures
@@ -329,7 +381,7 @@ function toggleTheme() {
     }
     var tmp = grid; grid = next; next = tmp;
     // Auto-fertilise: keep activity up so the sim never looks like it stalled
-    if (liveCount < GW * GH * LIFE_THRESHOLD) {
+    if (liveCount < GW * GH * 0.05) {
       var seeds = [PAT_RPENTO, PAT_ACORN, PAT_DIEHARD, PAT_GLIDER_SE, PAT_GLIDER_NW];
       for (var k = 0; k < 5; k++) {
         placePattern(
@@ -402,16 +454,22 @@ function toggleTheme() {
   };
   window.getBgSpeed = function () { return speedLevel; };
   window.resetBg    = function () { initMode(MODES[modeIdx]); };
+  window.spawnPattern = function (name) {
+    var pat = SPAWN_PATTERNS[name];
+    if (!pat) return false;
+    if (MODES[modeIdx] !== 'life') { modeIdx = MODES.indexOf('life'); initMode('life'); updateBtn(); }
+    if (!grid) return false;
+    placePattern(Math.floor(Math.random() * GW), Math.floor(Math.random() * GH), pat);
+    return true;
+  };
+  window.spawnPatternNames = function () { return Object.keys(SPAWN_PATTERNS); };
 
   window.getBgParams = function () {
     return {
-      'life.cell':       CELL,
-      'life.density':    LIFE_DENSITY,
-      'life.threshold':  LIFE_THRESHOLD,
-      'life.gliders':    LIFE_GLIDERS,
-      'boids.n':         N,
-      'boids.size':      BOID_LEN,
-      'boids.speed':     MAX_SPEED,
+      'life.cell':        CELL,
+      'boids.n':          N,
+      'boids.size':       BOID_LEN,
+      'boids.speed':      MAX_SPEED,
       'boids.perception': PERCEPTION,
       'boids.separation': SEP_DIST,
     };
@@ -422,15 +480,6 @@ function toggleTheme() {
       case 'life.cell':
         CELL = Math.max(1, Math.min(80, Math.round(val)));
         if (MODES[modeIdx] === 'life') initLife();
-        return true;
-      case 'life.density':
-        LIFE_DENSITY = Math.max(0.01, Math.min(0.5, val));
-        return true;
-      case 'life.threshold':
-        LIFE_THRESHOLD = Math.max(0.01, Math.min(0.3, val));
-        return true;
-      case 'life.gliders':
-        LIFE_GLIDERS = Math.max(0, Math.min(60, Math.round(val)));
         return true;
       case 'boids.n':
         N = Math.max(1, Math.min(1000, Math.round(val)));
@@ -1076,6 +1125,16 @@ function toggleTheme() {
       line('simulation reinitialized.', 'term-line-ok');
     },
 
+    spawn: function (args) {
+      if (!args[0]) { needArg('spawn', 'spawn <pattern>'); return; }
+      if (args.length > 1) { tooMany('spawn'); return; }
+      var names = window.spawnPatternNames ? window.spawnPatternNames() : [];
+      if (!window.spawnPattern || !window.spawnPattern(args[0]))
+        line('unknown pattern. available: ' + names.join(', '), 'term-line-err');
+      else
+        line('spawned ' + args[0], 'term-line-ok');
+    },
+
     params: function (args) {
       if (args.length) { tooMany('params'); return; }
       var p = window.getBgParams ? window.getBgParams() : {};
@@ -1083,17 +1142,21 @@ function toggleTheme() {
         'simulation parameters  (set <param> <val> to change)',
         '',
         'life:',
-        '  life.cell        ' + (p['life.cell']       || '?') + '      cell size px         (1–80)',
-        '  life.density     ' + (p['life.density']    || '?') + '   initial fill fraction  (0.01–0.5)',
-        '  life.threshold   ' + (p['life.threshold']  || '?') + '   refill below fraction  (0.01–0.3)',
-        '  life.gliders     ' + (p['life.gliders']    || '?') + '      starting gliders      (0–60)',
+        '  life.cell        ' + (p['life.cell'] || '?') + '   cell size px  (1–80)',
+        '',
+        '  spawn <pattern>  drop a complex structure onto the grid',
+        '    gosper-gun     infinite glider factory',
+        '    pulsar         period-3 oscillator',
+        '    lwss           lightweight spaceship',
+        '    pentadecathlon period-15 oscillator',
+        '    switch-engine  infinite growth',
         '',
         'boids:',
-        '  boids.n          ' + (p['boids.n']          || '?') + '    count         (1–1000)',
-        '  boids.size       ' + (p['boids.size']        || '?') + '    length px     (1–200)',
+        '  boids.n          ' + (p['boids.n']          || '?') + '   count         (1–1000)',
+        '  boids.size       ' + (p['boids.size']        || '?') + '   length px     (1–200)',
         '  boids.speed      ' + (p['boids.speed']       || '?') + '   max speed      (0–30)',
-        '  boids.perception ' + (p['boids.perception']  || '?') + '    sight radius  (1–2000)',
-        '  boids.separation ' + (p['boids.separation']  || '?') + '    separation px (0–1000)',
+        '  boids.perception ' + (p['boids.perception']  || '?') + '   sight radius  (1–2000)',
+        '  boids.separation ' + (p['boids.separation']  || '?') + '   separation px (0–1000)',
       ].join('\n'), 'term-line-pre');
     },
 
@@ -1461,7 +1524,8 @@ function toggleTheme() {
       theme:       function (p) { return p === 0 ? ['tokyo-night', 'gruvbox', 'kanagawa', 'flexoki-light', 'rose-pine', 'ayu-light'] : []; },
       bg:          function (p) { return p === 0 ? ['life', 'boids', 'off'] : []; },
       speed:       function (p) { return p === 0 ? ['1','2','3','4','5','6','7','8','9','10'] : []; },
-      set:         function (p) { return p === 0 ? ['life.cell','life.density','life.threshold','life.gliders','boids.n','boids.size','boids.speed','boids.perception','boids.separation'] : []; },
+      set:         function (p) { return p === 0 ? ['life.cell','boids.n','boids.size','boids.speed','boids.perception','boids.separation'] : []; },
+      spawn:       function (p) { return p === 0 ? ['gosper-gun','pulsar','lwss','pentadecathlon','switch-engine'] : []; },
       help:        function (p) { return p === 0 ? Object.keys(HELP_TOPICS).concat(Object.keys(HELP_CMDS)).sort() : []; },
       man:         function (p) { return p === 0 ? CMD_NAMES.concat(Object.keys(HELP_TOPICS)).sort() : []; },
       which:       function (p) { return p === 0 ? CMD_NAMES : []; },
@@ -1483,7 +1547,8 @@ function toggleTheme() {
 
     var hits;
     if (isCmd) {
-      hits = CMD_NAMES.filter(function (c) { return c.indexOf(typed) === 0; });
+      var paramKeys = window.getBgParams ? Object.keys(window.getBgParams()) : [];
+      hits = CMD_NAMES.concat(paramKeys).filter(function (c) { return c.indexOf(typed) === 0; });
     } else {
       var cmd = parts[0].toLowerCase();
       var pos = parts.length - 2;  // 0-indexed arg position

@@ -175,10 +175,11 @@ body { background: transparent; text-shadow: 0 0 18px var(--shadow), 0 0 6px var
 }
 
 
-/* Hide sim on touch-only devices (phones/tablets) */
+/* Hide sim and terminal on touch-only devices (phones/tablets) */
 @media (hover: none) and (pointer: coarse) {
   #bg-canvas { display: none !important; }
   body { text-shadow: none !important; background: var(--bg) !important; }
+  #term-btn { display: none; }
 }
 
 /* ── HIDDEN TERMINAL ─────────────────────────────────────────── */
