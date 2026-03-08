@@ -33,13 +33,13 @@
   --shadow: rgba(0,0,0,0.55);
 }
 
-/* Solarized Light */
-[data-theme="solarized-light"] {
-  --bg: #fdf6e3;
-  --fg: #586e75;
-  --muted: #93a1a1;
-  --accent: #268bd2;
-  --border: #eee8d5;
+/* Catppuccin Latte */
+[data-theme="catppuccin-latte"] {
+  --bg: #eff1f5;
+  --fg: #4c4f69;
+  --muted: #9ca0b0;
+  --accent: #1e66f5;
+  --border: #ccd0da;
   --shadow: transparent;
 }
 

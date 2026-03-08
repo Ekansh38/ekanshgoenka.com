@@ -1,5 +1,5 @@
-var THEMES = ['tokyo-night', 'gruvbox', 'rose-pine', 'solarized-light'];
-var LIGHT_THEMES = ['rose-pine', 'solarized-light'];
+var THEMES = ['tokyo-night', 'gruvbox', 'rose-pine', 'catppuccin-latte'];
+var LIGHT_THEMES = ['rose-pine', 'catppuccin-latte'];
 
 function applyTheme(name) {
   document.documentElement.setAttribute('data-theme', name);
@@ -22,6 +22,7 @@ function toggleTheme() {
   var saved = localStorage.getItem('theme') || 'tokyo-night';
   if (saved === 'dark') saved = 'tokyo-night';
   if (saved === 'light') saved = 'rose-pine';
+  if (saved === 'solarized-light') saved = 'catppuccin-latte';
   if (THEMES.indexOf(saved) < 0) saved = 'tokyo-night';
   applyTheme(saved);
 
@@ -75,7 +76,7 @@ function toggleTheme() {
 
   function isDark() {
     var t = document.documentElement.getAttribute('data-theme');
-    return t !== 'rose-pine' && t !== 'solarized-light';
+    return LIGHT_THEMES.indexOf(t) < 0;
   }
 
   function updateBtn() {
@@ -211,14 +212,16 @@ function toggleTheme() {
 
   function isHome() { return window.location.pathname === '/'; }
 
-  function drawBoids() {
-    var dark = isDark();
-    var sub  = isHome();
-    ctx.clearRect(0, 0, W, H);
+  function accentRgba(alpha) {
+    var hex = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+    var r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+    return 'rgba('+r+','+g+','+b+','+alpha+')';
+  }
 
-    ctx.fillStyle = dark
-      ? (sub ? 'rgba(169,177,214,0.18)' : 'rgba(169,177,214,0.07)')
-      : (sub ? 'rgba(52,59,88,0.15)'    : 'rgba(52,59,88,0.055)');
+  function drawBoids() {
+    var sub = isHome();
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = sub ? accentRgba(0.14) : accentRgba(0.055);
     for (var i = 0; i < N; i++) {
       var b   = boids[i];
       var spd = Math.sqrt(b.vx*b.vx + b.vy*b.vy);
@@ -334,12 +337,9 @@ function toggleTheme() {
   }
 
   function drawLife() {
-    var dark = isDark();
-    var sub  = isHome();
+    var sub = isHome();
     ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = dark
-      ? (sub ? 'rgba(169,177,214,0.10)' : 'rgba(169,177,214,0.05)')
-      : (sub ? 'rgba(52,59,88,0.09)'    : 'rgba(52,59,88,0.04)');
+    ctx.fillStyle = sub ? accentRgba(0.09) : accentRgba(0.04);
     for (var y = 0; y < GH; y++) {
       for (var x = 0; x < GW; x++) {
         if (grid[y*GW + x]) ctx.fillRect(x*CELL+1, y*CELL+1, CELL-2, CELL-2);
@@ -603,7 +603,7 @@ function toggleTheme() {
       '  tokyo-night    dark   (default)',
       '  gruvbox        dark',
       '  rose-pine      light',
-      '  solarized-light light',
+      '  catppuccin-latte light',
     ].join('\n'),
 
     sys: [
@@ -656,7 +656,7 @@ function toggleTheme() {
     reset:   'reset\n  reinitialize the current simulation from scratch.',
     params:  'params\n  show all tunable simulation parameters with current values.',
     set:     'set <param> <value>\n  tune a simulation parameter live. ranges are intentionally wide.\n\n  set life.cell 1           → single pixel cells\n  set life.cell 40          → chunky blocks\n  set boids.n 1000          → chaos\n  set boids.n 5             → lonely\n  set boids.size 100        → massive\n  set boids.speed 20        → unhinged\n  set boids.speed 0         → frozen\n  set boids.perception 2000 → hive mind\n  set boids.perception 1    → blind\n  set boids.separation 0    → merge\n\n  see: help bg  for all params and defaults',
-    colorscheme: 'colorscheme [name]\n  list or apply a colorscheme.\n\n  colorscheme              → list (active marked *)\n  colorscheme gruvbox      → apply\n\n  available: tokyo-night  gruvbox  rose-pine  solarized-light',
+    colorscheme: 'colorscheme [name]\n  list or apply a colorscheme.\n\n  colorscheme              → list (active marked *)\n  colorscheme gruvbox      → apply\n\n  available: tokyo-night  gruvbox  rose-pine  catppuccin-latte',
     cowsay:  'cowsay [text]\n  a cow says something.\n\n  cowsay hello world',
     fortune: 'fortune\n  print a random programming quote.',
     ping:    'ping <host>\n  send 3 ICMP echo requests.\n\n  ping ekanshgoenka.com',
@@ -998,7 +998,7 @@ function toggleTheme() {
 
     colorscheme: function (args) {
       if (args.length > 1) { tooMany('colorscheme'); return; }
-      var ALL = ['tokyo-night', 'gruvbox', 'rose-pine', 'solarized-light'];
+      var ALL = ['tokyo-night', 'gruvbox', 'rose-pine', 'catppuccin-latte'];
       var cur  = document.documentElement.getAttribute('data-theme');
       var name = args[0];
       if (!name) {
