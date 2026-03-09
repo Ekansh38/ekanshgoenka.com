@@ -69,7 +69,7 @@ function toggleTheme() {
   if (!canvas) return;
   var ctx = canvas.getContext('2d');
 
-  var MODES = ['life', 'boids', 'smooth', 'off'];
+  var MODES = ['life', 'boids', 'grayscott', 'particlelife', 'off'];
   var modeIdx = Math.max(0, MODES.indexOf(localStorage.getItem('bgMode') || 'life'));
   var speedLevel = parseInt(localStorage.getItem('bgSpeed') || '2');
   var W, H;
@@ -85,9 +85,10 @@ function toggleTheme() {
 
   function initMode(mode) {
     ctx.clearRect(0, 0, W, H);
-    if (mode === 'boids')  initBoids();
-    if (mode === 'life')   initLife();
-    if (mode === 'smooth' && window.SmoothLife) window.SmoothLife.init();
+    if (mode === 'boids')       initBoids();
+    if (mode === 'life')        initLife();
+    if (mode === 'grayscott'   && window.GrayScott)    window.GrayScott.init();
+    if (mode === 'particlelife' && window.ParticleLife) window.ParticleLife.init();
   }
 
   function cycleMode() {
@@ -444,8 +445,12 @@ function toggleTheme() {
     } else if (mode === 'boids') {
       updateBoids();
       drawBoids();
-    } else if (mode === 'smooth') {
-      if (window.SmoothLife) { window.SmoothLife.step(); window.SmoothLife.draw(ctx, W, H); }
+    } else if (mode === 'grayscott' && window.GrayScott) {
+      window.GrayScott.step();
+      window.GrayScott.draw(ctx, W, H);
+    } else if (mode === 'particlelife' && window.ParticleLife) {
+      window.ParticleLife.step(W, H);
+      window.ParticleLife.draw(ctx, W, H);
     } else {
       ctx.clearRect(0, 0, W, H);
     }
@@ -475,8 +480,10 @@ function toggleTheme() {
   window.getBgSpeed = function () { return speedLevel; };
   window.resetBg    = function () {
     LIFE_AUTOFILL = true;
-    if (MODES[modeIdx] === 'smooth' && window.SmoothLife) window.SmoothLife.reset();
-    else initMode(MODES[modeIdx]);
+    var mode = MODES[modeIdx];
+    if (mode === 'grayscott'    && window.GrayScott)    window.GrayScott.reset();
+    else if (mode === 'particlelife' && window.ParticleLife) window.ParticleLife.reset();
+    else initMode(mode);
   };
 
   function ensureLife() {
@@ -566,11 +573,11 @@ function toggleTheme() {
   window.spawnPatternNames = function () { return Object.keys(SPAWN_PATTERNS); };
 
   window.getBgParams = function () {
-    var p = {
-      'life.cell':        CELL,
-      'life.opacity':     LIFE_OPACITY,
-      'life.glow':        LIFE_GLOW,
-      'life.autofill':    LIFE_AUTOFILL ? 1 : 0,
+    return {
+      'life.cell':      CELL,
+      'life.opacity':   LIFE_OPACITY,
+      'life.glow':      LIFE_GLOW,
+      'life.autofill':  LIFE_AUTOFILL ? 1 : 0,
       'boids.n':          N,
       'boids.size':       BOID_LEN,
       'boids.speed':      MAX_SPEED,
@@ -579,12 +586,6 @@ function toggleTheme() {
       'boids.opacity':    BOID_OPACITY,
       'boids.glow':       BOID_GLOW,
     };
-    if (window.SmoothLife) {
-      var sp = window.SmoothLife.getParams();
-      var sk = Object.keys(sp);
-      for (var i = 0; i < sk.length; i++) p[sk[i]] = sp[sk[i]];
-    }
-    return p;
   };
 
   window.setParam = function (key, val) {
@@ -627,7 +628,6 @@ function toggleTheme() {
         BOID_GLOW = Math.max(0, Math.min(40, parseFloat(val) || 0));
         return true;
       default:
-        if (window.SmoothLife && window.SmoothLife.setParam(key, val)) return true;
         return false;
     }
   };
@@ -644,9 +644,6 @@ function toggleTheme() {
     swarm:   { sim:'boids',  speed:null, params:{'boids.n':350,  'boids.size':8,  'boids.speed':2.8, 'boids.opacity':0.18, 'boids.glow':0} },
     drift:   { sim:'boids',  speed:null, params:{'boids.n':15,   'boids.size':36, 'boids.speed':0.7, 'boids.opacity':0.45, 'boids.glow':8} },
     nebula:  { sim:'boids',  speed:null, params:{'boids.n':80,   'boids.size':18, 'boids.speed':1.5, 'boids.opacity':0.9,  'boids.glow':20} },
-    // smooth
-    plasma:  { sim:'smooth', speed:null, params:{'smooth.opacity':0.9,  'smooth.glow':0,  'smooth.ri':7,  'smooth.dt':0.1} },
-    fluid:   { sim:'smooth', speed:null, params:{'smooth.opacity':0.55, 'smooth.glow':8,  'smooth.ri':12, 'smooth.dt':0.07} },
   };
 
   window.getPresetNames = function () { return Object.keys(PRESETS); };
@@ -738,22 +735,13 @@ function toggleTheme() {
   }
 
   var NEOFETCH = [
-    '  ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄   ekansh@home',
-    '  █                 █   ────────────────────────────────────────',
-    '  █  ┌───────────┐  █',
-    '  █  │           │  █   age      12',
-    '  █  │   > _     │  █   editor   vim',
-    '  █  │           │  █',
-    '  █  └───────────┘  █',
-    '  █                 █',
-    '  ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀',
-    '        █████',
-    '  ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄',
-    '  ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀',
+    'ekansh@site',
+    '──────────────────────────',
+    'age       12',
+    'editor    vim',
+    'hobbies   bjj  music  cs  reading',
     '',
-    '                        projects  byte-space · geno',
-    '                        music     btop',
-    '                        hobbies   bjj · cs · music · reading',
+    'github    github.com/ekansh38',
   ].join('\n');
 
   // ── help system ─────────────────────────────────────────────
@@ -761,10 +749,10 @@ function toggleTheme() {
     'help [topic|command]',
     '',
     '  nav    ls  cat  cd  pwd  open',
-    '  bg     bg  speed  reset  params  set  preset  wipe  fill  spawn  (smooth: bg smooth)',
+    '  bg     bg  speed  reset  params  set  preset  wipe  fill  spawn',
     '  look   colorscheme  color',
-    '  sys    neofetch  uname  uptime  top  ps  df  du  env  history  whoami  date',
-    '  fun    cowsay  fortune  ping  find  grep  wc  which  make  tar  yes',
+    '  sys    neofetch  top  ps  df  env  history  whoami',
+    '  fun    cowsay  curl',
     '',
     '  :     open   ·   esc   close   ·   tab   autocomplete',
   ].join('\n');
@@ -801,17 +789,16 @@ function toggleTheme() {
     bg: [
       'bg',
       '',
-      '  bg [life|boids|smooth|off]  get/set mode',
-      '  speed [1-10]                get/set speed',
-      '  reset                       reinit from scratch',
-      '  preset <name>               apply a named preset',
-      '  params                      all params + values',
-      '  set <param> <val>           change a param',
+      '  bg [life|boids|off]    get/set mode',
+      '  speed [1-10]           get/set speed',
+      '  reset                  reinit from scratch',
+      '  preset <name>          apply a named preset',
+      '  params                 all params + values',
+      '  set <param> <val>      change a param',
       '',
       'presets:',
       '  ghost  neon  pixel  matrix',
       '  default  swarm  drift  nebula',
-      '  plasma  fluid',
       '',
       'life:',
       '  wipe                   clear grid, stop autofill',
@@ -837,12 +824,6 @@ function toggleTheme() {
       '  boids.opacity     0.01–1   0.14',
       '  boids.glow        0–40     0',
       '',
-      'smooth (SmoothLife):',
-      '  smooth.opacity  0.01–1   0.75',
-      '  smooth.glow     0–20     0',
-      '  smooth.ri       1–32     7   (inner radius)',
-      '  smooth.dt       0.01–1   0.1 (step size)',
-      '',
       '  <param>   →  prints current value',
     ].join('\n'),
 
@@ -863,34 +844,22 @@ function toggleTheme() {
     sys: [
       'sys',
       '',
-      '  neofetch       overview',
-      '  uname [-a]     kernel / browser',
-      '  uptime         time since load',
-      '  top            process monitor',
+      '  neofetch       system info',
+      '  top            processes',
       '  ps             process list',
-      '  df             disk usage',
-      '  du [path]      directory sizes',
+      '  df             disk',
       '  env            site + sim vars',
-      '  history        session history',
-      '  whoami         identity',
-      '  date           date/time',
+      '  history        command log',
+      '  whoami         you',
     ].join('\n'),
 
     fun: [
       'fun',
       '',
-      '  cowsay [text]       cow',
-      '  fortune             quote',
-      '  ping <host>         ping',
-      '  find . -name <pat>  find files',
-      '  grep <pat> <path>   search',
-      '  wc [-l] <path>      word/line count',
-      '  which <cmd>         locate command',
-      '  make [target]       build',
-      '  tar [flags] [file]  archive',
-      '  yes [text]          infinite output',
+      '  cowsay [text]   ascii cow',
+      '  curl -L <url>   try it',
       '',
-      '  sudo   rm -rf /   vim   curl -L ekanshgoenka.com',
+      '  sudo   rm -rf /   vim',
     ].join('\n'),
   };
 
@@ -934,12 +903,11 @@ function toggleTheme() {
     ].join('\n'),
 
     bg: [
-      'bg [life|boids|smooth|off]',
+      'bg [life|boids|off]',
       '',
       '  bg           current mode',
       '  bg life      Conway\'s Game of Life',
       '  bg boids     flocking sim',
-      '  bg smooth    SmoothLife (continuous CA)',
       '  bg off       disable',
       '',
       'help bg    full guide',
@@ -968,15 +936,11 @@ function toggleTheme() {
       '  swarm    350 fast small boids',
       '  drift    15 slow large  glow 8',
       '  nebula   80  opacity 0.9  glow 20',
-      '',
-      'smooth:',
-      '  plasma   full opacity, classic params',
-      '  fluid    large radius, glow, slower dt',
     ].join('\n'),
 
-    reset:   'reset\n  reinit sim from scratch\n  re-enables life autofill',
+    reset:   'reset\n  reinit sim',
 
-    params:  'params\n  all params + current values\n  <param name>   print value\n  set <param> <val>   change it',
+    params:  'params\n  all params + values\n  <param>         print value\n  set <p> <v>     change it',
 
     set: [
       'set <param> <value>',
@@ -1000,26 +964,20 @@ function toggleTheme() {
       '  boids.perception 20   blind',
       '  boids.perception 500  hive mind',
       '  boids.separation 0    merge',
-      '  boids.opacity 0.9  visible',
-      '  boids.glow 20      glowing',
-      '',
-      'smooth:',
-      '  smooth.opacity 0.9   bright',
-      '  smooth.glow 12       bloom',
-      '  smooth.ri 14         large blobs',
-      '  smooth.dt 0.05       slow evolve',
+      '  boids.opacity 0.9  bright',
+      '  boids.glow 20      glow',
     ].join('\n'),
 
     wipe: [
       'wipe',
-      '  clear grid, disable autofill',
+      '  clear grid + stop autofill',
       '',
-      '  fill          restore autofill',
-      '  spawn <pat>   place a pattern',
+      '  fill          restart autofill',
+      '  spawn <pat>   place pattern',
       '  reset         full reinit',
     ].join('\n'),
 
-    fill:   'fill\n  re-enable autofill\n  seeds: r-pentomino, acorn, gliders',
+    fill:   'fill\n  restart autofill',
 
     spawn: [
       'spawn [pattern] [random] [count]',
@@ -1050,28 +1008,17 @@ function toggleTheme() {
       '  flexoki-light  rose-pine  ayu-light  (light)',
     ].join('\n'),
 
-    color:   'color\n  current theme palette (bg fg accent muted border)',
+    color:   'color\n  bg  fg  accent  muted  border',
     whoami:  'whoami',
     pwd:     'pwd',
     cowsay:  'cowsay [text]\n  cowsay hello world',
-    fortune: 'fortune\n  random quote',
-    ping:    'ping <host>\n  ping ekanshgoenka.com',
-    find:    'find . -name <pat>\n  find . -name "*.md"',
-    grep:    'grep <pat> <path>\n  grep go projects/geno',
-    wc:      'wc [-l] <path>\n  -l   lines only',
-    which:   'which <cmd>\n  which spawn',
-    top:     'top\n  live process view',
+    top:     'top',
     ps:      'ps',
     df:      'df',
-    du:      'du [path]\n  du projects',
     env:     'env\n  SITE  COLORSCHEME  BG_MODE  BG_SPEED  all params',
-    uname:   'uname [-a]\n  -a   all info',
-    uptime:  'uptime\n  time since page load',
-    history: 'history\n  session command history',
-    make:    'make [target]\n  make  /  make clean',
-    tar:     'tar [flags] [file]\n  tar -xzf archive.tar.gz',
-    curl:    'curl -L <url>\n  curl -L ekanshgoenka.com  (real terminal)',
-    neofetch:'neofetch\n  system overview',
+    history: 'history',
+    curl:    'curl -L <url>\n  curl -L ekanshgoenka.com',
+    neofetch: 'neofetch',
   };
 
   // ── output helpers ──────────────────────────────────────────
@@ -1432,7 +1379,7 @@ function toggleTheme() {
       var m = args[0];
       if (!m) { line('bg: ' + (window.getBgMode ? window.getBgMode() : '?'), 'term-line-ok'); return; }
       if (!window.setBgMode || !window.setBgMode(m))
-        line('bg: unknown mode. try: life  boids  smooth  off', 'term-line-err');
+        line('bg: unknown mode. try: life  boids  grayscott  particlelife  off', 'term-line-err');
       else
         line('bg → ' + m, 'term-line-ok');
     },
@@ -1522,10 +1469,6 @@ function toggleTheme() {
           '  swarm    350 fast small boids',
           '  drift    15 slow large boids, glow',
           '  nebula   80 glowing boids',
-          '',
-          'smooth:',
-          '  plasma   full opacity, classic',
-          '  fluid    large radius, glow',
         ].join('\n'), 'term-line-pre');
         return;
       }
@@ -1562,12 +1505,6 @@ function toggleTheme() {
         '  boids.opacity    ' + v('boids.opacity')     + '\t(0.01–1)',
         '  boids.glow       ' + v('boids.glow')        + '\t(0–40)',
         '',
-        'smooth:',
-        '  smooth.opacity   ' + v('smooth.opacity') + '\t(0.01–1)',
-        '  smooth.glow      ' + v('smooth.glow')    + '\t(0–20)',
-        '  smooth.ri        ' + v('smooth.ri')      + '\t(1–32)',
-        '  smooth.dt        ' + v('smooth.dt')      + '\t(0.01–1)',
-        '',
         'set <param> <value>  to change',
       ].join('\n'), 'term-line-pre');
     },
@@ -1584,27 +1521,6 @@ function toggleTheme() {
     },
 
     // ── system ──────────────────────────────────────────────────
-    uname: function (args) {
-      var flags = args.filter(function (a) { return a[0] === '-'; });
-      var extra = args.filter(function (a) { return a[0] !== '-'; });
-      if (extra.length) { tooMany('uname'); return; }
-      if (flags.some(function (f) { return f.replace(/-/g,'').split('').some(function(c){ return 'a'.indexOf(c)<0; }); }))
-        { line('uname: invalid option', 'term-line-err'); return; }
-      if (args.indexOf('-a') >= 0)
-        line('Browser 1.0.0 ekansh-site #1 SMP ' + new Date().toDateString() + ' x86_64 WebKit');
-      else
-        line('Browser');
-    },
-
-    uptime: function (args) {
-      if (args.length) { tooMany('uptime'); return; }
-      var s = Math.floor((Date.now() - PAGE_START) / 1000);
-      var m = Math.floor(s / 60); s %= 60;
-      var h = Math.floor(m / 60); m %= 60;
-      var t = (h ? h + 'h ' : '') + (m ? m + 'm ' : '') + s + 's';
-      line('up ' + t + '   load avg: 0.42 0.13 0.07');
-    },
-
     ps: function (args) {
       if (args.length) { tooMany('ps'); return; }
       line([
@@ -1666,75 +1582,11 @@ function toggleTheme() {
     df: function (args) {
       if (args.length) { tooMany('df'); return; }
       line([
-        'Filesystem        Size    Used   Avail  Use%  Mounted on',
-        '/dev/brain        256G    201G    55G    79%   /home/ekansh',
-        '/dev/internet      ∞       ∞      ∞     ??%   /www',
-        'tmpfs             16G     0.2G   15.8G   1%   /tmp',
+        'Filesystem        Size     Used     Avail    Use%  Mounted on',
+        '/dev/brain        10.0PB   9.8PB    0.2PB    98%   /home/ekansh',
+        '/dev/internet      ∞        ∞        ∞       ??%   /www',
+        'tmpfs             16G      0.2G     15.8G     1%   /tmp',
       ].join('\n'), 'term-line-pre');
-    },
-
-    du: function (args) {
-      if (args.length > 1) { tooMany('du'); return; }
-      var target = args.length ? resolvePath(args[0]) : cwd;
-      if (!FS.hasOwnProperty(target)) { line('du: ' + (args.join(' ') || '.') + ': no such file', 'term-line-err'); return; }
-      var prefix = target ? target + '/' : '';
-      var kids = lsChildren(target);
-      var out = kids.map(function (n) {
-        var full = prefix + n;
-        return (FS[full] && FS[full].type === 'dir' ? '12K' : '4.0K') + '\t./' + n;
-      });
-      out.push('28K\t./');
-      line(out.join('\n'), 'term-line-pre');
-    },
-
-    ping: function (args) {
-      if (args.length > 1) { tooMany('ping'); return; }
-      var host = args[0] || 'ekanshgoenka.com';
-      var steps = [
-        'PING ' + host + ': 56 data bytes',
-        '64 bytes from ' + host + ': icmp_seq=0 ttl=64 time=' + (Math.random()*8+1).toFixed(3) + ' ms',
-        '64 bytes from ' + host + ': icmp_seq=1 ttl=64 time=' + (Math.random()*8+1).toFixed(3) + ' ms',
-        '64 bytes from ' + host + ': icmp_seq=2 ttl=64 time=' + (Math.random()*8+1).toFixed(3) + ' ms',
-        '',
-        '--- ' + host + ' ping statistics ---',
-        '3 packets transmitted, 3 received, 0% packet loss',
-      ];
-      steps.forEach(function (s, i) { setTimeout(function () { line(s); }, i * 300); });
-    },
-
-    grep: function (args) {
-      if (args.length < 2) { line('usage: grep <pattern> <path>', 'term-line-err'); return; }
-      var pat = args[0], path = args[1];
-      line('grep: ' + path + ': permission denied', 'term-line-err');
-      line('(hint: try  cat <path>  instead)');
-    },
-
-    find: function (args) {
-      var ni = args.indexOf('-name');
-      var name = ni >= 0 ? (args[ni + 1] || '') : '';
-      if (!name) { line('usage: find . -name <pattern>', 'term-line-err'); return; }
-      var pat = name.replace(/\*/g, '');
-      var files = Object.keys(FS).filter(function (p) {
-        return p && FS[p].type === 'file' && (!pat || p.indexOf(pat) >= 0);
-      });
-      line(files.length ? files.map(function (p) { return './' + p; }).join('\n') : '(no matches)',
-           files.length ? 'term-line-pre' : 'term-line-err');
-    },
-
-    wc: function (args) {
-      var path = args[args.length - 1] || '';
-      var lines = Math.floor(Math.random()*80+20);
-      var words = Math.floor(lines * (Math.random()*8+4));
-      var bytes = Math.floor(words * 5.2);
-      line('  ' + lines + '  ' + words + '  ' + bytes + '  ' + (path || '-'));
-    },
-
-    which: function (args) {
-      if (args.length > 1) { tooMany('which'); return; }
-      var cmd = args[0];
-      if (!cmd) { needArg('which', 'which <command>'); return; }
-      if (CMDS[cmd]) line('/usr/local/bin/' + cmd);
-      else line('which: ' + cmd + ': not found', 'term-line-err');
     },
 
     env: function (args) {
@@ -1753,24 +1605,6 @@ function toggleTheme() {
       line(vars.join('\n'), 'term-line-pre');
     },
 
-    make: function (args) {
-      if (args.length > 1) { tooMany('make'); return; }
-      var target = args[0] || 'all';
-      var steps = [
-        'cc -O2 -Wall -o ' + target + ' main.c util.c',
-        'ld -o ' + target + ' main.o util.o',
-        'make: \'' + target + '\' is up to date.',
-      ];
-      steps.forEach(function (s, i) { setTimeout(function () { line(s); }, i * 180); });
-    },
-
-    tar: function (args) {
-      if (args.join('').indexOf('x') >= 0)
-        line('tar: checksum error\ntar: error exit delayed from previous errors.', 'term-line-err');
-      else
-        line('tar: refusing to create empty archive', 'term-line-err');
-    },
-
     // ── fun ─────────────────────────────────────────────────────
     cowsay: function (args) {
       var text = args.join(' ') || 'moo';
@@ -1785,11 +1619,6 @@ function toggleTheme() {
         '                ||----w |',
         '                ||     ||',
       ].join('\n'), 'term-line-pre');
-    },
-
-    fortune: function (args) {
-      if (args.length) { tooMany('fortune'); return; }
-      line(QUOTES[Math.floor(Math.random() * QUOTES.length)]);
     },
 
     // ── misc ────────────────────────────────────────────────────
@@ -1880,7 +1709,6 @@ function toggleTheme() {
     },
     sudo:   function ()  { line('ekansh is not in the sudoers file. this incident will be reported.', 'term-line-err'); },
     vim:    function (args) { if (args.length) { tooMany('vim'); return; } line('you\'re already in vim (spiritually).', 'term-line-ok'); },
-    date:   function (args) { if (args.length) { tooMany('date'); return; } line(new Date().toString().toLowerCase()); },
     rm: function (a) {
       var flags = a.filter(function (x) { return x[0] === '-'; }).join('');
       var paths = a.filter(function (x) { return x[0] !== '-'; });
@@ -1890,7 +1718,6 @@ function toggleTheme() {
       if (isRF) { line('rm: ' + (paths[0] || '/') + ': permission denied', 'term-line-err'); return; }
       line('rm: ' + (a[0] || '?') + ': permission denied', 'term-line-err');
     },
-    yes:    function (a) { line(a.join(' ') || 'y'); line('(use ctrl+c to stop — kidding, you can\'t)'); },
     true:   function ()  { /* exits 0, outputs nothing, as god intended */ },
     false:  function ()  { line('false: exited with status 1', 'term-line-err'); },
     ':':    function ()  { /* the shell builtin : always succeeds */ },
@@ -1930,26 +1757,34 @@ function toggleTheme() {
       });
   }
 
+  var ALL_THEMES    = ['tokyo-night', 'gruvbox', 'kanagawa', 'flexoki-light', 'rose-pine', 'ayu-light'];
+  var ALL_PARAMS    = ['life.cell','life.opacity','life.glow','life.autofill','boids.n','boids.size','boids.speed','boids.perception','boids.separation','boids.opacity','boids.glow'];
+  var ALL_PATTERNS  = ['gosper-gun','pulsar','lwss','pentadecathlon','switch-engine'];
+  var HELP_KEYS     = Object.keys(HELP_TOPICS).concat(Object.keys(HELP_CMDS)).sort();
+
   function completeArg(cmd, pos, typed) {
     var CMAP = {
-      colorscheme: function (p) { return p === 0 ? ['tokyo-night', 'gruvbox', 'kanagawa', 'flexoki-light', 'rose-pine', 'ayu-light'] : []; },
-      theme:       function (p) { return p === 0 ? ['tokyo-night', 'gruvbox', 'kanagawa', 'flexoki-light', 'rose-pine', 'ayu-light'] : []; },
-      bg:          function (p) { return p === 0 ? ['life', 'boids', 'smooth', 'off'] : []; },
+      colorscheme: function (p) { return p === 0 ? ALL_THEMES : []; },
+      theme:       function (p) { return p === 0 ? ALL_THEMES : []; },
+      bg:          function (p) { return p === 0 ? ['life', 'boids', 'grayscott', 'particlelife', 'off'] : []; },
       speed:       function (p) { return p === 0 ? ['1','2','3','4','5','6','7','8','9','10'] : []; },
-      set:         function (p) { return p === 0 ? ['life.cell','life.opacity','life.glow','life.autofill','boids.n','boids.size','boids.speed','boids.perception','boids.separation','boids.opacity','boids.glow','smooth.opacity','smooth.glow','smooth.ri','smooth.dt'] : []; },
-      spawn:       function (p) { return p === 0 ? ['gosper-gun','pulsar','lwss','pentadecathlon','switch-engine'] : p === 1 ? ['random'] : []; },
+      set:         function (p) { return p === 0 ? ALL_PARAMS : []; },
+      spawn: function (p, args) {
+        if (p === 0) return ALL_PATTERNS;
+        if (p === 1) return ['random','1','2','3','4','5'];
+        if (p === 2) return ['1','2','3','4','5'];
+        return [];
+      },
       preset:      function (p) { return p === 0 ? (window.getPresetNames ? window.getPresetNames() : []) : []; },
-      help:        function (p) { return p === 0 ? Object.keys(HELP_TOPICS).concat(Object.keys(HELP_CMDS)).sort() : []; },
+      help:        function (p) { return p === 0 ? HELP_KEYS : []; },
       man:         function (p) { return p === 0 ? CMD_NAMES.concat(Object.keys(HELP_TOPICS)).sort() : []; },
       which:       function (p) { return p === 0 ? CMD_NAMES : []; },
-      uname:       function ()  { return ['-a']; },
-      make:        function (p) { return p === 0 ? ['all', 'clean', 'install'] : []; },
+      curl:        function (p) { return p === 0 ? ['-L'] : p === 1 ? ['ekanshgoenka.com'] : []; },
+      rm:          function ()  { return completePath(typed); },
     };
     var fn = CMAP[cmd];
     if (fn) return fn(pos).filter(function (s) { return s.indexOf(typed) === 0; });
-    if (['ls','cat','cd','open','du','rm','wc'].indexOf(cmd) >= 0) return completePath(typed);
-    if (cmd === 'grep' && pos === 1) return completePath(typed);
-    if (cmd === 'find' && pos === 0) return completePath(typed);
+    if (['ls','cat','cd','open'].indexOf(cmd) >= 0) return completePath(typed);
     return [];
   }
 
