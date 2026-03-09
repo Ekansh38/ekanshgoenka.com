@@ -247,6 +247,8 @@ function toggleTheme() {
   // base. Auto-fertilises by dropping structured patterns, not blobs.
 
   var CELL          = 7;
+  var LIFE_OPACITY  = 0.09;
+  var LIFE_GLOW     = 0;
   var LIFE_AUTOFILL = true;
   var GW, GH;
   var grid, next;
@@ -395,14 +397,20 @@ function toggleTheme() {
   }
 
   function drawLife() {
-    var sub = isHome();
     ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = sub ? accentRgba(0.09) : accentRgba(0.04);
+    if (LIFE_GLOW > 0) {
+      ctx.shadowColor = accentRgba(1);
+      ctx.shadowBlur  = LIFE_GLOW;
+    } else {
+      ctx.shadowBlur = 0;
+    }
+    ctx.fillStyle = accentRgba(LIFE_OPACITY);
     for (var y = 0; y < GH; y++) {
       for (var x = 0; x < GW; x++) {
         if (grid[y*GW + x]) ctx.fillRect(x*CELL+1, y*CELL+1, CELL-2, CELL-2);
       }
     }
+    ctx.shadowBlur = 0;
   }
 
   // ===== RESIZE / LOOP ======================================
@@ -516,11 +524,23 @@ function toggleTheme() {
 
   window.setLifeAutofill = function (on) { LIFE_AUTOFILL = !!on; };
 
+  window.startAutofill = function () {
+    ensureLife();
+    LIFE_AUTOFILL = true;
+    /* seed a few patterns immediately so something appears */
+    var seeds = [PAT_RPENTO, PAT_ACORN, PAT_DIEHARD, PAT_GLIDER_SE];
+    for (var k = 0; k < seeds.length; k++) {
+      placePattern(Math.floor(Math.random() * GW), Math.floor(Math.random() * GH), seeds[k]);
+    }
+  };
+
   window.spawnPatternNames = function () { return Object.keys(SPAWN_PATTERNS); };
 
   window.getBgParams = function () {
     return {
       'life.cell':      CELL,
+      'life.opacity':   LIFE_OPACITY,
+      'life.glow':      LIFE_GLOW,
       'life.autofill':  LIFE_AUTOFILL ? 1 : 0,
       'boids.n':          N,
       'boids.size':       BOID_LEN,
@@ -535,6 +555,12 @@ function toggleTheme() {
       case 'life.cell':
         CELL = Math.max(1, Math.min(80, Math.round(val)));
         if (MODES[modeIdx] === 'life') initLife();
+        return true;
+      case 'life.opacity':
+        LIFE_OPACITY = Math.max(0.01, Math.min(1, parseFloat(val) || LIFE_OPACITY));
+        return true;
+      case 'life.glow':
+        LIFE_GLOW = Math.max(0, Math.min(40, parseFloat(val) || 0));
         return true;
       case 'life.autofill':
         LIFE_AUTOFILL = !!val;
@@ -659,152 +685,393 @@ function toggleTheme() {
 
   // ── help system ─────────────────────────────────────────────
   var HELP_INDEX = [
-    'help [topic|command]',
+    'ekansh@site terminal — interactive easter egg',
+    '─────────────────────────────────────────────',
+    'browse the site filesystem, tune the background sim,',
+    'and mess with stuff. tab-completes most things.',
     '',
     'topics:',
-    '  nav     navigating site content',
-    '  bg      background simulation & tuning',
-    '  sys     system information',
-    '  look    themes & appearance',
-    '  fun     the fun stuff',
+    '  nav     browse site content as a filesystem',
+    '  bg      background sim (Conway\'s Life / boids)',
+    '  look    colorschemes & appearance',
+    '  sys     system info commands',
+    '  fun     misc stuff',
     '',
-    'type  help <topic>     to list commands in a topic',
-    'type  help <command>   for detailed help on a command',
-    'type  help help        to learn about this help system',
+    'type  help <topic>     list commands in that topic',
+    'type  help <command>   detailed usage for a command',
+    'type  :                open this terminal (from page)',
+    'press  esc             close terminal',
   ].join('\n');
 
   var HELP_TOPICS = {
     help: [
       'help [topic|command]',
       '─────────────────────────────────────────────',
-      'with no args:         show topic list',
-      'help <topic>:         list commands in that topic',
-      'help <command>:       detailed usage for a command',
-      'help help:            you\'re looking at it',
+      'with no args:       show topic overview',
+      'help <topic>:       list commands in that topic',
+      'help <command>:     detailed usage for a command',
       '',
-      'topics: nav  bg  sys  look  fun',
+      'topics:  nav  bg  look  sys  fun',
+      'tip: tab completes command names and arguments.',
     ].join('\n'),
 
     nav: [
-      'nav — navigating site content',
+      'nav — browse site content as a filesystem',
       '─────────────────────────────────────────────',
-      '  ls [path]         list directory contents',
+      '  ls [path]         list directory',
       '  cat <path>        read a file',
       '  cd <path>         change directory',
       '  pwd               print working directory',
-      '  open <path>       navigate to a page',
+      '  open <path>       navigate browser to that page',
       '',
-      'use tab to complete paths. ls to explore.',
+      'site structure:',
+      '  projects/         project directories',
+      '    geno/           a project (ls to see articles)',
+      '    byte-space/     another project',
+      '  writing/          blog posts',
+      '  music/            music releases',
+      '  games/            games',
+      '',
+      'examples:',
+      '  ls                          top-level dirs',
+      '  ls projects                 list all projects',
+      '  ls projects/geno            articles inside geno',
+      '  cat music/btop              read btop album info',
+      '  cat writing/some-post       read a blog post',
+      '  open projects/geno          go to project page',
+      '',
+      'tip: press tab to autocomplete paths.',
     ].join('\n'),
 
     bg: [
       'bg — background simulation',
       '─────────────────────────────────────────────',
-      '  bg [life|boids|off]    get or set mode',
-      '  speed [1-10]           get or set speed',
-      '  reset                  reinit simulation',
-      '  params                 show all tunable params',
-      '  set <param> <val>      change a parameter',
+      'two modes: Conway\'s Game of Life  and  boids flocking.',
+      'press [b] anywhere on the page to cycle modes.',
       '',
-      'life params:',
-      '  life.cell         cell size px       (1–80,    default 7)',
+      'mode control:',
+      '  bg                     show current mode',
+      '  bg life                Conway\'s Game of Life',
+      '  bg boids               flocking simulation',
+      '  bg off                 disable background',
+      '  speed [1-10]           get or set sim speed',
+      '  reset                  reinit sim from scratch',
+      '  params                 show all params & current values',
       '',
-      'boids params:',
-      '  boids.n           boid count         (1–1000,  default 120)',
-      '  boids.size        boid length px     (1–200,   default 14)',
-      '  boids.speed       max speed          (0–30,    default 1.8)',
-      '  boids.perception  sight radius px    (1–2000,  default 85)',
-      '  boids.separation  separation px      (0–1000,  default 50)',
+      'life — Conway\'s Game of Life:',
+      '  wipe                   clear the grid, stop autofill',
+      '  fill                   re-enable autofill & seed grid',
+      '  spawn <pattern>        click canvas to place pattern',
+      '  spawn <pattern> random drop at random location',
+      '',
+      '  life patterns:',
+      '    gosper-gun       infinite glider factory',
+      '    pulsar           period-3 oscillator',
+      '    lwss             lightweight spaceship',
+      '    pentadecathlon   period-15 oscillator',
+      '    switch-engine    infinite growth',
+      '',
+      '  life params (use: set <param> <value>):',
+      '  life.cell         cell size in px     (1–80,   default 7)',
+      '  life.opacity      cell brightness     (0.01–1, default 0.09)',
+      '  life.glow         glow blur radius    (0–40,   default 0)',
+      '  life.autofill     auto-seed on/off    (0 or 1, default 1)',
+      '',
+      'boids params (use: set <param> <value>):',
+      '  boids.n           number of boids     (1–1000, default 120)',
+      '  boids.size        boid length in px   (1–200,  default 14)',
+      '  boids.speed       max speed           (0–30,   default 1.8)',
+      '  boids.perception  sight radius in px  (1–2000, default 70)',
+      '  boids.separation  separation dist px  (0–1000, default 50)',
+      '',
+      'tip: typing a param name alone prints its current value.',
+      '     e.g.  life.opacity   →  life.opacity = 0.09',
     ].join('\n'),
 
     look: [
       'look — appearance',
       '─────────────────────────────────────────────',
-      '  colorscheme [name]    list or apply a colorscheme',
-      '  color                 print current palette',
+      '  colorscheme [name]    list or switch colorscheme',
+      '  color                 print current theme palette',
       '',
-      'colorschemes:',
+      'available colorschemes:',
       '  tokyo-night    dark   (default)',
       '  gruvbox        dark',
       '  kanagawa       dark',
       '  flexoki-light  light',
       '  rose-pine      light',
       '  ayu-light      light',
+      '',
+      'tip: the :colorscheme picker is also in the bottom-right',
+      '     corner on desktop.',
     ].join('\n'),
 
     sys: [
-      'sys — system',
+      'sys — system info',
       '─────────────────────────────────────────────',
-      '  neofetch          system overview',
-      '  uname [-a]        kernel / browser info',
-      '  uptime            time since page load',
-      '  top               live process view',
-      '  ps                process list',
-      '  df                disk usage',
-      '  du [path]         directory sizes',
-      '  env               environment variables',
-      '  history           command history',
-      '  color             current theme palette',
-      '  whoami            identity',
-      '  date              current date',
-      '  pwd               working directory',
+      '  neofetch        system overview (start here)',
+      '  uname [-a]      kernel / browser info',
+      '  uptime          time since page load',
+      '  top             live fake process monitor',
+      '  ps              process list',
+      '  df              disk usage',
+      '  du [path]       directory sizes',
+      '  env             environment variables',
+      '  history         command history for this session',
+      '  whoami          identity',
+      '  date            current date/time',
     ].join('\n'),
 
     fun: [
-      'fun',
+      'fun — misc commands',
       '─────────────────────────────────────────────',
-      '  cowsay [text]       cow',
-      '  fortune             random quote',
-      '  ping <host>         ping',
-      '  find . -name <pat>  find files',
-      '  grep <pat> <path>   search',
-      '  wc [-l] <path>      word/line count',
-      '  which <cmd>         locate a command',
-      '  make [target]       build',
-      '  tar                 archive',
-      '  yes [text]          infinite output',
-
-      '  curl -L <url>        try it',
-      '  sudo <cmd>          nope',
-      '  rm -rf /            nice try',
-      '  vim                 spiritual',
+      '  cowsay [text]        a cow says something',
+      '  fortune              random programming quote',
+      '  ping <host>          pretend to ping a host',
+      '  find . -name <pat>   find files by pattern',
+      '  grep <pat> <path>    search file contents',
+      '  wc [-l] <path>       count words / lines',
+      '  which <command>      locate a command',
+      '  make [target]        run a build target',
+      '  tar [flags] [file]   archive utility (joke)',
+      '  yes [text]           infinite output (ctrl-c to stop)',
+      '',
+      'easter eggs (try them):',
+      '  sudo <anything>      not today',
+      '  rm -rf /             nice try',
+      '  vim                  esc esc :q! :wq',
+      '  curl -L ekanshgoenka.com   (from a real terminal)',
     ].join('\n'),
   };
 
   var HELP_CMDS = {
-    ls:      'ls [path]\n  list directory contents.\n\n  ls                   → top-level\n  ls projects          → project dirs\n  ls projects/geno     → articles\n  ls now               → error (file)',
-    cat:     'cat <path>\n  print a file.\n\n  cat now                    → current status\n  cat music/btop             → album info\n  cat projects/geno/article  → article body',
-    cd:      'cd [path]\n  change directory.\n\n  cd projects          → into projects/\n  cd byte-space        → relative path\n  cd ..                → go up\n  cd                   → back to root',
-    pwd:     'pwd\n  print working directory.',
-    open:    'open <path>\n  navigate to a page.\n\n  open projects          → /projects/\n  open projects/geno     → project page\n  open music/btop        → album page',
-    bg:      'bg [life|boids|off]\n  get or set background mode.\n\n  bg             → show current mode\n  bg life        → Conway\'s Game of Life\n  bg boids       → flocking simulation\n  bg off         → disable',
-    speed:   'speed [1-10]\n  get or set simulation speed (syncs with the slider).\n\n  speed          → show current\n  speed 1        → slowest\n  speed 10       → fastest',
-    reset:   'reset\n  reinitialize the current simulation from scratch.',
-    spawn:   'spawn [pattern] [click]\n  drop a complex life structure onto the grid.\n  switches to life mode automatically.\n\n  spawn                    → list available patterns\n  spawn pulsar             → place at random location\n  spawn pulsar click       → click canvas to place it\n\n  patterns:\n  gosper-gun     infinite glider factory\n  pulsar         period-3 oscillator (48 cells)\n  lwss           lightweight spaceship\n  pentadecathlon period-15 oscillator\n  switch-engine  infinite growth pattern\n\n  tip: use wipe first for a clean grid',
-    wipe:    'wipe\n  clear the life grid to empty.\n  use with spawn to build from scratch.\n\n  wipe → clear\n  spawn gosper-gun → place on blank canvas',
-    params:  'params\n  show all tunable simulation parameters with current values.',
-    set:     'set <param> <value>\n  tune a simulation parameter live. ranges are intentionally wide.\n\n  set life.cell 1           → single pixel cells\n  set life.cell 40          → chunky blocks\n  set boids.n 1000          → chaos\n  set boids.n 5             → lonely\n  set boids.size 100        → massive\n  set boids.speed 20        → unhinged\n  set boids.speed 0         → frozen\n  set boids.perception 2000 → hive mind\n  set boids.perception 1    → blind\n  set boids.separation 0    → merge\n\n  see: help bg  for all params and defaults',
-    colorscheme: 'colorscheme [name]\n  list or apply a colorscheme.\n\n  colorscheme              → list (active marked *)\n  colorscheme gruvbox      → apply\n\n  available: tokyo-night  gruvbox  kanagawa  flexoki-light  rose-pine  ayu-light',
-    cowsay:  'cowsay [text]\n  a cow says something.\n\n  cowsay hello world',
-    fortune: 'fortune\n  print a random programming quote.',
-    ping:    'ping <host>\n  send 3 ICMP echo requests.\n\n  ping ekanshgoenka.com',
-    find:    'find . -name <pattern>\n  find files matching a pattern.\n\n  find . -name "*.go"\n  find . -name "*.md"',
-    grep:    'grep <pattern> <path>\n  search file contents.',
-    wc:      'wc [-l] <path>\n  count lines, words, and bytes.',
-    which:   'which <command>\n  show path of a command.',
-    top:     'top\n  show live process monitor.',
-    ps:      'ps\n  show process list.',
-    df:      'df\n  show disk usage.',
-    du:      'du [path]\n  show directory sizes.',
-    env:     'env\n  print environment variables.',
-    uname:   'uname [-a]\n  print kernel info.\n  -a    all info',
-    uptime:  'uptime\n  time since page load, with load averages.',
-    history: 'history\n  show command history for this session.',
-    color:   'color\n  print current theme CSS variables.',
+    ls: [
+      'ls [path]',
+      '  list directory contents.',
+      '',
+      'examples:',
+      '  ls                    top-level dirs',
+      '  ls projects           all project directories',
+      '  ls projects/geno      articles inside geno',
+      '  ls writing            all blog posts',
+      '  ls music              music releases',
+      '  ls games              games',
+      '',
+      'tip: tab completes paths. use cd to navigate.',
+    ].join('\n'),
+
+    cat: [
+      'cat <path>',
+      '  print the contents of a file.',
+      '',
+      'examples:',
+      '  cat music/btop              album info',
+      '  cat writing/some-post       blog post body',
+      '  cat projects/geno           project description',
+      '  cat games/byte-space        game info',
+      '',
+      'tip: tab completes paths from current directory.',
+    ].join('\n'),
+
+    cd: [
+      'cd [path]',
+      '  change directory.',
+      '',
+      'examples:',
+      '  cd projects          navigate into projects/',
+      '  cd geno              relative (if already in projects/)',
+      '  cd ..                go up one level',
+      '  cd                   back to root (~)',
+      '',
+      'tip: tab completes directory names.',
+    ].join('\n'),
+
+    pwd:    'pwd\n  print current working directory.',
+
+    open: [
+      'open <path>',
+      '  navigate the browser to a page on the site.',
+      '',
+      'examples:',
+      '  open projects             → /projects/',
+      '  open projects/geno        → geno project page',
+      '  open music/btop           → btop album page',
+      '  open writing              → writing list',
+      '',
+      'tip: tab completes paths just like ls.',
+    ].join('\n'),
+
+    bg: [
+      'bg [life|boids|off]',
+      '  get or set the background simulation mode.',
+      '',
+      '  bg              show current mode',
+      '  bg life         Conway\'s Game of Life',
+      '  bg boids        flocking simulation',
+      '  bg off          disable background',
+      '',
+      'see also: help bg  (full guide with all params)',
+    ].join('\n'),
+
+    speed: [
+      'speed [1-10]',
+      '  get or set simulation speed.',
+      '',
+      '  speed           show current speed level',
+      '  speed 1         slowest (life updates every ~18 frames)',
+      '  speed 5         default',
+      '  speed 10        fastest (every frame)',
+    ].join('\n'),
+
+    reset: [
+      'reset',
+      '  reinitialize the current simulation from scratch.',
+      '  re-enables life autofill if it was disabled by wipe.',
+      '',
+      'see also: wipe (clear only), fill (re-enable autofill)',
+    ].join('\n'),
+
+    params: [
+      'params',
+      '  show all tunable simulation parameters with their current values.',
+      '',
+      'tip: type a param name alone to print its value.',
+      '     use  set <param> <value>  to change it.',
+    ].join('\n'),
+
+    set: [
+      'set <param> <value>',
+      '  change a simulation parameter live.',
+      '  type a param name alone to read its current value.',
+      '',
+      'life params:',
+      '  set life.cell 1          single-pixel cells (dense)',
+      '  set life.cell 14         chunky blocks',
+      '  set life.opacity 0.04    very faint (default on sub-pages)',
+      '  set life.opacity 0.5     clearly visible',
+      '  set life.opacity 1       full opacity',
+      '  set life.glow 0          no glow (default)',
+      '  set life.glow 12         subtle bloom',
+      '  set life.glow 30         heavy glow',
+      '  set life.autofill 0      same as wipe',
+      '  set life.autofill 1      same as fill',
+      '',
+      'boids params:',
+      '  set boids.n 30           few, calm',
+      '  set boids.n 400          chaotic swarm',
+      '  set boids.size 5         tiny',
+      '  set boids.size 60        massive',
+      '  set boids.speed 0.5      slow drift',
+      '  set boids.speed 8        unhinged',
+      '  set boids.perception 20  nearly blind',
+      '  set boids.perception 500 hive mind',
+      '  set boids.separation 0   boids merge',
+      '  set boids.separation 120 very spread out',
+    ].join('\n'),
+
+    wipe: [
+      'wipe',
+      '  clear the Conway\'s Life grid and disable autofill.',
+      '  the grid stays empty — use spawn to add patterns manually.',
+      '',
+      '  wipe                  → clear everything',
+      '  spawn gosper-gun      → click to place a pattern',
+      '  fill                  → restore random background',
+      '  reset                 → full reinit (also re-enables autofill)',
+    ].join('\n'),
+
+    fill: [
+      'fill',
+      '  re-enable autofill and seed the life grid with starter patterns.',
+      '  use this to restore background activity after wipe.',
+      '',
+      '  fill    →  autofill on, seeds: r-pentomino, acorn, gliders...',
+      '',
+      'see also: wipe, reset, spawn',
+    ].join('\n'),
+
+    spawn: [
+      'spawn [pattern] [random]',
+      '  place a complex Conway\'s Life structure on the grid.',
+      '  automatically switches to life mode.',
+      '',
+      '  spawn                    list available patterns',
+      '  spawn <pattern>          click canvas to place (default)',
+      '  spawn <pattern> random   drop at a random location',
+      '',
+      'patterns:',
+      '  gosper-gun       infinite glider factory — produces a stream of gliders',
+      '  pulsar           period-3 oscillator — large, symmetric',
+      '  lwss             lightweight spaceship — travels diagonally',
+      '  pentadecathlon   period-15 oscillator — long-lived',
+      '  switch-engine    infinite growth — expands forever',
+      '',
+      'click mode:',
+      '  the terminal closes and a crosshair appears.',
+      '  click anywhere on the canvas to place the pattern there.',
+      '  press esc to cancel.',
+      '',
+      'tip: run wipe first for a clean canvas.',
+      '     use fill to restore the random background afterwards.',
+    ].join('\n'),
+
+    colorscheme: [
+      'colorscheme [name]',
+      '  list available colorschemes or apply one.',
+      '',
+      '  colorscheme              list all (active marked with ▶)',
+      '  colorscheme tokyo-night  apply tokyo-night',
+      '  colorscheme rose-pine    apply rose-pine',
+      '',
+      'available:',
+      '  tokyo-night    dark   (default)',
+      '  gruvbox        dark',
+      '  kanagawa       dark',
+      '  flexoki-light  light',
+      '  rose-pine      light',
+      '  ayu-light      light',
+      '',
+      'tip: the picker in the bottom-right corner (desktop only)',
+      '     does the same thing visually.',
+    ].join('\n'),
+
+    color:   'color\n  print the current theme\'s CSS variables (bg, fg, accent, muted, border).',
     whoami:  'whoami\n  print user identity.',
-    make:    'make [target]\n  build target.\n\n  make\n  make clean',
-    tar:     'tar [flags] [file]\n  archive utility.\n\n  tar -xzf archive.tar.gz',
-    curl:    'curl -L <url>\n  transfer data.\n\n  curl -L ekanshgoenka.com\n\n  (run that from a real terminal, not here)',
+    pwd:     'pwd\n  print current working directory.',
+    cowsay:  'cowsay [text]\n  a cow says something.\n\n  cowsay moo\n  cowsay hello world',
+    fortune: 'fortune\n  print a random programming quote.',
+
+    ping: [
+      'ping <host>',
+      '  simulate sending ICMP echo requests.',
+      '',
+      '  ping ekanshgoenka.com',
+      '  ping google.com',
+    ].join('\n'),
+
+    find: [
+      'find . -name <pattern>',
+      '  find files matching a glob pattern.',
+      '',
+      '  find . -name "*.md"',
+      '  find . -name "*.go"',
+    ].join('\n'),
+
+    grep:    'grep <pattern> <path>\n  search file contents for a pattern.\n\n  grep go projects/geno',
+    wc:      'wc [-l] <path>\n  count lines, words, and bytes in a file.\n  -l    lines only',
+    which:   'which <command>\n  show the path of a command.\n\n  which ls\n  which spawn',
+    top:     'top\n  live process monitor. simulated. updates every second.',
+    ps:      'ps\n  show process list.',
+    df:      'df\n  show simulated disk usage.',
+    du:      'du [path]\n  show directory sizes.\n\n  du\n  du projects',
+    env:     'env\n  print site environment variables.\n  shows colorscheme, sim mode, speed, and all current params.',
+    uname:   'uname [-a]\n  print kernel / browser info.\n  -a    all info',
+    uptime:  'uptime\n  time since this page was loaded, with fake load averages.',
+    history: 'history\n  show command history for this session.',
+    make:    'make [target]\n  run a build target.\n\n  make\n  make all\n  make clean',
+    tar:     'tar [flags] [file]\n  archive utility.\n\n  tar -xzf archive.tar.gz\n  tar -czf out.tar.gz dir/',
+    curl:    'curl -L <url>\n  transfer data from a URL.\n\n  try this from a real terminal:\n  curl -L ekanshgoenka.com',
+    neofetch:'neofetch\n  system overview — browser, theme, sim mode, uptime.',
   };
 
   // ── output helpers ──────────────────────────────────────────
@@ -1197,25 +1464,28 @@ function toggleTheme() {
           '  pentadecathlon period-15 oscillator',
           '  switch-engine  infinite growth',
           '',
-          'usage: spawn <pattern> [click]',
-          '  spawn pulsar          → place at random location',
-          '  spawn pulsar click    → click canvas to place',
+          'usage: spawn <pattern> [random]',
+          '  spawn pulsar          → click canvas to place (default)',
+          '  spawn pulsar random   → place at random location',
+          '',
+          'tip: run wipe first for a clean canvas.',
+          '     use fill to restore the random background.',
         ].join('\n'), 'term-line-pre');
         return;
       }
       var name = args[0];
-      var clickMode = args[1] === 'click';
-      if (args[1] && !clickMode) { line('unknown flag "' + args[1] + '". did you mean: click?', 'term-line-err'); return; }
-      if (clickMode) {
-        if (!window.queueSpawn || !window.queueSpawn(name))
-          line('unknown pattern. try: ' + names.join(', '), 'term-line-err');
-        else
-          line('click anywhere on the canvas to place ' + name, 'term-line-ok');
-      } else {
+      var randomMode = args[1] === 'random';
+      if (args[1] && !randomMode) { line('unknown flag "' + args[1] + '". did you mean: random?', 'term-line-err'); return; }
+      if (randomMode) {
         if (!window.spawnPattern || !window.spawnPattern(name))
           line('unknown pattern. try: ' + names.join(', '), 'term-line-err');
         else
-          line('spawned ' + name, 'term-line-ok');
+          line('spawned ' + name + ' at random location', 'term-line-ok');
+      } else {
+        if (!window.queueSpawn || !window.queueSpawn(name))
+          line('unknown pattern. try: ' + names.join(', '), 'term-line-err');
+        else
+          line('click on the canvas to place ' + name + '  ·  esc to cancel', 'term-line-ok');
       }
     },
 
@@ -1224,7 +1494,13 @@ function toggleTheme() {
       if (!window.clearLife || !window.clearLife())
         line('wipe: failed', 'term-line-err');
       else
-        line('grid cleared. spawn something.', 'term-line-ok');
+        line('grid cleared. use spawn to place patterns, or fill to restore.', 'term-line-ok');
+    },
+
+    fill: function (args) {
+      if (args.length) { tooMany('fill'); return; }
+      if (window.startAutofill) { window.startAutofill(); line('autofill enabled. background will seed itself.', 'term-line-ok'); }
+      else line('fill: not available in current mode.', 'term-line-err');
     },
 
     params: function (args) {
@@ -1419,18 +1695,18 @@ function toggleTheme() {
 
     env: function (args) {
       if (args.length) { tooMany('env'); return; }
-      var theme = document.documentElement.getAttribute('data-theme');
-      line([
-        'TERM=xterm-256color',
-        'SHELL=/bin/zsh',
-        'USER=ekansh',
-        'HOME=/home/ekansh',
-        'EDITOR=vim',
+      var theme  = document.documentElement.getAttribute('data-theme');
+      var mode   = window.getBgMode  ? window.getBgMode()  : 'life';
+      var speed  = window.getBgSpeed ? window.getBgSpeed() : 5;
+      var params = window.getBgParams ? window.getBgParams() : {};
+      var vars = [
+        'SITE=ekanshgoenka.com',
         'COLORSCHEME=' + theme,
-        'BG_MODE=' + (window.getBgMode ? window.getBgMode() : 'life'),
-        'LANG=en_US.UTF-8',
-        'PATH=/usr/local/bin:/usr/bin:/bin',
-      ].join('\n'), 'term-line-pre');
+        'BG_MODE=' + mode,
+        'BG_SPEED=' + speed,
+      ];
+      Object.keys(params).forEach(function (k) { vars.push(k.toUpperCase().replace('.','_') + '=' + params[k]); });
+      line(vars.join('\n'), 'term-line-pre');
     },
 
     make: function (args) {
@@ -1616,8 +1892,8 @@ function toggleTheme() {
       theme:       function (p) { return p === 0 ? ['tokyo-night', 'gruvbox', 'kanagawa', 'flexoki-light', 'rose-pine', 'ayu-light'] : []; },
       bg:          function (p) { return p === 0 ? ['life', 'boids', 'off'] : []; },
       speed:       function (p) { return p === 0 ? ['1','2','3','4','5','6','7','8','9','10'] : []; },
-      set:         function (p) { return p === 0 ? ['life.cell','life.autofill','boids.n','boids.size','boids.speed','boids.perception','boids.separation'] : []; },
-      spawn:       function (p) { return p === 0 ? ['gosper-gun','pulsar','lwss','pentadecathlon','switch-engine'] : p === 1 ? ['click'] : []; },
+      set:         function (p) { return p === 0 ? ['life.cell','life.opacity','life.glow','life.autofill','boids.n','boids.size','boids.speed','boids.perception','boids.separation'] : []; },
+      spawn:       function (p) { return p === 0 ? ['gosper-gun','pulsar','lwss','pentadecathlon','switch-engine'] : p === 1 ? ['random'] : []; },
       help:        function (p) { return p === 0 ? Object.keys(HELP_TOPICS).concat(Object.keys(HELP_CMDS)).sort() : []; },
       man:         function (p) { return p === 0 ? CMD_NAMES.concat(Object.keys(HELP_TOPICS)).sort() : []; },
       which:       function (p) { return p === 0 ? CMD_NAMES : []; },
