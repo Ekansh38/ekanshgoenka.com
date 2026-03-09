@@ -347,8 +347,10 @@ function toggleTheme() {
     liveCount = 0;
     lifeFrame = 0;
 
-    // Sparse random base — density scales with autofill
-    var fillRate = 0.12 * LIFE_AUTOFILL;
+    // Sparse random base — density scales with autofill (>1 = overpopulated)
+    var fillRate = LIFE_AUTOFILL <= 1
+      ? 0.12 * LIFE_AUTOFILL
+      : 0.12 + (LIFE_AUTOFILL - 1) * 0.43;  // 1→12%, 2→55%
     for (var i = 0; i < GW * GH; i++) {
       if (Math.random() < fillRate) { grid[i] = 1; liveCount++; }
     }
@@ -548,7 +550,7 @@ function toggleTheme() {
     return true;
   };
 
-  window.setLifeAutofill = function (val) { LIFE_AUTOFILL = Math.max(0, Math.min(1, parseFloat(val) || 0)); };
+  window.setLifeAutofill = function (val) { LIFE_AUTOFILL = Math.max(0, Math.min(2, parseFloat(val) || 0)); };
 
   window.startAutofill = function () {
     ensureLife();
@@ -591,7 +593,7 @@ function toggleTheme() {
         LIFE_GLOW = Math.max(0, Math.min(40, parseFloat(val) || 0));
         return true;
       case 'life.autofill':
-        LIFE_AUTOFILL = Math.max(0, Math.min(1, parseFloat(val)));
+        LIFE_AUTOFILL = Math.max(0, Math.min(2, parseFloat(val)));
         if (MODES[modeIdx] === 'life') initLife();
         return true;
       case 'boids.n':
@@ -804,7 +806,7 @@ function toggleTheme() {
       '  life.cell      1–80     7',
       '  life.opacity   0.01–1   0.09',
       '  life.glow      0–40     0',
-      '  life.autofill  0–1      1',
+      '  life.autofill  0–2      1',
       '',
       'boids:',
       '  boids.n           1–1000   120',
@@ -945,7 +947,8 @@ function toggleTheme() {
       '  life.glow 12       bloom',
       '  life.glow 30       heavy',
       '  life.autofill 0    = wipe',
-      '  life.autofill 1    = fill',
+      '  life.autofill 1    = normal',
+      '  life.autofill 2    = overpopulated',
       '',
       'boids:',
       '  boids.n 30         few',
@@ -1485,7 +1488,7 @@ function toggleTheme() {
         '  life.cell        ' + v('life.cell')      + '\t(1–80)',
         '  life.opacity     ' + v('life.opacity')   + '\t(0.01–1)',
         '  life.glow        ' + v('life.glow')      + '\t(0–40)',
-        '  life.autofill    ' + v('life.autofill')  + '\t(0–1)',
+        '  life.autofill    ' + v('life.autofill')  + '\t(0–2)',
         '',
         'boids:',
         '  boids.n          ' + v('boids.n')          + '\t(1–1000)',
