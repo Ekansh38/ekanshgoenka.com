@@ -347,30 +347,33 @@ function toggleTheme() {
     liveCount = 0;
     lifeFrame = 0;
 
-    // Sparse random base (~12%)
+    // Sparse random base — density scales with autofill
+    var fillRate = 0.12 * LIFE_AUTOFILL;
     for (var i = 0; i < GW * GH; i++) {
-      if (Math.random() < 0.12) { grid[i] = 1; liveCount++; }
+      if (Math.random() < fillRate) { grid[i] = 1; liveCount++; }
     }
 
-    // Scatter gliders in all four directions
-    var gliders = [PAT_GLIDER_SE, PAT_GLIDER_SW, PAT_GLIDER_NE, PAT_GLIDER_NW];
-    for (var k = 0; k < 16; k++) {
-      placePattern(Math.floor(Math.random() * GW), Math.floor(Math.random() * GH), gliders[k % 4]);
-    }
-    // Long-lived chaos seeds that produce gliders and complex structures
-    for (var k = 0; k < 10; k++) {
-      placePattern(Math.floor(Math.random() * GW), Math.floor(Math.random() * GH), PAT_RPENTO);
-    }
-    for (var k = 0; k < 5; k++) {
-      placePattern(Math.floor(Math.random() * GW), Math.floor(Math.random() * GH), PAT_ACORN);
-    }
-    for (var k = 0; k < 4; k++) {
-      placePattern(Math.floor(Math.random() * GW), Math.floor(Math.random() * GH), PAT_DIEHARD);
-    }
-    // Quick oscillators for immediate visual interest
-    var oscs = [PAT_BLINKER, PAT_TOAD, PAT_BEACON];
-    for (var k = 0; k < 24; k++) {
-      placePattern(Math.floor(Math.random() * GW), Math.floor(Math.random() * GH), oscs[k % 3]);
+    if (LIFE_AUTOFILL > 0) {
+      // Scatter gliders in all four directions
+      var gliders = [PAT_GLIDER_SE, PAT_GLIDER_SW, PAT_GLIDER_NE, PAT_GLIDER_NW];
+      for (var k = 0; k < Math.round(16 * LIFE_AUTOFILL); k++) {
+        placePattern(Math.floor(Math.random() * GW), Math.floor(Math.random() * GH), gliders[k % 4]);
+      }
+      // Long-lived chaos seeds that produce gliders and complex structures
+      for (var k = 0; k < Math.round(10 * LIFE_AUTOFILL); k++) {
+        placePattern(Math.floor(Math.random() * GW), Math.floor(Math.random() * GH), PAT_RPENTO);
+      }
+      for (var k = 0; k < Math.round(5 * LIFE_AUTOFILL); k++) {
+        placePattern(Math.floor(Math.random() * GW), Math.floor(Math.random() * GH), PAT_ACORN);
+      }
+      for (var k = 0; k < Math.round(4 * LIFE_AUTOFILL); k++) {
+        placePattern(Math.floor(Math.random() * GW), Math.floor(Math.random() * GH), PAT_DIEHARD);
+      }
+      // Quick oscillators for immediate visual interest
+      var oscs = [PAT_BLINKER, PAT_TOAD, PAT_BEACON];
+      for (var k = 0; k < Math.round(24 * LIFE_AUTOFILL); k++) {
+        placePattern(Math.floor(Math.random() * GW), Math.floor(Math.random() * GH), oscs[k % 3]);
+      }
     }
   }
 
@@ -394,7 +397,8 @@ function toggleTheme() {
     // Auto-fertilise: keep activity up so the sim never looks like it stalled
     if (LIFE_AUTOFILL > 0 && liveCount < GW * GH * 0.05 * LIFE_AUTOFILL) {
       var seeds = [PAT_RPENTO, PAT_ACORN, PAT_DIEHARD, PAT_GLIDER_SE, PAT_GLIDER_NW];
-      for (var k = 0; k < 5; k++) {
+      var numSeeds = Math.max(1, Math.round(5 * LIFE_AUTOFILL));
+      for (var k = 0; k < numSeeds; k++) {
         placePattern(
           Math.floor(Math.random() * GW),
           Math.floor(Math.random() * GH),
@@ -544,7 +548,7 @@ function toggleTheme() {
     return true;
   };
 
-  window.setLifeAutofill = function (on) { LIFE_AUTOFILL = on ? 1 : 0; };
+  window.setLifeAutofill = function (val) { LIFE_AUTOFILL = Math.max(0, Math.min(1, parseFloat(val) || 0)); };
 
   window.startAutofill = function () {
     ensureLife();
@@ -588,6 +592,7 @@ function toggleTheme() {
         return true;
       case 'life.autofill':
         LIFE_AUTOFILL = Math.max(0, Math.min(1, parseFloat(val)));
+        if (MODES[modeIdx] === 'life') initLife();
         return true;
       case 'boids.n':
         N = Math.max(1, Math.min(1000, Math.round(val)));
@@ -1480,7 +1485,7 @@ function toggleTheme() {
         '  life.cell        ' + v('life.cell')      + '\t(1–80)',
         '  life.opacity     ' + v('life.opacity')   + '\t(0.01–1)',
         '  life.glow        ' + v('life.glow')      + '\t(0–40)',
-        '  life.autofill    ' + v('life.autofill')  + '\t(0 or 1)',
+        '  life.autofill    ' + v('life.autofill')  + '\t(0–1)',
         '',
         'boids:',
         '  boids.n          ' + v('boids.n')          + '\t(1–1000)',
