@@ -258,7 +258,7 @@ function toggleTheme() {
   var CELL          = 7;
   var LIFE_OPACITY  = 0.09;
   var LIFE_GLOW     = 0;
-  var LIFE_AUTOFILL = true;
+  var LIFE_AUTOFILL = 1;
   var GW, GH;
   var grid, next;
   var lifeFrame = 0;
@@ -393,7 +393,7 @@ function toggleTheme() {
     }
     var tmp = grid; grid = next; next = tmp;
     // Auto-fertilise: keep activity up so the sim never looks like it stalled
-    if (LIFE_AUTOFILL && liveCount < GW * GH * 0.05) {
+    if (LIFE_AUTOFILL > 0 && liveCount < GW * GH * 0.05 * LIFE_AUTOFILL) {
       var seeds = [PAT_RPENTO, PAT_ACORN, PAT_DIEHARD, PAT_GLIDER_SE, PAT_GLIDER_NW];
       for (var k = 0; k < 5; k++) {
         placePattern(
@@ -475,7 +475,7 @@ function toggleTheme() {
   };
   window.getBgSpeed = function () { return speedLevel; };
   window.resetBg    = function () {
-    LIFE_AUTOFILL = true;
+    LIFE_AUTOFILL = 1;
     if (MODES[modeIdx] === 'physarum' && window.Physarum) window.Physarum.reset();
     else initMode(MODES[modeIdx]);
   };
@@ -548,15 +548,15 @@ function toggleTheme() {
     if (!grid) return false;
     grid.fill(0);
     liveCount = 0;
-    LIFE_AUTOFILL = false;
+    LIFE_AUTOFILL = 0;
     return true;
   };
 
-  window.setLifeAutofill = function (on) { LIFE_AUTOFILL = !!on; };
+  window.setLifeAutofill = function (on) { LIFE_AUTOFILL = on ? 1 : 0; };
 
   window.startAutofill = function () {
     ensureLife();
-    LIFE_AUTOFILL = true;
+    LIFE_AUTOFILL = 1;
     /* seed a few patterns immediately so something appears */
     var seeds = [PAT_RPENTO, PAT_ACORN, PAT_DIEHARD, PAT_GLIDER_SE];
     for (var k = 0; k < seeds.length; k++) {
@@ -571,7 +571,7 @@ function toggleTheme() {
       'life.cell':      CELL,
       'life.opacity':   LIFE_OPACITY,
       'life.glow':      LIFE_GLOW,
-      'life.autofill':  LIFE_AUTOFILL ? 1 : 0,
+      'life.autofill':  LIFE_AUTOFILL,
       'boids.n':          N,
       'boids.size':       BOID_LEN,
       'boids.speed':      MAX_SPEED,
@@ -595,7 +595,7 @@ function toggleTheme() {
         LIFE_GLOW = Math.max(0, Math.min(40, parseFloat(val) || 0));
         return true;
       case 'life.autofill':
-        LIFE_AUTOFILL = !!val;
+        LIFE_AUTOFILL = Math.max(0, Math.min(1, parseFloat(val)));
         return true;
       case 'boids.n':
         N = Math.max(1, Math.min(1000, Math.round(val)));
@@ -807,7 +807,7 @@ function toggleTheme() {
       '  life.cell      1–80     7',
       '  life.opacity   0.01–1   0.09',
       '  life.glow      0–40     0',
-      '  life.autofill  0 or 1   1',
+      '  life.autofill  0–1      1',
       '',
       'boids:',
       '  boids.n           1–1000   120',
