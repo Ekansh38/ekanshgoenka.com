@@ -189,6 +189,7 @@ body { background: transparent; text-shadow: 0 0 18px var(--shadow), 0 0 6px var
   inset: 0;
   z-index: 998;
   cursor: crosshair;
+  background: rgba(0,0,0,0.22);
 }
 #spawn-overlay.active { display: block; }
 
@@ -197,19 +198,25 @@ body { background: transparent; text-shadow: 0 0 18px var(--shadow), 0 0 6px var
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  padding: 7px 18px;
+  padding: 9px 22px;
   background: var(--bg);
-  border: 1px solid var(--border);
+  border: 1px solid var(--accent);
   border-top: none;
-  color: var(--muted);
+  color: var(--fg);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   pointer-events: none;
   white-space: nowrap;
-  box-shadow: 0 4px 20px var(--shadow);
+  box-shadow: 0 4px 24px var(--shadow);
+  animation: spawn-hint-pulse 1.6s ease-in-out infinite;
 }
-#spawn-hint .sh-name { color: var(--accent); }
-#spawn-hint .sh-esc  { opacity: 0.5; }
+@keyframes spawn-hint-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+}
+#spawn-hint .sh-name  { color: var(--accent); font-weight: 700; }
+#spawn-hint .sh-count { color: var(--accent); }
+#spawn-hint .sh-esc   { color: var(--muted); }
 
 /* ── HIDDEN TERMINAL ─────────────────────────────────────────── */
 #term-overlay {

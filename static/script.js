@@ -116,8 +116,10 @@ function toggleTheme() {
   var MARGIN     = 100,  TURN       = 0.22;
   var SPREAD_R   = 180,  SPREAD_W   = 0.08;
   var WANDER     = 0.04;
-  var BOID_LEN   = 14;
-  var BOID_HALF  = 5.5;
+  var BOID_LEN     = 14;
+  var BOID_HALF    = 5.5;
+  var BOID_OPACITY = 0.14;
+  var BOID_GLOW    = 0;
 
   var boids = [];
 
@@ -221,9 +223,14 @@ function toggleTheme() {
   }
 
   function drawBoids() {
-    var sub = isHome();
     ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = sub ? accentRgba(0.14) : accentRgba(0.055);
+    if (BOID_GLOW > 0) {
+      ctx.shadowColor = accentRgba(1);
+      ctx.shadowBlur  = BOID_GLOW;
+    } else {
+      ctx.shadowBlur = 0;
+    }
+    ctx.fillStyle = accentRgba(BOID_OPACITY);
     for (var i = 0; i < N; i++) {
       var b   = boids[i];
       var spd = Math.sqrt(b.vx*b.vx + b.vy*b.vy);
@@ -239,6 +246,7 @@ function toggleTheme() {
       ctx.closePath();
       ctx.fill();
     }
+    ctx.shadowBlur = 0;
   }
 
   // ===== CONWAY'S GAME OF LIFE ==============================
@@ -480,8 +488,19 @@ function toggleTheme() {
   var spawnOverlay = document.getElementById('spawn-overlay');
   var spawnHint    = document.getElementById('spawn-hint');
 
+  function updateSpawnHint() {
+    if (!spawnHint) return;
+    var n = window._pendingSpawnCount || 1;
+    var name = window._pendingSpawn || '';
+    var countStr = n > 1 ? ' <span class="sh-count">(' + n + ' left)</span>' : '';
+    spawnHint.innerHTML =
+      '<span class="sh-name">' + name + '</span>' + countStr +
+      ' &nbsp;·&nbsp; click to place &nbsp;·&nbsp; <span class="sh-esc">esc to cancel</span>';
+  }
+
   function cancelSpawn() {
     window._pendingSpawn = null;
+    window._pendingSpawnCount = 0;
     if (spawnOverlay) spawnOverlay.classList.remove('active');
   }
   window.cancelSpawn = cancelSpawn;
@@ -491,23 +510,26 @@ function toggleTheme() {
       var name = window._pendingSpawn;
       if (!name) return;
       var pat = SPAWN_PATTERNS[name];
-      cancelSpawn();
-      if (!pat || !grid) return;
+      if (!pat || !grid) { cancelSpawn(); return; }
       var gx = Math.floor(e.clientX / CELL);
       var gy = Math.floor(e.clientY / CELL);
       placePattern(gx, gy, pat);
+      window._pendingSpawnCount = (window._pendingSpawnCount || 1) - 1;
+      if (window._pendingSpawnCount <= 0) {
+        cancelSpawn();
+      } else {
+        updateSpawnHint();
+      }
     });
   }
 
-  window.queueSpawn = function (name) {
+  window.queueSpawn = function (name, count) {
     if (!SPAWN_PATTERNS[name]) return false;
     ensureLife();
     window._pendingSpawn = name;
-    if (spawnHint) spawnHint.innerHTML =
-      'place <span class="sh-name">' + name + '</span>' +
-      ' &nbsp;·&nbsp; <span class="sh-esc">esc to cancel</span>';
+    window._pendingSpawnCount = Math.max(1, Math.min(20, count || 1));
+    updateSpawnHint();
     if (spawnOverlay) spawnOverlay.classList.add('active');
-    /* close terminal so it doesn't block the canvas */
     var termOverlay = document.getElementById('term-overlay');
     if (termOverlay) termOverlay.classList.remove('open');
     return true;
@@ -547,6 +569,8 @@ function toggleTheme() {
       'boids.speed':      MAX_SPEED,
       'boids.perception': PERCEPTION,
       'boids.separation': SEP_DIST,
+      'boids.opacity':    BOID_OPACITY,
+      'boids.glow':       BOID_GLOW,
     };
   };
 
@@ -583,9 +607,41 @@ function toggleTheme() {
       case 'boids.separation':
         SEP_DIST = Math.max(0, Math.min(1000, val));
         return true;
+      case 'boids.opacity':
+        BOID_OPACITY = Math.max(0.01, Math.min(1, parseFloat(val) || BOID_OPACITY));
+        return true;
+      case 'boids.glow':
+        BOID_GLOW = Math.max(0, Math.min(40, parseFloat(val) || 0));
+        return true;
       default:
         return false;
     }
+  };
+
+  // ── presets ──────────────────────────────────────────────────
+  var PRESETS = {
+    // life
+    ghost:  { sim:'life',  speed:null, params:{'life.cell':7,  'life.opacity':0.09, 'life.glow':0,  'life.autofill':1} },
+    neon:   { sim:'life',  speed:6,    params:{'life.cell':7,  'life.opacity':1.0,  'life.glow':32, 'life.autofill':1} },
+    pixel:  { sim:'life',  speed:null, params:{'life.cell':14, 'life.opacity':0.5,  'life.glow':0,  'life.autofill':1} },
+    matrix: { sim:'life',  speed:9,    params:{'life.cell':4,  'life.opacity':0.3,  'life.glow':6,  'life.autofill':1} },
+    sparse: { sim:'life',  speed:null, params:{'life.cell':10, 'life.opacity':0.22, 'life.glow':12, 'life.autofill':1} },
+    // boids
+    swarm:  { sim:'boids', speed:null, params:{'boids.n':350,  'boids.size':8,  'boids.speed':2.8, 'boids.opacity':0.18, 'boids.glow':0} },
+    drift:  { sim:'boids', speed:null, params:{'boids.n':15,   'boids.size':36, 'boids.speed':0.7, 'boids.opacity':0.45, 'boids.glow':8} },
+    nebula: { sim:'boids', speed:null, params:{'boids.n':80,   'boids.size':18, 'boids.speed':1.5, 'boids.opacity':0.9,  'boids.glow':20} },
+  };
+
+  window.getPresetNames = function () { return Object.keys(PRESETS); };
+
+  window.applyPreset = function (name) {
+    var p = PRESETS[name];
+    if (!p) return false;
+    if (p.sim)           window.setBgMode(p.sim);
+    if (p.speed !== null && p.speed !== undefined) window.setBgSpeed(p.speed);
+    var keys = Object.keys(p.params);
+    for (var i = 0; i < keys.length; i++) window.setParam(keys[i], p.params[keys[i]]);
+    return true;
   };
 })();
 // ================================================================
@@ -685,393 +741,302 @@ function toggleTheme() {
 
   // ── help system ─────────────────────────────────────────────
   var HELP_INDEX = [
-    'ekansh@site terminal — interactive easter egg',
-    '─────────────────────────────────────────────',
-    'browse the site filesystem, tune the background sim,',
-    'and mess with stuff. tab-completes most things.',
+    'help [topic|command]',
     '',
-    'topics:',
-    '  nav     browse site content as a filesystem',
-    '  bg      background sim (Conway\'s Life / boids)',
-    '  look    colorschemes & appearance',
-    '  sys     system info commands',
-    '  fun     misc stuff',
+    '  nav    ls  cat  cd  pwd  open',
+    '  bg     bg  speed  reset  params  set  preset  wipe  fill  spawn',
+    '  look   colorscheme  color',
+    '  sys    neofetch  uname  uptime  top  ps  df  du  env  history  whoami  date',
+    '  fun    cowsay  fortune  ping  find  grep  wc  which  make  tar  yes',
     '',
-    'type  help <topic>     list commands in that topic',
-    'type  help <command>   detailed usage for a command',
-    'type  :                open this terminal (from page)',
-    'press  esc             close terminal',
+    '  :     open   ·   esc   close   ·   tab   autocomplete',
   ].join('\n');
 
   var HELP_TOPICS = {
     help: [
       'help [topic|command]',
-      '─────────────────────────────────────────────',
-      'with no args:       show topic overview',
-      'help <topic>:       list commands in that topic',
-      'help <command>:     detailed usage for a command',
       '',
-      'topics:  nav  bg  look  sys  fun',
-      'tip: tab completes command names and arguments.',
+      '  help           this list',
+      '  help nav       filesystem commands',
+      '  help bg        simulation guide',
+      '  help look      colorschemes',
+      '  help sys       system commands',
+      '  help fun       misc commands',
+      '  help <cmd>     usage for any command',
     ].join('\n'),
 
     nav: [
-      'nav — browse site content as a filesystem',
-      '─────────────────────────────────────────────',
-      '  ls [path]         list directory',
-      '  cat <path>        read a file',
-      '  cd <path>         change directory',
-      '  pwd               print working directory',
-      '  open <path>       navigate browser to that page',
+      'nav',
       '',
-      'site structure:',
-      '  projects/         project directories',
-      '    geno/           a project (ls to see articles)',
-      '    byte-space/     another project',
-      '  writing/          blog posts',
-      '  music/            music releases',
-      '  games/            games',
+      '  ls [path]      list directory',
+      '  cat <path>     print file',
+      '  cd [path]      change dir  (cd ..  /  cd)',
+      '  pwd            working dir',
+      '  open <path>    navigate to page',
       '',
-      'examples:',
-      '  ls                          top-level dirs',
-      '  ls projects                 list all projects',
-      '  ls projects/geno            articles inside geno',
-      '  cat music/btop              read btop album info',
-      '  cat writing/some-post       read a blog post',
-      '  open projects/geno          go to project page',
+      '  projects/   writing/   music/   games/',
       '',
-      'tip: press tab to autocomplete paths.',
+      '  ls projects/geno',
+      '  cat music/btop',
+      '  open projects/geno',
     ].join('\n'),
 
     bg: [
-      'bg — background simulation',
-      '─────────────────────────────────────────────',
-      'two modes: Conway\'s Game of Life  and  boids flocking.',
-      'press [b] anywhere on the page to cycle modes.',
+      'bg',
       '',
-      'mode control:',
-      '  bg                     show current mode',
-      '  bg life                Conway\'s Game of Life',
-      '  bg boids               flocking simulation',
-      '  bg off                 disable background',
-      '  speed [1-10]           get or set sim speed',
-      '  reset                  reinit sim from scratch',
-      '  params                 show all params & current values',
+      '  bg [life|boids|off]    get/set mode',
+      '  speed [1-10]           get/set speed',
+      '  reset                  reinit from scratch',
+      '  preset <name>          apply a named preset',
+      '  params                 all params + values',
+      '  set <param> <val>      change a param',
       '',
-      'life — Conway\'s Game of Life:',
-      '  wipe                   clear the grid, stop autofill',
-      '  fill                   re-enable autofill & seed grid',
-      '  spawn <pattern>        click canvas to place pattern',
-      '  spawn <pattern> random drop at random location',
+      'presets:',
+      '  ghost  neon  pixel  matrix  sparse',
+      '  swarm  drift  nebula',
       '',
-      '  life patterns:',
-      '    gosper-gun       infinite glider factory',
-      '    pulsar           period-3 oscillator',
-      '    lwss             lightweight spaceship',
-      '    pentadecathlon   period-15 oscillator',
-      '    switch-engine    infinite growth',
+      'life:',
+      '  wipe                   clear grid, stop autofill',
+      '  fill                   re-enable autofill',
+      '  spawn <pat>            click to place',
+      '  spawn <pat> [n]        click n times',
+      '  spawn <pat> random     random location',
+      '  spawn <pat> random [n] n placements',
       '',
-      '  life params (use: set <param> <value>):',
-      '  life.cell         cell size in px     (1–80,   default 7)',
-      '  life.opacity      cell brightness     (0.01–1, default 0.09)',
-      '  life.glow         glow blur radius    (0–40,   default 0)',
-      '  life.autofill     auto-seed on/off    (0 or 1, default 1)',
+      '  gosper-gun  pulsar  lwss  pentadecathlon  switch-engine',
       '',
-      'boids params (use: set <param> <value>):',
-      '  boids.n           number of boids     (1–1000, default 120)',
-      '  boids.size        boid length in px   (1–200,  default 14)',
-      '  boids.speed       max speed           (0–30,   default 1.8)',
-      '  boids.perception  sight radius in px  (1–2000, default 70)',
-      '  boids.separation  separation dist px  (0–1000, default 50)',
+      '  life.cell      1–80     7',
+      '  life.opacity   0.01–1   0.09',
+      '  life.glow      0–40     0',
+      '  life.autofill  0 or 1   1',
       '',
-      'tip: typing a param name alone prints its current value.',
-      '     e.g.  life.opacity   →  life.opacity = 0.09',
+      'boids:',
+      '  boids.n           1–1000   120',
+      '  boids.size        1–200    14',
+      '  boids.speed       0–30     1.8',
+      '  boids.perception  1–2000   70',
+      '  boids.separation  0–1000   50',
+      '  boids.opacity     0.01–1   0.14',
+      '  boids.glow        0–40     0',
+      '',
+      '  life.opacity    →  prints current value',
     ].join('\n'),
 
     look: [
-      'look — appearance',
-      '─────────────────────────────────────────────',
-      '  colorscheme [name]    list or switch colorscheme',
-      '  color                 print current theme palette',
+      'look',
       '',
-      'available colorschemes:',
-      '  tokyo-night    dark   (default)',
+      '  colorscheme [name]   list / apply',
+      '  color                current palette',
+      '',
+      '  tokyo-night    dark  (default)',
       '  gruvbox        dark',
       '  kanagawa       dark',
       '  flexoki-light  light',
       '  rose-pine      light',
       '  ayu-light      light',
-      '',
-      'tip: the :colorscheme picker is also in the bottom-right',
-      '     corner on desktop.',
     ].join('\n'),
 
     sys: [
-      'sys — system info',
-      '─────────────────────────────────────────────',
-      '  neofetch        system overview (start here)',
-      '  uname [-a]      kernel / browser info',
-      '  uptime          time since page load',
-      '  top             live fake process monitor',
-      '  ps              process list',
-      '  df              disk usage',
-      '  du [path]       directory sizes',
-      '  env             environment variables',
-      '  history         command history for this session',
-      '  whoami          identity',
-      '  date            current date/time',
+      'sys',
+      '',
+      '  neofetch       overview',
+      '  uname [-a]     kernel / browser',
+      '  uptime         time since load',
+      '  top            process monitor',
+      '  ps             process list',
+      '  df             disk usage',
+      '  du [path]      directory sizes',
+      '  env            site + sim vars',
+      '  history        session history',
+      '  whoami         identity',
+      '  date           date/time',
     ].join('\n'),
 
     fun: [
-      'fun — misc commands',
-      '─────────────────────────────────────────────',
-      '  cowsay [text]        a cow says something',
-      '  fortune              random programming quote',
-      '  ping <host>          pretend to ping a host',
-      '  find . -name <pat>   find files by pattern',
-      '  grep <pat> <path>    search file contents',
-      '  wc [-l] <path>       count words / lines',
-      '  which <command>      locate a command',
-      '  make [target]        run a build target',
-      '  tar [flags] [file]   archive utility (joke)',
-      '  yes [text]           infinite output (ctrl-c to stop)',
+      'fun',
       '',
-      'easter eggs (try them):',
-      '  sudo <anything>      not today',
-      '  rm -rf /             nice try',
-      '  vim                  esc esc :q! :wq',
-      '  curl -L ekanshgoenka.com   (from a real terminal)',
+      '  cowsay [text]       cow',
+      '  fortune             quote',
+      '  ping <host>         ping',
+      '  find . -name <pat>  find files',
+      '  grep <pat> <path>   search',
+      '  wc [-l] <path>      word/line count',
+      '  which <cmd>         locate command',
+      '  make [target]       build',
+      '  tar [flags] [file]  archive',
+      '  yes [text]          infinite output',
+      '',
+      '  sudo   rm -rf /   vim   curl -L ekanshgoenka.com',
     ].join('\n'),
   };
 
   var HELP_CMDS = {
     ls: [
       'ls [path]',
-      '  list directory contents.',
       '',
-      'examples:',
-      '  ls                    top-level dirs',
-      '  ls projects           all project directories',
-      '  ls projects/geno      articles inside geno',
-      '  ls writing            all blog posts',
-      '  ls music              music releases',
-      '  ls games              games',
-      '',
-      'tip: tab completes paths. use cd to navigate.',
+      '  ls                   top-level',
+      '  ls projects          project list',
+      '  ls projects/geno     articles',
+      '  ls writing           posts',
+      '  ls music             releases',
+      '  ls games             games',
     ].join('\n'),
 
     cat: [
       'cat <path>',
-      '  print the contents of a file.',
       '',
-      'examples:',
-      '  cat music/btop              album info',
-      '  cat writing/some-post       blog post body',
-      '  cat projects/geno           project description',
-      '  cat games/byte-space        game info',
-      '',
-      'tip: tab completes paths from current directory.',
+      '  cat music/btop',
+      '  cat writing/some-post',
+      '  cat projects/geno',
     ].join('\n'),
 
     cd: [
       'cd [path]',
-      '  change directory.',
       '',
-      'examples:',
-      '  cd projects          navigate into projects/',
-      '  cd geno              relative (if already in projects/)',
-      '  cd ..                go up one level',
-      '  cd                   back to root (~)',
-      '',
-      'tip: tab completes directory names.',
+      '  cd projects     into projects/',
+      '  cd geno         relative path',
+      '  cd ..           up one level',
+      '  cd              back to root',
     ].join('\n'),
 
-    pwd:    'pwd\n  print current working directory.',
+    pwd:    'pwd',
 
     open: [
       'open <path>',
-      '  navigate the browser to a page on the site.',
       '',
-      'examples:',
-      '  open projects             → /projects/',
-      '  open projects/geno        → geno project page',
-      '  open music/btop           → btop album page',
-      '  open writing              → writing list',
-      '',
-      'tip: tab completes paths just like ls.',
+      '  open projects          /projects/',
+      '  open projects/geno     project page',
+      '  open music/btop        album page',
     ].join('\n'),
 
     bg: [
       'bg [life|boids|off]',
-      '  get or set the background simulation mode.',
       '',
-      '  bg              show current mode',
-      '  bg life         Conway\'s Game of Life',
-      '  bg boids        flocking simulation',
-      '  bg off          disable background',
+      '  bg           current mode',
+      '  bg life      Conway\'s Game of Life',
+      '  bg boids     flocking sim',
+      '  bg off       disable',
       '',
-      'see also: help bg  (full guide with all params)',
+      'help bg    full guide',
     ].join('\n'),
 
     speed: [
       'speed [1-10]',
-      '  get or set simulation speed.',
       '',
-      '  speed           show current speed level',
-      '  speed 1         slowest (life updates every ~18 frames)',
-      '  speed 5         default',
-      '  speed 10        fastest (every frame)',
+      '  speed       current level',
+      '  speed 1     slowest',
+      '  speed 5     default',
+      '  speed 10    fastest',
     ].join('\n'),
 
-    reset: [
-      'reset',
-      '  reinitialize the current simulation from scratch.',
-      '  re-enables life autofill if it was disabled by wipe.',
+    preset: [
+      'preset <name>',
       '',
-      'see also: wipe (clear only), fill (re-enable autofill)',
+      'life:',
+      '  ghost    barely visible (default)',
+      '  neon     opacity 1  glow 32  — intense',
+      '  pixel    chunky 14px blocks',
+      '  matrix   cell 4  glow 6  speed 9',
+      '  sparse   cell 10  glow 12',
+      '',
+      'boids:',
+      '  swarm    350 fast small boids',
+      '  drift    15 slow large  glow 8',
+      '  nebula   80  opacity 0.9  glow 20',
     ].join('\n'),
 
-    params: [
-      'params',
-      '  show all tunable simulation parameters with their current values.',
-      '',
-      'tip: type a param name alone to print its value.',
-      '     use  set <param> <value>  to change it.',
-    ].join('\n'),
+    reset:   'reset\n  reinit sim from scratch\n  re-enables life autofill',
+
+    params:  'params\n  all params + current values\n  <param name>   print value\n  set <param> <val>   change it',
 
     set: [
       'set <param> <value>',
-      '  change a simulation parameter live.',
-      '  type a param name alone to read its current value.',
+      '  <param>   print current value',
       '',
-      'life params:',
-      '  set life.cell 1          single-pixel cells (dense)',
-      '  set life.cell 14         chunky blocks',
-      '  set life.opacity 0.04    very faint (default on sub-pages)',
-      '  set life.opacity 0.5     clearly visible',
-      '  set life.opacity 1       full opacity',
-      '  set life.glow 0          no glow (default)',
-      '  set life.glow 12         subtle bloom',
-      '  set life.glow 30         heavy glow',
-      '  set life.autofill 0      same as wipe',
-      '  set life.autofill 1      same as fill',
+      'life:',
+      '  life.cell 1        pixel cells',
+      '  life.cell 14       chunky',
+      '  life.opacity 0.5   visible',
+      '  life.opacity 1     full',
+      '  life.glow 12       bloom',
+      '  life.glow 30       heavy',
+      '  life.autofill 0    = wipe',
+      '  life.autofill 1    = fill',
       '',
-      'boids params:',
-      '  set boids.n 30           few, calm',
-      '  set boids.n 400          chaotic swarm',
-      '  set boids.size 5         tiny',
-      '  set boids.size 60        massive',
-      '  set boids.speed 0.5      slow drift',
-      '  set boids.speed 8        unhinged',
-      '  set boids.perception 20  nearly blind',
-      '  set boids.perception 500 hive mind',
-      '  set boids.separation 0   boids merge',
-      '  set boids.separation 120 very spread out',
+      'boids:',
+      '  boids.n 30         few',
+      '  boids.n 400        swarm',
+      '  boids.speed 0.5    slow',
+      '  boids.speed 8      fast',
+      '  boids.perception 20   blind',
+      '  boids.perception 500  hive mind',
+      '  boids.separation 0    merge',
+      '  boids.opacity 0.9  visible',
+      '  boids.glow 20      glowing',
     ].join('\n'),
 
     wipe: [
       'wipe',
-      '  clear the Conway\'s Life grid and disable autofill.',
-      '  the grid stays empty — use spawn to add patterns manually.',
+      '  clear grid, disable autofill',
       '',
-      '  wipe                  → clear everything',
-      '  spawn gosper-gun      → click to place a pattern',
-      '  fill                  → restore random background',
-      '  reset                 → full reinit (also re-enables autofill)',
+      '  fill          restore autofill',
+      '  spawn <pat>   place a pattern',
+      '  reset         full reinit',
     ].join('\n'),
 
-    fill: [
-      'fill',
-      '  re-enable autofill and seed the life grid with starter patterns.',
-      '  use this to restore background activity after wipe.',
-      '',
-      '  fill    →  autofill on, seeds: r-pentomino, acorn, gliders...',
-      '',
-      'see also: wipe, reset, spawn',
-    ].join('\n'),
+    fill:   'fill\n  re-enable autofill\n  seeds: r-pentomino, acorn, gliders',
 
     spawn: [
-      'spawn [pattern] [random]',
-      '  place a complex Conway\'s Life structure on the grid.',
-      '  automatically switches to life mode.',
+      'spawn [pattern] [random] [count]',
       '',
-      '  spawn                    list available patterns',
-      '  spawn <pattern>          click canvas to place (default)',
-      '  spawn <pattern> random   drop at a random location',
+      '  spawn                     list patterns',
+      '  spawn pulsar              click to place',
+      '  spawn pulsar 3            click 3 times',
+      '  spawn pulsar random       random location',
+      '  spawn pulsar random 5     5 random',
       '',
-      'patterns:',
-      '  gosper-gun       infinite glider factory — produces a stream of gliders',
-      '  pulsar           period-3 oscillator — large, symmetric',
-      '  lwss             lightweight spaceship — travels diagonally',
-      '  pentadecathlon   period-15 oscillator — long-lived',
-      '  switch-engine    infinite growth — expands forever',
+      '  gosper-gun    glider factory',
+      '  pulsar        period-3 oscillator',
+      '  lwss          spaceship',
+      '  pentadecathlon  period-15',
+      '  switch-engine   infinite growth',
       '',
-      'click mode:',
-      '  the terminal closes and a crosshair appears.',
-      '  click anywhere on the canvas to place the pattern there.',
-      '  press esc to cancel.',
-      '',
-      'tip: run wipe first for a clean canvas.',
-      '     use fill to restore the random background afterwards.',
+      '  click mode: esc to cancel',
+      '  wipe first for clean canvas',
     ].join('\n'),
 
     colorscheme: [
       'colorscheme [name]',
-      '  list available colorschemes or apply one.',
       '',
-      '  colorscheme              list all (active marked with ▶)',
-      '  colorscheme tokyo-night  apply tokyo-night',
-      '  colorscheme rose-pine    apply rose-pine',
+      '  colorscheme              list (▶ = active)',
+      '  colorscheme gruvbox      apply',
       '',
-      'available:',
-      '  tokyo-night    dark   (default)',
-      '  gruvbox        dark',
-      '  kanagawa       dark',
-      '  flexoki-light  light',
-      '  rose-pine      light',
-      '  ayu-light      light',
-      '',
-      'tip: the picker in the bottom-right corner (desktop only)',
-      '     does the same thing visually.',
+      '  tokyo-night  gruvbox  kanagawa  (dark)',
+      '  flexoki-light  rose-pine  ayu-light  (light)',
     ].join('\n'),
 
-    color:   'color\n  print the current theme\'s CSS variables (bg, fg, accent, muted, border).',
-    whoami:  'whoami\n  print user identity.',
-    pwd:     'pwd\n  print current working directory.',
-    cowsay:  'cowsay [text]\n  a cow says something.\n\n  cowsay moo\n  cowsay hello world',
-    fortune: 'fortune\n  print a random programming quote.',
-
-    ping: [
-      'ping <host>',
-      '  simulate sending ICMP echo requests.',
-      '',
-      '  ping ekanshgoenka.com',
-      '  ping google.com',
-    ].join('\n'),
-
-    find: [
-      'find . -name <pattern>',
-      '  find files matching a glob pattern.',
-      '',
-      '  find . -name "*.md"',
-      '  find . -name "*.go"',
-    ].join('\n'),
-
-    grep:    'grep <pattern> <path>\n  search file contents for a pattern.\n\n  grep go projects/geno',
-    wc:      'wc [-l] <path>\n  count lines, words, and bytes in a file.\n  -l    lines only',
-    which:   'which <command>\n  show the path of a command.\n\n  which ls\n  which spawn',
-    top:     'top\n  live process monitor. simulated. updates every second.',
-    ps:      'ps\n  show process list.',
-    df:      'df\n  show simulated disk usage.',
-    du:      'du [path]\n  show directory sizes.\n\n  du\n  du projects',
-    env:     'env\n  print site environment variables.\n  shows colorscheme, sim mode, speed, and all current params.',
-    uname:   'uname [-a]\n  print kernel / browser info.\n  -a    all info',
-    uptime:  'uptime\n  time since this page was loaded, with fake load averages.',
-    history: 'history\n  show command history for this session.',
-    make:    'make [target]\n  run a build target.\n\n  make\n  make all\n  make clean',
-    tar:     'tar [flags] [file]\n  archive utility.\n\n  tar -xzf archive.tar.gz\n  tar -czf out.tar.gz dir/',
-    curl:    'curl -L <url>\n  transfer data from a URL.\n\n  try this from a real terminal:\n  curl -L ekanshgoenka.com',
-    neofetch:'neofetch\n  system overview — browser, theme, sim mode, uptime.',
+    color:   'color\n  current theme palette (bg fg accent muted border)',
+    whoami:  'whoami',
+    pwd:     'pwd',
+    cowsay:  'cowsay [text]\n  cowsay hello world',
+    fortune: 'fortune\n  random quote',
+    ping:    'ping <host>\n  ping ekanshgoenka.com',
+    find:    'find . -name <pat>\n  find . -name "*.md"',
+    grep:    'grep <pat> <path>\n  grep go projects/geno',
+    wc:      'wc [-l] <path>\n  -l   lines only',
+    which:   'which <cmd>\n  which spawn',
+    top:     'top\n  live process view',
+    ps:      'ps',
+    df:      'df',
+    du:      'du [path]\n  du projects',
+    env:     'env\n  SITE  COLORSCHEME  BG_MODE  BG_SPEED  all params',
+    uname:   'uname [-a]\n  -a   all info',
+    uptime:  'uptime\n  time since page load',
+    history: 'history\n  session command history',
+    make:    'make [target]\n  make  /  make clean',
+    tar:     'tar [flags] [file]\n  tar -xzf archive.tar.gz',
+    curl:    'curl -L <url>\n  curl -L ekanshgoenka.com  (real terminal)',
+    neofetch:'neofetch\n  system overview',
   };
 
   // ── output helpers ──────────────────────────────────────────
@@ -1453,39 +1418,46 @@ function toggleTheme() {
     },
 
     spawn: function (args) {
-      if (args.length > 2) { tooMany('spawn'); return; }
       var names = window.spawnPatternNames ? window.spawnPatternNames() : [];
       if (!args[0]) {
         line([
-          'available patterns:',
+          'spawn <pattern> [random] [count]',
+          '',
           '  gosper-gun     infinite glider factory',
           '  pulsar         period-3 oscillator',
           '  lwss           lightweight spaceship',
           '  pentadecathlon period-15 oscillator',
           '  switch-engine  infinite growth',
           '',
-          'usage: spawn <pattern> [random]',
-          '  spawn pulsar          → click canvas to place (default)',
-          '  spawn pulsar random   → place at random location',
+          '  spawn pulsar           click to place',
+          '  spawn pulsar 3         click 3 times',
+          '  spawn pulsar random    random location',
+          '  spawn pulsar random 5  5 random locations',
           '',
-          'tip: run wipe first for a clean canvas.',
-          '     use fill to restore the random background.',
+          '  tip: wipe first for a clean canvas',
         ].join('\n'), 'term-line-pre');
         return;
       }
       var name = args[0];
-      var randomMode = args[1] === 'random';
-      if (args[1] && !randomMode) { line('unknown flag "' + args[1] + '". did you mean: random?', 'term-line-err'); return; }
+      var randomMode = false;
+      var count = 1;
+      for (var i = 1; i < args.length; i++) {
+        if (args[i] === 'random') { randomMode = true; }
+        else if (/^\d+$/.test(args[i])) { count = Math.max(1, Math.min(20, parseInt(args[i]))); }
+        else { line('unknown flag: ' + args[i], 'term-line-err'); return; }
+      }
       if (randomMode) {
-        if (!window.spawnPattern || !window.spawnPattern(name))
-          line('unknown pattern. try: ' + names.join(', '), 'term-line-err');
-        else
-          line('spawned ' + name + ' at random location', 'term-line-ok');
+        if (!window.spawnPattern || !SPAWN_PATTERNS[name])
+          { line('unknown pattern: ' + name, 'term-line-err'); return; }
+        for (var k = 0; k < count; k++) window.spawnPattern(name);
+        line('spawned ' + (count > 1 ? count + 'x ' : '') + name, 'term-line-ok');
       } else {
-        if (!window.queueSpawn || !window.queueSpawn(name))
-          line('unknown pattern. try: ' + names.join(', '), 'term-line-err');
-        else
-          line('click on the canvas to place ' + name + '  ·  esc to cancel', 'term-line-ok');
+        if (!window.queueSpawn || !window.queueSpawn(name, count))
+          { line('unknown pattern: ' + name, 'term-line-err'); return; }
+        line(count > 1
+          ? 'click ' + count + ' times to place ' + name + '  ·  esc to cancel'
+          : 'click to place ' + name + '  ·  esc to cancel',
+          'term-line-ok');
       }
     },
 
@@ -1497,6 +1469,34 @@ function toggleTheme() {
         line('grid cleared. use spawn to place patterns, or fill to restore.', 'term-line-ok');
     },
 
+    preset: function (args) {
+      if (args.length > 1) { tooMany('preset'); return; }
+      var names = window.getPresetNames ? window.getPresetNames() : [];
+      if (!args[0]) {
+        line([
+          'preset <name>',
+          '',
+          'life:',
+          '  ghost    barely visible (default)',
+          '  neon     full opacity + heavy glow',
+          '  pixel    chunky 14px blocks',
+          '  matrix   tiny dense cells, fast',
+          '  sparse   large cells with glow',
+          '',
+          'boids:',
+          '  swarm    350 fast small boids',
+          '  drift    15 slow large boids, glow',
+          '  nebula   80 glowing boids',
+        ].join('\n'), 'term-line-pre');
+        return;
+      }
+      var name = args[0];
+      if (!window.applyPreset || !window.applyPreset(name))
+        line('unknown preset: ' + name + '  try: ' + names.join('  '), 'term-line-err');
+      else
+        line('preset → ' + name, 'term-line-ok');
+    },
+
     fill: function (args) {
       if (args.length) { tooMany('fill'); return; }
       if (window.startAutofill) { window.startAutofill(); line('autofill enabled. background will seed itself.', 'term-line-ok'); }
@@ -1506,25 +1506,24 @@ function toggleTheme() {
     params: function (args) {
       if (args.length) { tooMany('params'); return; }
       var p = window.getBgParams ? window.getBgParams() : {};
+      function v(k) { return String(p[k] !== undefined ? p[k] : '?'); }
       line([
-        'simulation parameters  (set <param> <val> to change)',
-        '',
         'life:',
-        '  life.cell        ' + (p['life.cell'] || '?') + '   cell size px  (1–80)',
-        '',
-        '  spawn <pattern>  drop a complex structure onto the grid',
-        '    gosper-gun     infinite glider factory',
-        '    pulsar         period-3 oscillator',
-        '    lwss           lightweight spaceship',
-        '    pentadecathlon period-15 oscillator',
-        '    switch-engine  infinite growth',
+        '  life.cell        ' + v('life.cell')      + '\t(1–80)',
+        '  life.opacity     ' + v('life.opacity')   + '\t(0.01–1)',
+        '  life.glow        ' + v('life.glow')      + '\t(0–40)',
+        '  life.autofill    ' + v('life.autofill')  + '\t(0 or 1)',
         '',
         'boids:',
-        '  boids.n          ' + (p['boids.n']          || '?') + '   count         (1–1000)',
-        '  boids.size       ' + (p['boids.size']        || '?') + '   length px     (1–200)',
-        '  boids.speed      ' + (p['boids.speed']       || '?') + '   max speed      (0–30)',
-        '  boids.perception ' + (p['boids.perception']  || '?') + '   sight radius  (1–2000)',
-        '  boids.separation ' + (p['boids.separation']  || '?') + '   separation px (0–1000)',
+        '  boids.n          ' + v('boids.n')          + '\t(1–1000)',
+        '  boids.size       ' + v('boids.size')        + '\t(1–200)',
+        '  boids.speed      ' + v('boids.speed')       + '\t(0–30)',
+        '  boids.perception ' + v('boids.perception')  + '\t(1–2000)',
+        '  boids.separation ' + v('boids.separation')  + '\t(0–1000)',
+        '  boids.opacity    ' + v('boids.opacity')     + '\t(0.01–1)',
+        '  boids.glow       ' + v('boids.glow')        + '\t(0–40)',
+        '',
+        'set <param> <value>  to change',
       ].join('\n'), 'term-line-pre');
     },
 
@@ -1892,8 +1891,9 @@ function toggleTheme() {
       theme:       function (p) { return p === 0 ? ['tokyo-night', 'gruvbox', 'kanagawa', 'flexoki-light', 'rose-pine', 'ayu-light'] : []; },
       bg:          function (p) { return p === 0 ? ['life', 'boids', 'off'] : []; },
       speed:       function (p) { return p === 0 ? ['1','2','3','4','5','6','7','8','9','10'] : []; },
-      set:         function (p) { return p === 0 ? ['life.cell','life.opacity','life.glow','life.autofill','boids.n','boids.size','boids.speed','boids.perception','boids.separation'] : []; },
+      set:         function (p) { return p === 0 ? ['life.cell','life.opacity','life.glow','life.autofill','boids.n','boids.size','boids.speed','boids.perception','boids.separation','boids.opacity','boids.glow'] : []; },
       spawn:       function (p) { return p === 0 ? ['gosper-gun','pulsar','lwss','pentadecathlon','switch-engine'] : p === 1 ? ['random'] : []; },
+      preset:      function (p) { return p === 0 ? (window.getPresetNames ? window.getPresetNames() : []) : []; },
       help:        function (p) { return p === 0 ? Object.keys(HELP_TOPICS).concat(Object.keys(HELP_CMDS)).sort() : []; },
       man:         function (p) { return p === 0 ? CMD_NAMES.concat(Object.keys(HELP_TOPICS)).sort() : []; },
       which:       function (p) { return p === 0 ? CMD_NAMES : []; },
