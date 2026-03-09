@@ -69,7 +69,7 @@ function toggleTheme() {
   if (!canvas) return;
   var ctx = canvas.getContext('2d');
 
-  var MODES = ['life', 'boids', 'off'];
+  var MODES = ['life', 'boids', 'physarum', 'off'];
   var modeIdx = Math.max(0, MODES.indexOf(localStorage.getItem('bgMode') || 'life'));
   var speedLevel = parseInt(localStorage.getItem('bgSpeed') || '2');
   var W, H;
@@ -85,8 +85,9 @@ function toggleTheme() {
 
   function initMode(mode) {
     ctx.clearRect(0, 0, W, H);
-    if (mode === 'boids') initBoids();
-    if (mode === 'life')  initLife();
+    if (mode === 'boids')   initBoids();
+    if (mode === 'life')    initLife();
+    if (mode === 'physarum' && window.Physarum) window.Physarum.init();
   }
 
   function cycleMode() {
@@ -443,6 +444,9 @@ function toggleTheme() {
     } else if (mode === 'boids') {
       updateBoids();
       drawBoids();
+    } else if (mode === 'physarum' && window.Physarum) {
+      window.Physarum.step();
+      window.Physarum.draw(ctx, W, H);
     } else {
       ctx.clearRect(0, 0, W, H);
     }
@@ -470,7 +474,11 @@ function toggleTheme() {
     localStorage.setItem('bgSpeed', speedLevel);
   };
   window.getBgSpeed = function () { return speedLevel; };
-  window.resetBg    = function () { LIFE_AUTOFILL = true; initMode(MODES[modeIdx]); };
+  window.resetBg    = function () {
+    LIFE_AUTOFILL = true;
+    if (MODES[modeIdx] === 'physarum' && window.Physarum) window.Physarum.reset();
+    else initMode(MODES[modeIdx]);
+  };
 
   function ensureLife() {
     if (MODES[modeIdx] !== 'life') { modeIdx = MODES.indexOf('life'); initMode('life'); updateBtn(); }
@@ -624,7 +632,7 @@ function toggleTheme() {
     ghost:   { sim:'life',   speed:null, params:{'life.cell':7,  'life.opacity':0.09, 'life.glow':0,  'life.autofill':1} },
     neon:    { sim:'life',   speed:null, params:{'life.cell':7,  'life.opacity':1.0,  'life.glow':32, 'life.autofill':1} },
     pixel:   { sim:'life',   speed:null, params:{'life.cell':14, 'life.opacity':0.5,  'life.glow':0,  'life.autofill':1} },
-    matrix:  { sim:'life',   speed:9,    params:{'life.cell':4,  'life.opacity':0.3,  'life.glow':6,  'life.autofill':1} },
+    matrix:  { sim:'life',   speed:9,    params:{'life.cell':4,  'life.opacity':0.09, 'life.glow':0,  'life.autofill':1} },
     // boids
     default: { sim:'boids',  speed:null, params:{'boids.n':120,  'boids.size':14, 'boids.speed':1.8, 'boids.opacity':0.14, 'boids.glow':0} },
     swarm:   { sim:'boids',  speed:null, params:{'boids.n':350,  'boids.size':8,  'boids.speed':2.8, 'boids.opacity':0.18, 'boids.glow':0} },
@@ -1365,7 +1373,7 @@ function toggleTheme() {
       var m = args[0];
       if (!m) { line('bg: ' + (window.getBgMode ? window.getBgMode() : '?'), 'term-line-ok'); return; }
       if (!window.setBgMode || !window.setBgMode(m))
-        line('bg: unknown mode. try: life  boids  off', 'term-line-err');
+        line('bg: unknown mode. try: life  boids  physarum  off', 'term-line-err');
       else
         line('bg → ' + m, 'term-line-ok');
     },
@@ -1752,7 +1760,7 @@ function toggleTheme() {
     var CMAP = {
       colorscheme: function (p) { return p === 0 ? ALL_THEMES : []; },
       theme:       function (p) { return p === 0 ? ALL_THEMES : []; },
-      bg:          function (p) { return p === 0 ? ['life', 'boids', 'off'] : []; },
+      bg:          function (p) { return p === 0 ? ['life', 'boids', 'physarum', 'off'] : []; },
       speed:       function (p) { return p === 0 ? ['1','2','3','4','5','6','7','8','9','10'] : []; },
       set:         function (p) { return p === 0 ? ALL_PARAMS : []; },
       spawn: function (p, args) {
