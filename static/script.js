@@ -69,7 +69,7 @@ function toggleTheme() {
   if (!canvas) return;
   var ctx = canvas.getContext('2d');
 
-  var MODES = ['life', 'boids', 'off'];
+  var MODES = ['life', 'boids', 'smooth', 'off'];
   var modeIdx = Math.max(0, MODES.indexOf(localStorage.getItem('bgMode') || 'life'));
   var speedLevel = parseInt(localStorage.getItem('bgSpeed') || '2');
   var W, H;
@@ -85,8 +85,9 @@ function toggleTheme() {
 
   function initMode(mode) {
     ctx.clearRect(0, 0, W, H);
-    if (mode === 'boids') initBoids();
-    if (mode === 'life')  initLife();
+    if (mode === 'boids')  initBoids();
+    if (mode === 'life')   initLife();
+    if (mode === 'smooth' && window.SmoothLife) window.SmoothLife.init();
   }
 
   function cycleMode() {
@@ -443,6 +444,8 @@ function toggleTheme() {
     } else if (mode === 'boids') {
       updateBoids();
       drawBoids();
+    } else if (mode === 'smooth') {
+      if (window.SmoothLife) { window.SmoothLife.step(); window.SmoothLife.draw(ctx, W, H); }
     } else {
       ctx.clearRect(0, 0, W, H);
     }
@@ -470,7 +473,11 @@ function toggleTheme() {
     localStorage.setItem('bgSpeed', speedLevel);
   };
   window.getBgSpeed = function () { return speedLevel; };
-  window.resetBg    = function () { LIFE_AUTOFILL = true; initMode(MODES[modeIdx]); };
+  window.resetBg    = function () {
+    LIFE_AUTOFILL = true;
+    if (MODES[modeIdx] === 'smooth' && window.SmoothLife) window.SmoothLife.reset();
+    else initMode(MODES[modeIdx]);
+  };
 
   function ensureLife() {
     if (MODES[modeIdx] !== 'life') { modeIdx = MODES.indexOf('life'); initMode('life'); updateBtn(); }
@@ -559,11 +566,11 @@ function toggleTheme() {
   window.spawnPatternNames = function () { return Object.keys(SPAWN_PATTERNS); };
 
   window.getBgParams = function () {
-    return {
-      'life.cell':      CELL,
-      'life.opacity':   LIFE_OPACITY,
-      'life.glow':      LIFE_GLOW,
-      'life.autofill':  LIFE_AUTOFILL ? 1 : 0,
+    var p = {
+      'life.cell':        CELL,
+      'life.opacity':     LIFE_OPACITY,
+      'life.glow':        LIFE_GLOW,
+      'life.autofill':    LIFE_AUTOFILL ? 1 : 0,
       'boids.n':          N,
       'boids.size':       BOID_LEN,
       'boids.speed':      MAX_SPEED,
@@ -572,6 +579,12 @@ function toggleTheme() {
       'boids.opacity':    BOID_OPACITY,
       'boids.glow':       BOID_GLOW,
     };
+    if (window.SmoothLife) {
+      var sp = window.SmoothLife.getParams();
+      var sk = Object.keys(sp);
+      for (var i = 0; i < sk.length; i++) p[sk[i]] = sp[sk[i]];
+    }
+    return p;
   };
 
   window.setParam = function (key, val) {
@@ -614,6 +627,7 @@ function toggleTheme() {
         BOID_GLOW = Math.max(0, Math.min(40, parseFloat(val) || 0));
         return true;
       default:
+        if (window.SmoothLife && window.SmoothLife.setParam(key, val)) return true;
         return false;
     }
   };
@@ -621,15 +635,18 @@ function toggleTheme() {
   // ── presets ──────────────────────────────────────────────────
   var PRESETS = {
     // life
-    ghost:  { sim:'life',  speed:null, params:{'life.cell':7,  'life.opacity':0.09, 'life.glow':0,  'life.autofill':1} },
-    neon:   { sim:'life',  speed:6,    params:{'life.cell':7,  'life.opacity':1.0,  'life.glow':32, 'life.autofill':1} },
-    pixel:  { sim:'life',  speed:null, params:{'life.cell':14, 'life.opacity':0.5,  'life.glow':0,  'life.autofill':1} },
-    matrix: { sim:'life',  speed:9,    params:{'life.cell':4,  'life.opacity':0.3,  'life.glow':6,  'life.autofill':1} },
-    sparse: { sim:'life',  speed:null, params:{'life.cell':10, 'life.opacity':0.22, 'life.glow':12, 'life.autofill':1} },
+    ghost:   { sim:'life',   speed:null, params:{'life.cell':7,  'life.opacity':0.09, 'life.glow':0,  'life.autofill':1} },
+    neon:    { sim:'life',   speed:null, params:{'life.cell':7,  'life.opacity':1.0,  'life.glow':32, 'life.autofill':1} },
+    pixel:   { sim:'life',   speed:null, params:{'life.cell':14, 'life.opacity':0.5,  'life.glow':0,  'life.autofill':1} },
+    matrix:  { sim:'life',   speed:9,    params:{'life.cell':4,  'life.opacity':0.3,  'life.glow':6,  'life.autofill':1} },
     // boids
-    swarm:  { sim:'boids', speed:null, params:{'boids.n':350,  'boids.size':8,  'boids.speed':2.8, 'boids.opacity':0.18, 'boids.glow':0} },
-    drift:  { sim:'boids', speed:null, params:{'boids.n':15,   'boids.size':36, 'boids.speed':0.7, 'boids.opacity':0.45, 'boids.glow':8} },
-    nebula: { sim:'boids', speed:null, params:{'boids.n':80,   'boids.size':18, 'boids.speed':1.5, 'boids.opacity':0.9,  'boids.glow':20} },
+    default: { sim:'boids',  speed:null, params:{'boids.n':120,  'boids.size':14, 'boids.speed':1.8, 'boids.opacity':0.14, 'boids.glow':0} },
+    swarm:   { sim:'boids',  speed:null, params:{'boids.n':350,  'boids.size':8,  'boids.speed':2.8, 'boids.opacity':0.18, 'boids.glow':0} },
+    drift:   { sim:'boids',  speed:null, params:{'boids.n':15,   'boids.size':36, 'boids.speed':0.7, 'boids.opacity':0.45, 'boids.glow':8} },
+    nebula:  { sim:'boids',  speed:null, params:{'boids.n':80,   'boids.size':18, 'boids.speed':1.5, 'boids.opacity':0.9,  'boids.glow':20} },
+    // smooth
+    plasma:  { sim:'smooth', speed:null, params:{'smooth.opacity':0.9,  'smooth.glow':0,  'smooth.ri':7,  'smooth.dt':0.1} },
+    fluid:   { sim:'smooth', speed:null, params:{'smooth.opacity':0.55, 'smooth.glow':8,  'smooth.ri':12, 'smooth.dt':0.07} },
   };
 
   window.getPresetNames = function () { return Object.keys(PRESETS); };
@@ -744,7 +761,7 @@ function toggleTheme() {
     'help [topic|command]',
     '',
     '  nav    ls  cat  cd  pwd  open',
-    '  bg     bg  speed  reset  params  set  preset  wipe  fill  spawn',
+    '  bg     bg  speed  reset  params  set  preset  wipe  fill  spawn  (smooth: bg smooth)',
     '  look   colorscheme  color',
     '  sys    neofetch  uname  uptime  top  ps  df  du  env  history  whoami  date',
     '  fun    cowsay  fortune  ping  find  grep  wc  which  make  tar  yes',
@@ -784,16 +801,17 @@ function toggleTheme() {
     bg: [
       'bg',
       '',
-      '  bg [life|boids|off]    get/set mode',
-      '  speed [1-10]           get/set speed',
-      '  reset                  reinit from scratch',
-      '  preset <name>          apply a named preset',
-      '  params                 all params + values',
-      '  set <param> <val>      change a param',
+      '  bg [life|boids|smooth|off]  get/set mode',
+      '  speed [1-10]                get/set speed',
+      '  reset                       reinit from scratch',
+      '  preset <name>               apply a named preset',
+      '  params                      all params + values',
+      '  set <param> <val>           change a param',
       '',
       'presets:',
-      '  ghost  neon  pixel  matrix  sparse',
-      '  swarm  drift  nebula',
+      '  ghost  neon  pixel  matrix',
+      '  default  swarm  drift  nebula',
+      '  plasma  fluid',
       '',
       'life:',
       '  wipe                   clear grid, stop autofill',
@@ -819,7 +837,13 @@ function toggleTheme() {
       '  boids.opacity     0.01–1   0.14',
       '  boids.glow        0–40     0',
       '',
-      '  life.opacity    →  prints current value',
+      'smooth (SmoothLife):',
+      '  smooth.opacity  0.01–1   0.75',
+      '  smooth.glow     0–20     0',
+      '  smooth.ri       1–32     7   (inner radius)',
+      '  smooth.dt       0.01–1   0.1 (step size)',
+      '',
+      '  <param>   →  prints current value',
     ].join('\n'),
 
     look: [
@@ -910,11 +934,12 @@ function toggleTheme() {
     ].join('\n'),
 
     bg: [
-      'bg [life|boids|off]',
+      'bg [life|boids|smooth|off]',
       '',
       '  bg           current mode',
       '  bg life      Conway\'s Game of Life',
       '  bg boids     flocking sim',
+      '  bg smooth    SmoothLife (continuous CA)',
       '  bg off       disable',
       '',
       'help bg    full guide',
@@ -937,12 +962,16 @@ function toggleTheme() {
       '  neon     opacity 1  glow 32  — intense',
       '  pixel    chunky 14px blocks',
       '  matrix   cell 4  glow 6  speed 9',
-      '  sparse   cell 10  glow 12',
       '',
       'boids:',
+      '  default  120 boids  factory reset',
       '  swarm    350 fast small boids',
       '  drift    15 slow large  glow 8',
       '  nebula   80  opacity 0.9  glow 20',
+      '',
+      'smooth:',
+      '  plasma   full opacity, classic params',
+      '  fluid    large radius, glow, slower dt',
     ].join('\n'),
 
     reset:   'reset\n  reinit sim from scratch\n  re-enables life autofill',
@@ -973,6 +1002,12 @@ function toggleTheme() {
       '  boids.separation 0    merge',
       '  boids.opacity 0.9  visible',
       '  boids.glow 20      glowing',
+      '',
+      'smooth:',
+      '  smooth.opacity 0.9   bright',
+      '  smooth.glow 12       bloom',
+      '  smooth.ri 14         large blobs',
+      '  smooth.dt 0.05       slow evolve',
     ].join('\n'),
 
     wipe: [
@@ -1397,7 +1432,7 @@ function toggleTheme() {
       var m = args[0];
       if (!m) { line('bg: ' + (window.getBgMode ? window.getBgMode() : '?'), 'term-line-ok'); return; }
       if (!window.setBgMode || !window.setBgMode(m))
-        line('bg: unknown mode. try: life  boids  off', 'term-line-err');
+        line('bg: unknown mode. try: life  boids  smooth  off', 'term-line-err');
       else
         line('bg → ' + m, 'term-line-ok');
     },
@@ -1481,12 +1516,16 @@ function toggleTheme() {
           '  neon     full opacity + heavy glow',
           '  pixel    chunky 14px blocks',
           '  matrix   tiny dense cells, fast',
-          '  sparse   large cells with glow',
           '',
           'boids:',
+          '  default  factory reset',
           '  swarm    350 fast small boids',
           '  drift    15 slow large boids, glow',
           '  nebula   80 glowing boids',
+          '',
+          'smooth:',
+          '  plasma   full opacity, classic',
+          '  fluid    large radius, glow',
         ].join('\n'), 'term-line-pre');
         return;
       }
@@ -1522,6 +1561,12 @@ function toggleTheme() {
         '  boids.separation ' + v('boids.separation')  + '\t(0–1000)',
         '  boids.opacity    ' + v('boids.opacity')     + '\t(0.01–1)',
         '  boids.glow       ' + v('boids.glow')        + '\t(0–40)',
+        '',
+        'smooth:',
+        '  smooth.opacity   ' + v('smooth.opacity') + '\t(0.01–1)',
+        '  smooth.glow      ' + v('smooth.glow')    + '\t(0–20)',
+        '  smooth.ri        ' + v('smooth.ri')      + '\t(1–32)',
+        '  smooth.dt        ' + v('smooth.dt')      + '\t(0.01–1)',
         '',
         'set <param> <value>  to change',
       ].join('\n'), 'term-line-pre');
@@ -1889,9 +1934,9 @@ function toggleTheme() {
     var CMAP = {
       colorscheme: function (p) { return p === 0 ? ['tokyo-night', 'gruvbox', 'kanagawa', 'flexoki-light', 'rose-pine', 'ayu-light'] : []; },
       theme:       function (p) { return p === 0 ? ['tokyo-night', 'gruvbox', 'kanagawa', 'flexoki-light', 'rose-pine', 'ayu-light'] : []; },
-      bg:          function (p) { return p === 0 ? ['life', 'boids', 'off'] : []; },
+      bg:          function (p) { return p === 0 ? ['life', 'boids', 'smooth', 'off'] : []; },
       speed:       function (p) { return p === 0 ? ['1','2','3','4','5','6','7','8','9','10'] : []; },
-      set:         function (p) { return p === 0 ? ['life.cell','life.opacity','life.glow','life.autofill','boids.n','boids.size','boids.speed','boids.perception','boids.separation','boids.opacity','boids.glow'] : []; },
+      set:         function (p) { return p === 0 ? ['life.cell','life.opacity','life.glow','life.autofill','boids.n','boids.size','boids.speed','boids.perception','boids.separation','boids.opacity','boids.glow','smooth.opacity','smooth.glow','smooth.ri','smooth.dt'] : []; },
       spawn:       function (p) { return p === 0 ? ['gosper-gun','pulsar','lwss','pentadecathlon','switch-engine'] : p === 1 ? ['random'] : []; },
       preset:      function (p) { return p === 0 ? (window.getPresetNames ? window.getPresetNames() : []) : []; },
       help:        function (p) { return p === 0 ? Object.keys(HELP_TOPICS).concat(Object.keys(HELP_CMDS)).sort() : []; },
