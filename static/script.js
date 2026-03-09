@@ -246,7 +246,8 @@ function toggleTheme() {
   // (R-pentomino, Acorn, gliders, oscillators) plus a sparse random
   // base. Auto-fertilises by dropping structured patterns, not blobs.
 
-  var CELL = 7;
+  var CELL          = 7;
+  var LIFE_AUTOFILL = true;
   var GW, GH;
   var grid, next;
   var lifeFrame = 0;
@@ -381,7 +382,7 @@ function toggleTheme() {
     }
     var tmp = grid; grid = next; next = tmp;
     // Auto-fertilise: keep activity up so the sim never looks like it stalled
-    if (liveCount < GW * GH * 0.05) {
+    if (LIFE_AUTOFILL && liveCount < GW * GH * 0.05) {
       var seeds = [PAT_RPENTO, PAT_ACORN, PAT_DIEHARD, PAT_GLIDER_SE, PAT_GLIDER_NW];
       for (var k = 0; k < 5; k++) {
         placePattern(
@@ -453,7 +454,7 @@ function toggleTheme() {
     localStorage.setItem('bgSpeed', speedLevel);
   };
   window.getBgSpeed = function () { return speedLevel; };
-  window.resetBg    = function () { initMode(MODES[modeIdx]); };
+  window.resetBg    = function () { LIFE_AUTOFILL = true; initMode(MODES[modeIdx]); };
 
   function ensureLife() {
     if (MODES[modeIdx] !== 'life') { modeIdx = MODES.indexOf('life'); initMode('life'); updateBtn(); }
@@ -468,11 +469,39 @@ function toggleTheme() {
     return true;
   };
 
+  var spawnOverlay = document.getElementById('spawn-overlay');
+  var spawnHint    = document.getElementById('spawn-hint');
+
+  function cancelSpawn() {
+    window._pendingSpawn = null;
+    if (spawnOverlay) spawnOverlay.classList.remove('active');
+  }
+  window.cancelSpawn = cancelSpawn;
+
+  if (spawnOverlay) {
+    spawnOverlay.addEventListener('click', function (e) {
+      var name = window._pendingSpawn;
+      if (!name) return;
+      var pat = SPAWN_PATTERNS[name];
+      cancelSpawn();
+      if (!pat || !grid) return;
+      var gx = Math.floor(e.clientX / CELL);
+      var gy = Math.floor(e.clientY / CELL);
+      placePattern(gx, gy, pat);
+    });
+  }
+
   window.queueSpawn = function (name) {
     if (!SPAWN_PATTERNS[name]) return false;
     ensureLife();
     window._pendingSpawn = name;
-    canvas.style.cursor = 'crosshair';
+    if (spawnHint) spawnHint.innerHTML =
+      'place <span class="sh-name">' + name + '</span>' +
+      ' &nbsp;·&nbsp; <span class="sh-esc">esc to cancel</span>';
+    if (spawnOverlay) spawnOverlay.classList.add('active');
+    /* close terminal so it doesn't block the canvas */
+    var termOverlay = document.getElementById('term-overlay');
+    if (termOverlay) termOverlay.classList.remove('open');
     return true;
   };
 
@@ -481,27 +510,18 @@ function toggleTheme() {
     if (!grid) return false;
     grid.fill(0);
     liveCount = 0;
+    LIFE_AUTOFILL = false;
     return true;
   };
 
-  canvas.addEventListener('click', function (e) {
-    if (!window._pendingSpawn) return;
-    var name = window._pendingSpawn;
-    var pat  = SPAWN_PATTERNS[name];
-    window._pendingSpawn = null;
-    canvas.style.cursor = '';
-    if (!pat || !grid) return;
-    var rect = canvas.getBoundingClientRect();
-    var gx = Math.floor((e.clientX - rect.left) / CELL);
-    var gy = Math.floor((e.clientY - rect.top)  / CELL);
-    placePattern(gx, gy, pat);
-  });
+  window.setLifeAutofill = function (on) { LIFE_AUTOFILL = !!on; };
 
   window.spawnPatternNames = function () { return Object.keys(SPAWN_PATTERNS); };
 
   window.getBgParams = function () {
     return {
-      'life.cell':        CELL,
+      'life.cell':      CELL,
+      'life.autofill':  LIFE_AUTOFILL ? 1 : 0,
       'boids.n':          N,
       'boids.size':       BOID_LEN,
       'boids.speed':      MAX_SPEED,
@@ -515,6 +535,9 @@ function toggleTheme() {
       case 'life.cell':
         CELL = Math.max(1, Math.min(80, Math.round(val)));
         if (MODES[modeIdx] === 'life') initLife();
+        return true;
+      case 'life.autofill':
+        LIFE_AUTOFILL = !!val;
         return true;
       case 'boids.n':
         N = Math.max(1, Math.min(1000, Math.round(val)));
@@ -1593,7 +1616,7 @@ function toggleTheme() {
       theme:       function (p) { return p === 0 ? ['tokyo-night', 'gruvbox', 'kanagawa', 'flexoki-light', 'rose-pine', 'ayu-light'] : []; },
       bg:          function (p) { return p === 0 ? ['life', 'boids', 'off'] : []; },
       speed:       function (p) { return p === 0 ? ['1','2','3','4','5','6','7','8','9','10'] : []; },
-      set:         function (p) { return p === 0 ? ['life.cell','boids.n','boids.size','boids.speed','boids.perception','boids.separation'] : []; },
+      set:         function (p) { return p === 0 ? ['life.cell','life.autofill','boids.n','boids.size','boids.speed','boids.perception','boids.separation'] : []; },
       spawn:       function (p) { return p === 0 ? ['gosper-gun','pulsar','lwss','pentadecathlon','switch-engine'] : p === 1 ? ['click'] : []; },
       help:        function (p) { return p === 0 ? Object.keys(HELP_TOPICS).concat(Object.keys(HELP_CMDS)).sort() : []; },
       man:         function (p) { return p === 0 ? CMD_NAMES.concat(Object.keys(HELP_TOPICS)).sort() : []; },
@@ -1681,6 +1704,7 @@ function toggleTheme() {
         e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
       e.preventDefault(); open();
     }
+    if (e.key === 'Escape' && window._pendingSpawn) { if (window.cancelSpawn) window.cancelSpawn(); return; }
     if (e.key === 'Escape' && isOpen) close();
   });
 
