@@ -329,19 +329,30 @@ function toggleTheme() {
     [1,5],[4,5]
   ];
 
-  var PAT_MWSS = [                                                // middleweight spaceship (11 cells, c/2)
-    [1,0],
-    [0,1],[5,1],
-    [5,2],
+  // RLE source: github.com/pscherf/conway-toy — verified against LifeWiki
+  var PAT_MWSS = [                                                // middleweight spaceship (11 cells, c/2) x=6,y=5 RLE: 3bo2b$bo3bo$o5b$o4bo$5o!
+    [3,0],
+    [1,1],[5,1],
+    [0,2],
     [0,3],[5,3],
-    [1,4],[2,4],[3,4],[4,4],[5,4]
+    [0,4],[1,4],[2,4],[3,4],[4,4]
   ];
-  var PAT_HWSS = [                                                // heavyweight spaceship (13 cells, c/2)
-    [1,0],[2,0],
-    [0,1],[6,1],
-    [6,2],
+  var PAT_HWSS = [                                                // heavyweight spaceship (13 cells, c/2) x=7,y=5 RLE: 3b2o2b$bo4bo$o6b$o5bo$6o!
+    [3,0],[4,0],
+    [1,1],[6,1],
+    [0,2],
     [0,3],[6,3],
-    [1,4],[2,4],[3,4],[4,4],[5,4],[6,4]
+    [0,4],[1,4],[2,4],[3,4],[4,4],[5,4]
+  ];
+  // RLE source: conwaylife.com URL param — period-30 oscillator (26 cells, 22×7) found by Gosper 1970
+  var PAT_QUEEN_BEE = [                                           // queen bee shuttle — RLE: 9b2o$9bobo$4b2o6bo7b2o$2obo2bo2bo2bo7b2o$2o2b2o6bo$9bobo$9b2o!
+    [9,0],[10,0],
+    [9,1],[11,1],
+    [4,2],[5,2],[12,2],[20,2],[21,2],
+    [0,3],[1,3],[3,3],[6,3],[9,3],[12,3],[20,3],[21,3],
+    [0,4],[1,4],[4,4],[5,4],[12,4],
+    [9,5],[11,5],
+    [9,6],[10,6]
   ];
   var PAT_DENSE = [                                               // chaotic soup — 3 acorns spread apart, ~15000 gen lifespan
     [1,0],[3,1],[0,2],[1,2],[4,2],[5,2],[6,2],
@@ -359,7 +370,10 @@ function toggleTheme() {
   ];
 
   var SPAWN_PATTERNS = {
+    'r-pentomino':    PAT_RPENTO,
+    'acorn':          PAT_ACORN,
     'gosper-gun':     PAT_GOSPER_GUN,
+    'queen-bee':      PAT_QUEEN_BEE,
     'pulsar':         PAT_PULSAR,
     'lwss':           PAT_LWSS,
     'mwss':           PAT_MWSS,
@@ -367,7 +381,6 @@ function toggleTheme() {
     'pentadecathlon': PAT_PENTADECATHLON,
     'switch-engine':  PAT_SWITCHENGINE,
     'dense':          PAT_DENSE,
-    'diamond':        PAT_DIAMOND,
   };
 
   function placePattern(cx, cy, cells) {
@@ -985,8 +998,8 @@ function toggleTheme() {
       '  spawn <pat>            click to place',
       '  spawn <pat> random [n] n random placements',
       '',
-      '  gosper-gun  pulsar  lwss  mwss  hwss',
-      '  pentadecathlon  switch-engine  dense  diamond',
+      '  r-pentomino  acorn  gosper-gun  queen-bee  pulsar',
+      '  lwss  mwss  hwss  pentadecathlon  switch-engine  dense',
       '',
       '  life.cell      1–80    7',
       '  life.opacity   0–100%  9',
@@ -1187,7 +1200,10 @@ function toggleTheme() {
       '  spawn pulsar random       random location',
       '  spawn pulsar random 5     5 random',
       '',
-      '  gosper-gun      infinite glider factory',
+      '  r-pentomino     5 cells, ~1103 gen chaos (1970)',
+      '  acorn           7 cells, ~5206 gen chaos (1970s)',
+      '  gosper-gun      infinite glider factory (1970)',
+      '  queen-bee       period-30 oscillator (1970)',
       '  pulsar          period-3 oscillator',
       '  lwss            lightweight spaceship (c/2)',
       '  mwss            middleweight spaceship (c/2)',
@@ -1195,7 +1211,6 @@ function toggleTheme() {
       '  pentadecathlon  period-15 oscillator',
       '  switch-engine   infinite growth',
       '  dense           3 acorns, ~15000 gen chaos',
-      '  diamond         symmetric ring seed',
       '',
       '  click mode: esc to cancel',
       '  wipe first for clean canvas',
@@ -1628,13 +1643,15 @@ function toggleTheme() {
         line([
           'spawn <pattern> [random] [count]',
           '',
-          '  gosper-gun      infinite glider factory',
+          '  r-pentomino     5 cells, ~1103 gen chaos (1970)',
+          '  acorn           7 cells, ~5206 gen chaos (1970s)',
+          '  gosper-gun      infinite glider factory (1970)',
+          '  queen-bee       period-30 oscillator (1970)',
           '  pulsar          period-3 oscillator',
           '  lwss / mwss / hwss   spaceships (c/2)',
           '  pentadecathlon  period-15 oscillator',
           '  switch-engine   infinite growth',
           '  dense           3 acorns, ~15000 gen chaos',
-          '  diamond         symmetric ring seed',
           '',
           '  spawn pulsar           click to place',
           '  spawn pulsar 3         click 3 times',
@@ -2002,7 +2019,7 @@ function toggleTheme() {
 
   var ALL_THEMES    = ['tokyo-night', 'gruvbox', 'kanagawa', 'flexoki-light', 'rose-pine', 'ayu-light'];
   var ALL_PARAMS    = ['life.cell','life.opacity','life.glow','life.autofill','life.rainbow','life.speed','boids.n','boids.size','boids.tick','boids.speed','boids.perception','boids.separation','boids.opacity','boids.glow'];
-  var ALL_PATTERNS  = ['gosper-gun','pulsar','lwss','mwss','hwss','pentadecathlon','switch-engine','dense','diamond'];
+  var ALL_PATTERNS  = ['r-pentomino','acorn','gosper-gun','queen-bee','pulsar','lwss','mwss','hwss','pentadecathlon','switch-engine','dense'];
   var HELP_KEYS     = Object.keys(HELP_TOPICS).concat(Object.keys(HELP_CMDS)).sort();
 
   function completeArg(cmd, pos, typed) {
