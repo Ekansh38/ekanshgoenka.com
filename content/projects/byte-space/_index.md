@@ -12,6 +12,6 @@ devlog: "https://www.youtube.com/playlist?list=PL0VzTA7jLj1SHQWzZwZ8IUoeMu9LrmBK
 
 It is a pretty cool project and you should definitely star it on Github. The link is somewhere bellow this text. If you can't find it here it is:
 
-[github.com/ekansh38/byte-space](https://github.com/ekansh38/byte-space)
+<a href="https://github.com/ekansh38/byte-space" target="_blank">github.com/ekansh38/byte-space</a>
 
 
