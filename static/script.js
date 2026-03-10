@@ -71,8 +71,8 @@ function toggleTheme() {
 
   var MODES = ['life', 'boids', 'combo', 'off'];
   var modeIdx = Math.max(0, MODES.indexOf(localStorage.getItem('bgMode') || 'life'));
-  var lifeSpeedLevel  = Math.max(1, Math.min(20, parseInt(localStorage.getItem('bgLifeSpeed')  || '5')));
-  var boidsSpeedLevel = Math.max(1, Math.min(20, parseInt(localStorage.getItem('bgBoidsSpeed') || '5')));
+  var lifeSpeedLevel  = Math.max(0, Math.min(100, parseInt(localStorage.getItem('bgLifeSpeed')  || '21')));
+  var boidsSpeedLevel = Math.max(0, Math.min(100, parseInt(localStorage.getItem('bgBoidsSpeed') || '21')));
   var W, H;
 
   function isDark() {
@@ -330,18 +330,18 @@ function toggleTheme() {
   ];
 
   var PAT_MWSS = [                                                // middleweight spaceship (11 cells, c/2)
-    [1,0],[2,0],
-    [0,1],[4,1],
+    [1,0],
+    [0,1],[5,1],
     [5,2],
     [0,3],[5,3],
-    [1,4],[2,4],[3,4],[4,4]
+    [1,4],[2,4],[3,4],[4,4],[5,4]
   ];
   var PAT_HWSS = [                                                // heavyweight spaceship (13 cells, c/2)
-    [1,0],[2,0],[3,0],
-    [0,1],[5,1],
+    [1,0],[2,0],
+    [0,1],[6,1],
     [6,2],
     [0,3],[6,3],
-    [1,4],[2,4],[3,4],[4,4],[5,4]
+    [1,4],[2,4],[3,4],[4,4],[5,4],[6,4]
   ];
   var PAT_DENSE = [                                               // chaotic soup — 3 acorns spread apart, ~15000 gen lifespan
     [1,0],[3,1],[0,2],[1,2],[4,2],[5,2],[6,2],
@@ -506,9 +506,10 @@ function toggleTheme() {
     initMode(MODES[modeIdx]);
   }
 
-  // Returns {skip, multi} for a given speed level 1–20.
-  // skip=N means step every N frames; multi=N means N steps per frame.
-  function lifeStepRate(sp) {
+  // Returns {skip, multi} for a given speed percentage 0–100.
+  // Converts pct→1–20 equivalent, then: skip=N means step every N frames; multi=N means N steps per frame.
+  function lifeStepRate(pct) {
+    var sp = 1 + pct / 100 * 19;
     if (sp <= 10) return { skip: Math.max(1, Math.round(36 * Math.pow(1/36, (sp-1)/9))), multi: 1 };
     return { skip: 1, multi: Math.round(1 + (sp - 10) * 1.2) };
   }
@@ -675,12 +676,12 @@ function toggleTheme() {
       'life.speed':     Math.round((lifeSpeedLevel - 1) / 19 * 100),
       'boids.n':          N,
       'boids.size':       BOID_LEN,
-      'boids.speed':      MAX_SPEED,
+      'boids.tick':       MAX_SPEED,
       'boids.perception': PERCEPTION,
       'boids.separation': SEP_DIST,
       'boids.opacity':    Math.round(BOID_OPACITY * 100),
       'boids.glow':       Math.round(BOID_GLOW / 40 * 100),
-      'boids.simspeed':   Math.round((boidsSpeedLevel - 1) / 19 * 100),
+      'boids.speed':      Math.round((boidsSpeedLevel - 1) / 19 * 100),
     };
   };
 
@@ -707,18 +708,18 @@ function toggleTheme() {
       case 'life.speed':
         window.setLifeSpeed(Math.max(1, Math.round(1 + parseFloat(val) / 100 * 19)));
         return true;
-      case 'boids.simspeed':
+      case 'boids.speed':
         window.setBoidsSpeed(Math.max(1, Math.round(1 + parseFloat(val) / 100 * 19)));
         return true;
       case 'boids.n':
         N = Math.max(1, Math.min(1000, Math.round(val)));
-        if (MODES[modeIdx] === 'boids') initBoids();
+        if (MODES[modeIdx] === 'boids' || MODES[modeIdx] === 'combo') initBoids();
         return true;
       case 'boids.size':
         BOID_LEN  = Math.max(1, Math.min(200, val));
         BOID_HALF = BOID_LEN * 0.393;
         return true;
-      case 'boids.speed':
+      case 'boids.tick':
         MAX_SPEED = Math.max(0, Math.min(30, val));
         MIN_SPEED = Math.min(MIN_SPEED, Math.max(0, MAX_SPEED * 0.33));
         return true;
@@ -746,14 +747,14 @@ function toggleTheme() {
     sparse:    { sim:'life',  lspeed:20, bspeed:null, desc:'dim bg',      params:{'life.cell':7,  'life.opacity':9,  'life.glow':0,  'life.autofill':50, 'life.rainbow':0} },
     bloom:     { sim:'life',  lspeed:25, bspeed:null, desc:'full+glow',   params:{'life.cell':7,  'life.opacity':100,'life.glow':80, 'life.autofill':50, 'life.rainbow':0} },
     coarse:    { sim:'life',  lspeed:20, bspeed:null, desc:'chunky cells',params:{'life.cell':14, 'life.opacity':50, 'life.glow':0,  'life.autofill':50, 'life.rainbow':0} },
-    overdrive: { sim:'life',  lspeed:75, bspeed:null, desc:'fast dense',  params:{'life.cell':4,  'life.opacity':9,  'life.glow':0,  'life.autofill':50, 'life.rainbow':0} },
-    chromatic: { sim:'life',  lspeed:30, bspeed:null, desc:'rainbow',     params:{'life.cell':7,  'life.opacity':55, 'life.glow':0,  'life.autofill':50, 'life.rainbow':1} },
+    overdrive: { sim:'life',  lspeed:75, bspeed:null, desc:'fast dense',  params:{'life.cell':4,  'life.opacity':100, 'life.glow':0,  'life.autofill':50, 'life.rainbow':0} },
+    chromatic: { sim:'life',  lspeed:20, bspeed:null, desc:'rainbow',     params:{'life.cell':7,  'life.opacity':55, 'life.glow':0,  'life.autofill':50, 'life.rainbow':1} },
     // boids
-    flock:     { sim:'boids', lspeed:null, bspeed:25, desc:'120 boids',   params:{'boids.n':120,  'boids.size':14, 'boids.speed':1.8, 'boids.opacity':14, 'boids.glow':0} },
-    swarm:     { sim:'boids', lspeed:null, bspeed:40, desc:'350 fast',    params:{'boids.n':350,  'boids.size':8,  'boids.speed':2.8, 'boids.opacity':18, 'boids.glow':0} },
-    drift:     { sim:'boids', lspeed:null, bspeed:15, desc:'15 slow+glow',params:{'boids.n':15,   'boids.size':36, 'boids.speed':0.7, 'boids.opacity':45, 'boids.glow':20} },
-    glow:      { sim:'boids', lspeed:null, bspeed:20, desc:'80 bright',   params:{'boids.n':80,   'boids.size':18, 'boids.speed':1.5, 'boids.opacity':90, 'boids.glow':50} },
-    maxflock:  { sim:'boids', lspeed:null, bspeed:35, desc:'1000 full',   params:{'boids.n':1000, 'boids.size':10, 'boids.speed':2.2, 'boids.opacity':100,'boids.glow':0} },
+    flock:     { sim:'boids', lspeed:null, bspeed:25, desc:'120 boids',   params:{'boids.n':120,  'boids.size':14, 'boids.tick':1.8, 'boids.opacity':14, 'boids.glow':0} },
+    swarm:     { sim:'boids', lspeed:null, bspeed:40, desc:'350 fast',    params:{'boids.n':350,  'boids.size':8,  'boids.tick':2.8, 'boids.opacity':18, 'boids.glow':0} },
+    drift:     { sim:'boids', lspeed:null, bspeed:15, desc:'15 slow+glow',params:{'boids.n':15,   'boids.size':36, 'boids.tick':0.7, 'boids.opacity':45, 'boids.glow':20} },
+    glow:      { sim:'boids', lspeed:null, bspeed:20, desc:'80 bright',   params:{'boids.n':80,   'boids.size':18, 'boids.tick':1.5, 'boids.opacity':90, 'boids.glow':50} },
+    maxflock:  { sim:'boids', lspeed:null, bspeed:35, desc:'1000 full',   params:{'boids.n':1000, 'boids.size':10, 'boids.tick':2.2, 'boids.opacity':100,'boids.glow':0} },
     // combo
     layered:   { sim:'combo', lspeed:20, bspeed:25,  desc:'life+flock',   params:{'life.cell':7,  'life.opacity':7,  'life.autofill':50, 'life.rainbow':0, 'boids.n':120, 'boids.opacity':18, 'boids.glow':0} },
     chaos:     { sim:'combo', lspeed:70, bspeed:40,  desc:'fast chaos',   params:{'life.cell':5,  'life.opacity':9,  'life.autofill':100,'life.rainbow':0, 'boids.n':200, 'boids.opacity':22, 'boids.glow':0} },
@@ -997,8 +998,8 @@ function toggleTheme() {
       'boids:',
       '  boids.n           1–1000   120',
       '  boids.size        1–200    14',
-      '  boids.speed       0–30     1.8  (velocity)',
-      '  boids.simspeed    0–100%   21   (sim tick rate)',
+      '  boids.tick        0–30     1.8  (velocity)',
+      '  boids.speed       0–100%   21   (sim tick rate)',
       '  boids.perception  1–2000   70',
       '  boids.separation  0–1000   50',
       '  boids.opacity     0–100%   14',
@@ -1156,9 +1157,9 @@ function toggleTheme() {
       'boids:',
       '  boids.n 30           few',
       '  boids.n 1000         maxflock',
-      '  boids.speed 0.5      slow velocity',
-      '  boids.speed 8        fast velocity',
-      '  boids.simspeed 50    mid ticks (50%)',
+      '  boids.tick 0.5       slow velocity',
+      '  boids.tick 8         fast velocity',
+      '  boids.speed 50       mid ticks (50%)',
       '  boids.perception 20     blind',
       '  boids.perception 500    hive mind',
       '  boids.separation 0      merge',
@@ -1595,7 +1596,7 @@ function toggleTheme() {
       var ls = window.getLifeSpeed  ? window.getLifeSpeed()  : 5;
       var bs = window.getBoidsSpeed ? window.getBoidsSpeed() : 5;
       if (!args[0]) {
-        line('life.speed = ' + toPct(ls) + '%\nboids.simspeed = ' + toPct(bs) + '%', 'term-line-ok');
+        line('life.speed = ' + toPct(ls) + '%\nboids.speed = ' + toPct(bs) + '%', 'term-line-ok');
         return;
       }
       if (args[0] === 'life' || args[0] === 'boids') {
@@ -1732,8 +1733,8 @@ function toggleTheme() {
         'boids:',
         '  boids.n          ' + v('boids.n')          + '\t(1–1000)',
         '  boids.size       ' + v('boids.size')        + '\t(1–200)',
-        '  boids.speed      ' + v('boids.speed')       + '\t(0–30  velocity)',
-        '  boids.simspeed   ' + v('boids.simspeed')    + '%\t(0–100%  sim tick rate)',
+        '  boids.tick       ' + v('boids.tick')        + '\t(0–30  velocity)',
+        '  boids.speed      ' + v('boids.speed')       + '%\t(0–100%  sim tick rate)',
         '  boids.perception ' + v('boids.perception')  + '\t(1–2000)',
         '  boids.separation ' + v('boids.separation')  + '\t(0–1000)',
         '  boids.opacity    ' + v('boids.opacity')     + '%\t(0–100%)',
@@ -2002,7 +2003,7 @@ function toggleTheme() {
   }
 
   var ALL_THEMES    = ['tokyo-night', 'gruvbox', 'kanagawa', 'flexoki-light', 'rose-pine', 'ayu-light'];
-  var ALL_PARAMS    = ['life.cell','life.opacity','life.glow','life.autofill','life.rainbow','life.speed','boids.n','boids.size','boids.speed','boids.simspeed','boids.perception','boids.separation','boids.opacity','boids.glow'];
+  var ALL_PARAMS    = ['life.cell','life.opacity','life.glow','life.autofill','life.rainbow','life.speed','boids.n','boids.size','boids.tick','boids.speed','boids.perception','boids.separation','boids.opacity','boids.glow'];
   var ALL_PATTERNS  = ['gosper-gun','pulsar','lwss','mwss','hwss','pentadecathlon','switch-engine','dense','diamond'];
   var HELP_KEYS     = Object.keys(HELP_TOPICS).concat(Object.keys(HELP_CMDS)).sort();
 
