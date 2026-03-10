@@ -289,11 +289,49 @@ body { background: transparent; text-shadow: 0 0 18px var(--shadow), 0 0 6px var
 .term-line-ok   { color: var(--accent); }
 .term-line-pre  { white-space: pre; font-family: inherit; margin: 0; }
 
+/* ── PRESET PICKER (desktop only) ───────────────────────────── */
+#preset-picker { display: none; }
+
 /* ── THEME PICKER (desktop only) ────────────────────────────── */
 #theme-picker { display: none; }
 
 @media (hover: hover) and (pointer: fine) {
   #t { display: none; }
+
+  #preset-picker {
+    display: block;
+    position: fixed;
+    bottom: 22px;
+    right: 122px;
+    z-index: 200;
+    font-size: 0.72rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  #preset-picker-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.72rem;
+    padding: 0;
+    outline: none;
+    transition: color 0.15s;
+  }
+  #preset-picker-btn:hover { color: var(--fg); }
+
+  #preset-picker-menu {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    right: 0;
+    min-width: 200px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 20px var(--shadow);
+  }
+  #preset-picker-menu.open { display: block; }
 
   #theme-picker {
     display: block;

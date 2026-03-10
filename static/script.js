@@ -69,9 +69,10 @@ function toggleTheme() {
   if (!canvas) return;
   var ctx = canvas.getContext('2d');
 
-  var MODES = ['life', 'boids', 'off'];
+  var MODES = ['life', 'boids', 'combo', 'off'];
   var modeIdx = Math.max(0, MODES.indexOf(localStorage.getItem('bgMode') || 'life'));
-  var speedLevel = parseInt(localStorage.getItem('bgSpeed') || '2');
+  var lifeSpeedLevel  = Math.max(1, Math.min(20, parseInt(localStorage.getItem('bgLifeSpeed')  || '5')));
+  var boidsSpeedLevel = Math.max(1, Math.min(20, parseInt(localStorage.getItem('bgBoidsSpeed') || '5')));
   var W, H;
 
   function isDark() {
@@ -87,6 +88,7 @@ function toggleTheme() {
     ctx.clearRect(0, 0, W, H);
     if (mode === 'boids') initBoids();
     if (mode === 'life')  initLife();
+    if (mode === 'combo') { initLife(); initBoids(); }
   }
 
   function cycleMode() {
@@ -190,7 +192,7 @@ function toggleTheme() {
       if (spd > MAX_SPEED) { b.vx = b.vx/spd*MAX_SPEED; b.vy = b.vy/spd*MAX_SPEED; }
       else if (spd < MIN_SPEED && spd > 1e-4) { b.vx = b.vx/spd*MIN_SPEED; b.vy = b.vy/spd*MIN_SPEED; }
 
-      var sp = lifeCurrentSpeed / 5;
+      var sp = boidsCurrentSpeed / 5;
       b.x += b.vx * sp; b.y += b.vy * sp;
       if (b.x < -20) b.x = W+20; else if (b.x > W+20) b.x = -20;
       if (b.y < -20) b.y = H+20; else if (b.y > H+20) b.y = -20;
@@ -222,8 +224,8 @@ function toggleTheme() {
     return 'rgba('+r+','+g+','+b+','+alpha+')';
   }
 
-  function drawBoids() {
-    ctx.clearRect(0, 0, W, H);
+  function drawBoids(noClear) {
+    if (!noClear) ctx.clearRect(0, 0, W, H);
     if (BOID_GLOW > 0) {
       ctx.shadowColor = accentRgba(1);
       ctx.shadowBlur  = BOID_GLOW;
@@ -262,7 +264,11 @@ function toggleTheme() {
   var grid, next;
   var lifeFrame = 0;
   var liveCount = 0;
-  var lifeCurrentSpeed = 5;
+  var lifeCurrentSpeed  = lifeSpeedLevel;
+  var boidsCurrentSpeed = boidsSpeedLevel;
+  var LIFE_RAINBOW   = 0;   // 0=off 1=time 2=age 3=position
+  var lifeRainbowHue = 0;
+  var cellAge        = null;
 
   // Known patterns as [dx, dy] offsets from placement origin
   var PAT_GLIDER_SE = [[1,0],[2,1],[0,2],[1,2],[2,2]];            // moves SE
@@ -323,12 +329,69 @@ function toggleTheme() {
     [1,5],[4,5]
   ];
 
+  var PAT_MWSS = [                                                // middleweight spaceship
+    [2,0],[3,0],[4,0],
+    [0,1],[4,1],
+    [4,2],
+    [0,3],[3,3],[4,3]
+  ];
+  var PAT_HWSS = [                                                // heavyweight spaceship
+    [2,0],[3,0],[4,0],[5,0],
+    [0,1],[5,1],
+    [5,2],
+    [0,3],[4,3],[5,3]
+  ];
+  var PAT_DENSE = [                                               // 5×5 density bomb
+    [0,0],[1,0],[2,0],[3,0],[4,0],
+    [0,1],[1,1],[2,1],[3,1],[4,1],
+    [0,2],[1,2],[2,2],[3,2],[4,2],
+    [0,3],[1,3],[2,3],[3,3],[4,3],
+    [0,4],[1,4],[2,4],[3,4],[4,4]
+  ];
+  var PAT_DIAMOND = [                                             // symmetric ring — evolves symmetrically
+    [3,0],
+    [2,1],[4,1],
+    [1,2],[5,2],
+    [0,3],[6,3],
+    [1,4],[5,4],
+    [2,5],[4,5],
+    [3,6]
+  ];
+  var PAT_RPENTO_LINE = [                                         // 4 R-pentomonoes in a row — chaos stream
+    [1,0],[2,0],[0,1],[1,1],[1,2],
+    [9,0],[10,0],[8,1],[9,1],[9,2],
+    [17,0],[18,0],[16,1],[17,1],[17,2],
+    [25,0],[26,0],[24,1],[25,1],[25,2]
+  ];
+  var PAT_BIGUN = [                                               // two glider guns firing at each other
+    // Gosper gun firing right
+    [24,0],[22,1],[24,1],
+    [12,2],[13,2],[20,2],[21,2],[34,2],[35,2],
+    [11,3],[15,3],[20,3],[21,3],[34,3],[35,3],
+    [0,4],[1,4],[10,4],[16,4],[20,4],[21,4],
+    [0,5],[1,5],[10,5],[14,5],[16,5],[17,5],[22,5],[24,5],
+    [10,6],[16,6],[24,6],[11,7],[15,7],[12,8],[13,8],
+    // Gosper gun firing left (mirrored at x=50)
+    [25,20],[27,20],[25,21],
+    [37,22],[36,22],[29,22],[28,22],[15,22],[14,22],
+    [38,23],[34,23],[29,23],[28,23],[14,23],[15,23],
+    [49,24],[48,24],[39,24],[33,24],[29,24],[28,24],
+    [49,25],[48,25],[39,25],[35,25],[33,25],[32,25],[27,25],[25,25],
+    [39,26],[33,26],[25,26],[38,27],[34,27],[37,28],[36,28]
+  ];
+
   var SPAWN_PATTERNS = {
     'gosper-gun':     PAT_GOSPER_GUN,
     'pulsar':         PAT_PULSAR,
     'lwss':           PAT_LWSS,
+    'mwss':           PAT_MWSS,
+    'hwss':           PAT_HWSS,
     'pentadecathlon': PAT_PENTADECATHLON,
     'switch-engine':  PAT_SWITCHENGINE,
+    'dense':          PAT_DENSE,
+    'diamond':        PAT_DIAMOND,
+    'rpento-line':    PAT_RPENTO_LINE,
+    'bigun':          PAT_BIGUN,
   };
 
   function placePattern(cx, cy, cells) {
@@ -346,6 +409,7 @@ function toggleTheme() {
     next      = new Uint8Array(GW * GH);
     liveCount = 0;
     lifeFrame = 0;
+    cellAge = LIFE_RAINBOW === 2 ? new Uint16Array(GW * GH) : null;
 
     // Sparse random base — density scales with autofill (>1 = overpopulated)
     var fillRate = LIFE_AUTOFILL <= 1
@@ -396,6 +460,11 @@ function toggleTheme() {
       }
     }
     var tmp = grid; grid = next; next = tmp;
+    if (LIFE_RAINBOW === 1) lifeRainbowHue = (lifeRainbowHue + 2) % 360;
+    if (LIFE_RAINBOW === 2 && cellAge) {
+      for (var i = 0; i < GW * GH; i++)
+        cellAge[i] = grid[i] ? Math.min(65535, cellAge[i] + 1) : 0;
+    }
     // Auto-fertilise: keep activity up so the sim never looks like it stalled
     if (LIFE_AUTOFILL > 0 && liveCount < GW * GH * 0.05 * LIFE_AUTOFILL) {
       var seeds = [PAT_RPENTO, PAT_ACORN, PAT_DIEHARD, PAT_GLIDER_SE, PAT_GLIDER_NW];
@@ -410,18 +479,44 @@ function toggleTheme() {
     }
   }
 
-  function drawLife() {
-    ctx.clearRect(0, 0, W, H);
+  function drawLife(noClear) {
+    if (!noClear) ctx.clearRect(0, 0, W, H);
     if (LIFE_GLOW > 0) {
-      ctx.shadowColor = accentRgba(1);
+      ctx.shadowColor = LIFE_RAINBOW > 0 ? 'rgba(255,255,255,0.8)' : accentRgba(1);
       ctx.shadowBlur  = LIFE_GLOW;
     } else {
       ctx.shadowBlur = 0;
     }
-    ctx.fillStyle = accentRgba(LIFE_OPACITY);
-    for (var y = 0; y < GH; y++) {
-      for (var x = 0; x < GW; x++) {
-        if (grid[y*GW + x]) ctx.fillRect(x*CELL+1, y*CELL+1, CELL-2, CELL-2);
+    if (LIFE_RAINBOW === 0) {
+      ctx.fillStyle = accentRgba(LIFE_OPACITY);
+      for (var y = 0; y < GH; y++)
+        for (var x = 0; x < GW; x++)
+          if (grid[y*GW + x]) ctx.fillRect(x*CELL+1, y*CELL+1, CELL-2, CELL-2);
+    } else if (LIFE_RAINBOW === 1) {
+      // time: all cells same hue, rotates each step
+      ctx.fillStyle = 'hsla(' + lifeRainbowHue + ',72%,60%,' + LIFE_OPACITY + ')';
+      for (var y = 0; y < GH; y++)
+        for (var x = 0; x < GW; x++)
+          if (grid[y*GW + x]) ctx.fillRect(x*CELL+1, y*CELL+1, CELL-2, CELL-2);
+    } else if (LIFE_RAINBOW === 2) {
+      // age: newly born = red, older cycles through spectrum
+      for (var y = 0; y < GH; y++) {
+        for (var x = 0; x < GW; x++) {
+          if (!grid[y*GW + x]) continue;
+          var age = cellAge ? cellAge[y*GW + x] : 0;
+          ctx.fillStyle = 'hsla(' + (age * 4 % 360) + ',72%,60%,' + LIFE_OPACITY + ')';
+          ctx.fillRect(x*CELL+1, y*CELL+1, CELL-2, CELL-2);
+        }
+      }
+    } else if (LIFE_RAINBOW === 3) {
+      // position: diagonal spatial rainbow
+      for (var y = 0; y < GH; y++) {
+        for (var x = 0; x < GW; x++) {
+          if (!grid[y*GW + x]) continue;
+          var hue = Math.round((x + y) * 360 / (GW + GH)) % 360;
+          ctx.fillStyle = 'hsla(' + hue + ',72%,60%,' + LIFE_OPACITY + ')';
+          ctx.fillRect(x*CELL+1, y*CELL+1, CELL-2, CELL-2);
+        }
       }
     }
     ctx.shadowBlur = 0;
@@ -435,20 +530,36 @@ function toggleTheme() {
     initMode(MODES[modeIdx]);
   }
 
+  // Returns {skip, multi} for a given speed level 1–20.
+  // skip=N means step every N frames; multi=N means N steps per frame.
+  function lifeStepRate(sp) {
+    if (sp <= 10) return { skip: Math.max(1, Math.round(36 * Math.pow(1/36, (sp-1)/9))), multi: 1 };
+    return { skip: 1, multi: Math.round(1 + (sp - 10) * 1.2) };
+  }
+
   function loop() {
-    // Smoothly lerp toward target speed for fluid slider feel
-    lifeCurrentSpeed += (speedLevel - lifeCurrentSpeed) * 0.07;
+    lifeCurrentSpeed  += (lifeSpeedLevel  - lifeCurrentSpeed)  * 0.07;
+    boidsCurrentSpeed += (boidsSpeedLevel - boidsCurrentSpeed) * 0.07;
 
     var mode = MODES[modeIdx];
     if (mode === 'life') {
       lifeFrame++;
-      // speedLevel 1→slowest (every 18 frames), 10→fast (every 1)
-      var lifeSpeed = Math.max(1, Math.round(18 * Math.pow(1/18, (lifeCurrentSpeed - 1) / 9)));
-      if (lifeFrame % lifeSpeed === 0) stepLife();
-      drawLife();
+      var lr = lifeStepRate(lifeCurrentSpeed);
+      if (lr.multi > 1) { for (var i = 0; i < lr.multi; i++) stepLife(); }
+      else if (lifeFrame % lr.skip === 0) stepLife();
+      drawLife(false);
     } else if (mode === 'boids') {
       updateBoids();
-      drawBoids();
+      drawBoids(false);
+    } else if (mode === 'combo') {
+      lifeFrame++;
+      var lr = lifeStepRate(lifeCurrentSpeed);
+      if (lr.multi > 1) { for (var i = 0; i < lr.multi; i++) stepLife(); }
+      else if (lifeFrame % lr.skip === 0) stepLife();
+      updateBoids();
+      ctx.clearRect(0, 0, W, H);
+      drawLife(true);   // noClear=true: life drawn on fresh canvas
+      drawBoids(true);  // noClear=true: boids drawn on top
     } else {
       ctx.clearRect(0, 0, W, H);
     }
@@ -468,18 +579,32 @@ function toggleTheme() {
     localStorage.setItem('bgMode', m);
     updateBtn();
     initMode(m);
+    if (window._rebuildPresetPicker) window._rebuildPresetPicker();
     return true;
   };
-  window.getBgMode  = function () { return MODES[modeIdx]; };
-  window.setBgSpeed = function (n) {
-    speedLevel = Math.max(1, Math.min(10, n));
-    localStorage.setItem('bgSpeed', speedLevel);
+  window.getBgMode    = function () { return MODES[modeIdx]; };
+  window.setLifeSpeed = function (n) {
+    lifeSpeedLevel = Math.max(1, Math.min(20, Math.round(n)));
+    localStorage.setItem('bgLifeSpeed', lifeSpeedLevel);
   };
-  window.getBgSpeed = function () { return speedLevel; };
-  window.resetBg    = function () { LIFE_AUTOFILL = 1; initMode(MODES[modeIdx]); };
+  window.setBoidsSpeed = function (n) {
+    boidsSpeedLevel = Math.max(1, Math.min(20, Math.round(n)));
+    localStorage.setItem('bgBoidsSpeed', boidsSpeedLevel);
+  };
+  window.setBgSpeed = function (n) {  // sets both (backward compat)
+    window.setLifeSpeed(n); window.setBoidsSpeed(n);
+  };
+  window.getLifeSpeed  = function () { return lifeSpeedLevel; };
+  window.getBoidsSpeed = function () { return boidsSpeedLevel; };
+  window.getBgSpeed    = function () { return lifeSpeedLevel; };
+  window.resetBg       = function () { LIFE_AUTOFILL = 1; initMode(MODES[modeIdx]); };
 
   function ensureLife() {
-    if (MODES[modeIdx] !== 'life') { modeIdx = MODES.indexOf('life'); initMode('life'); updateBtn(); }
+    if (MODES[modeIdx] !== 'life' && MODES[modeIdx] !== 'combo') {
+      modeIdx = MODES.indexOf('life'); initMode('life'); updateBtn();
+    } else if (MODES[modeIdx] === 'combo' && !grid) {
+      initLife();
+    }
   }
 
   window.spawnPattern = function (name) {
@@ -570,6 +695,8 @@ function toggleTheme() {
       'life.opacity':   LIFE_OPACITY,
       'life.glow':      LIFE_GLOW,
       'life.autofill':  LIFE_AUTOFILL,
+      'life.rainbow':   LIFE_RAINBOW,
+      'life.speed':     lifeSpeedLevel,
       'boids.n':          N,
       'boids.size':       BOID_LEN,
       'boids.speed':      MAX_SPEED,
@@ -577,6 +704,7 @@ function toggleTheme() {
       'boids.separation': SEP_DIST,
       'boids.opacity':    BOID_OPACITY,
       'boids.glow':       BOID_GLOW,
+      'boids.simspeed':   boidsSpeedLevel,
     };
   };
 
@@ -595,6 +723,16 @@ function toggleTheme() {
       case 'life.autofill':
         LIFE_AUTOFILL = Math.max(0, Math.min(2, parseFloat(val)));
         if (MODES[modeIdx] === 'life') initLife();
+        return true;
+      case 'life.rainbow':
+        LIFE_RAINBOW = Math.max(0, Math.min(3, Math.round(parseFloat(val) || 0)));
+        if (LIFE_RAINBOW === 2 && !cellAge && grid) cellAge = new Uint16Array(GW * GH);
+        return true;
+      case 'life.speed':
+        window.setLifeSpeed(val);
+        return true;
+      case 'boids.simspeed':
+        window.setBoidsSpeed(val);
         return true;
       case 'boids.n':
         N = Math.max(1, Math.min(1000, Math.round(val)));
@@ -628,28 +766,95 @@ function toggleTheme() {
   // ── presets ──────────────────────────────────────────────────
   var PRESETS = {
     // life
-    ghost:   { sim:'life',   speed:null, params:{'life.cell':7,  'life.opacity':0.09, 'life.glow':0,  'life.autofill':1} },
-    neon:    { sim:'life',   speed:null, params:{'life.cell':7,  'life.opacity':1.0,  'life.glow':32, 'life.autofill':1} },
-    pixel:   { sim:'life',   speed:null, params:{'life.cell':14, 'life.opacity':0.5,  'life.glow':0,  'life.autofill':1} },
-    matrix:  { sim:'life',   speed:9,    params:{'life.cell':4,  'life.opacity':0.09, 'life.glow':0,  'life.autofill':1} },
+    sparse:    { sim:'life',  lspeed:null, bspeed:null, desc:'dim bg',      params:{'life.cell':7,  'life.opacity':0.09, 'life.glow':0,  'life.autofill':1,  'life.rainbow':0} },
+    bloom:     { sim:'life',  lspeed:null, bspeed:null, desc:'full+glow',   params:{'life.cell':7,  'life.opacity':1.0,  'life.glow':32, 'life.autofill':1,  'life.rainbow':0} },
+    coarse:    { sim:'life',  lspeed:null, bspeed:null, desc:'chunky cells',params:{'life.cell':14, 'life.opacity':0.5,  'life.glow':0,  'life.autofill':1,  'life.rainbow':0} },
+    overdrive: { sim:'life',  lspeed:16,   bspeed:null, desc:'fast dense',  params:{'life.cell':4,  'life.opacity':0.09, 'life.glow':0,  'life.autofill':1,  'life.rainbow':0} },
+    chromatic: { sim:'life',  lspeed:null, bspeed:null, desc:'rainbow',     params:{'life.cell':7,  'life.opacity':0.55, 'life.glow':0,  'life.autofill':1,  'life.rainbow':1} },
     // boids
-    default: { sim:'boids',  speed:null, params:{'boids.n':120,  'boids.size':14, 'boids.speed':1.8, 'boids.opacity':0.14, 'boids.glow':0} },
-    swarm:   { sim:'boids',  speed:null, params:{'boids.n':350,  'boids.size':8,  'boids.speed':2.8, 'boids.opacity':0.18, 'boids.glow':0} },
-    drift:   { sim:'boids',  speed:null, params:{'boids.n':15,   'boids.size':36, 'boids.speed':0.7, 'boids.opacity':0.45, 'boids.glow':8} },
-    nebula:  { sim:'boids',  speed:null, params:{'boids.n':80,   'boids.size':18, 'boids.speed':1.5, 'boids.opacity':0.9,  'boids.glow':20} },
+    flock:     { sim:'boids', lspeed:null, bspeed:null, desc:'120 boids',   params:{'boids.n':120,  'boids.size':14, 'boids.speed':1.8, 'boids.opacity':0.14, 'boids.glow':0} },
+    swarm:     { sim:'boids', lspeed:null, bspeed:null, desc:'350 fast',    params:{'boids.n':350,  'boids.size':8,  'boids.speed':2.8, 'boids.opacity':0.18, 'boids.glow':0} },
+    drift:     { sim:'boids', lspeed:null, bspeed:null, desc:'15 slow+glow',params:{'boids.n':15,   'boids.size':36, 'boids.speed':0.7, 'boids.opacity':0.45, 'boids.glow':8} },
+    glow:      { sim:'boids', lspeed:null, bspeed:null, desc:'80 bright',   params:{'boids.n':80,   'boids.size':18, 'boids.speed':1.5, 'boids.opacity':0.9,  'boids.glow':20} },
+    maxflock:  { sim:'boids', lspeed:null, bspeed:null, desc:'1000 full',   params:{'boids.n':1000, 'boids.size':10, 'boids.speed':2.2, 'boids.opacity':1.0,  'boids.glow':0} },
+    // combo
+    layered:   { sim:'combo', lspeed:null, bspeed:null, desc:'life+flock',  params:{'life.cell':7,  'life.opacity':0.07, 'life.autofill':1, 'life.rainbow':0, 'boids.n':120, 'boids.opacity':0.18, 'boids.glow':0} },
+    chaos:     { sim:'combo', lspeed:14,   bspeed:null, desc:'fast chaos',  params:{'life.cell':5,  'life.opacity':0.09, 'life.autofill':2, 'life.rainbow':0, 'boids.n':200, 'boids.opacity':0.22, 'boids.glow':0} },
+    spectrum:  { sim:'combo', lspeed:null, bspeed:null, desc:'rainbow+flock',params:{'life.cell':7, 'life.opacity':0.45, 'life.autofill':1, 'life.rainbow':1, 'boids.n':80,  'boids.opacity':0.5,  'boids.glow':6} },
   };
 
   window.getPresetNames = function () { return Object.keys(PRESETS); };
+  window.getPresetsForMode = function (mode) {
+    return Object.keys(PRESETS).filter(function (k) { return PRESETS[k].sim === mode; });
+  };
 
+  // ── preset picker (rebuilt whenever mode or active preset changes) ─
+  function rebuildPresetPicker() {
+    var menu = document.getElementById('preset-picker-menu');
+    if (!menu) return;
+    menu.innerHTML = '';
+    var mode = MODES[modeIdx];
+    var header = document.createElement('div');
+    header.className = 'tp-header';
+    header.textContent = ':preset';
+    menu.appendChild(header);
+    var names = window.getPresetsForMode(mode);
+    if (!names.length) {
+      var empty = document.createElement('div');
+      empty.className = 'tp-header';
+      empty.textContent = '(none for ' + mode + ')';
+      menu.appendChild(empty);
+      return;
+    }
+    names.forEach(function (name) {
+      var p = PRESETS[name];
+      var btn = document.createElement('button');
+      btn.className = 'tp-item' + (activePreset === name ? ' active' : '');
+      btn.innerHTML =
+        '<span class="tp-arrow">▶</span>' + name +
+        '<span class="tp-variant">' + (p.desc || '') + '</span>';
+      btn.addEventListener('click', function () {
+        window.applyPreset(name);
+        document.getElementById('preset-picker-menu').classList.remove('open');
+      });
+      menu.appendChild(btn);
+    });
+  }
+  window._rebuildPresetPicker = rebuildPresetPicker;
+
+  document.addEventListener('DOMContentLoaded', function () {
+    rebuildPresetPicker();
+    var ppBtn  = document.getElementById('preset-picker-btn');
+    var ppMenu = document.getElementById('preset-picker-menu');
+    if (ppBtn && ppMenu) {
+      ppBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        rebuildPresetPicker();
+        ppMenu.classList.toggle('open');
+      });
+      document.addEventListener('click', function () { ppMenu.classList.remove('open'); });
+      ppMenu.addEventListener('click', function (e) { e.stopPropagation(); });
+    }
+  });
+
+  // rebuild picker whenever mode changes
+  var _origCycleMode = cycleMode;
+  cycleMode = function () { _origCycleMode(); rebuildPresetPicker(); };
+
+  var activePreset = null;
   window.applyPreset = function (name) {
     var p = PRESETS[name];
     if (!p) return false;
-    if (p.sim)           window.setBgMode(p.sim);
-    if (p.speed !== null && p.speed !== undefined) window.setBgSpeed(p.speed);
+    if (p.sim) window.setBgMode(p.sim);
+    if (p.lspeed != null) window.setLifeSpeed(p.lspeed);
+    if (p.bspeed != null) window.setBoidsSpeed(p.bspeed);
     var keys = Object.keys(p.params);
     for (var i = 0; i < keys.length; i++) window.setParam(keys[i], p.params[keys[i]]);
+    activePreset = name;
+    if (window._rebuildPresetPicker) window._rebuildPresetPicker();
     return true;
   };
+  window.getActivePreset = function () { return activePreset; };
 })();
 // ================================================================
 // END BG EFFECT
@@ -742,7 +947,7 @@ function toggleTheme() {
     'help [topic|command]',
     '',
     '  nav    ls  cat  cd  pwd  open',
-    '  bg     bg  speed  reset  params  set  preset  wipe  fill  spawn',
+    '  bg     bg  speed  reset  params  set  preset  wipe  fill  spawn  combo',
     '  look   colorscheme  color',
     '  sys    neofetch  top  ps  df  env  history  whoami',
     '  fun    cowsay  curl',
@@ -782,36 +987,42 @@ function toggleTheme() {
     bg: [
       'bg',
       '',
-      '  bg [life|boids|off]    get/set mode',
-      '  speed [1-10]           get/set speed',
-      '  reset                  reinit from scratch',
-      '  preset <name>          apply a named preset',
-      '  params                 all params + values',
-      '  set <param> <val>      change a param',
+      '  bg [life|boids|combo|off]   get/set mode',
+      '  speed [life|boids] [1-20]   get/set speed',
+      '  reset                       reinit from scratch',
+      '  preset <name>               apply a named preset',
+      '  params                      all params + values',
+      '  set <param> <val>           change a param',
       '',
-      'presets:',
-      '  ghost  neon  pixel  matrix',
-      '  default  swarm  drift  nebula',
+      'presets (life):',
+      '  sparse  bloom  coarse  overdrive  chromatic',
+      'presets (boids):',
+      '  flock  swarm  drift  glow  maxflock',
+      'presets (combo):',
+      '  layered  chaos  spectrum',
       '',
       'life:',
       '  wipe                   clear grid, stop autofill',
       '  fill                   re-enable autofill',
       '  spawn <pat>            click to place',
-      '  spawn <pat> [n]        click n times',
-      '  spawn <pat> random     random location',
-      '  spawn <pat> random [n] n placements',
+      '  spawn <pat> random [n] n random placements',
       '',
-      '  gosper-gun  pulsar  lwss  pentadecathlon  switch-engine',
+      '  gosper-gun  pulsar  lwss  mwss  hwss',
+      '  pentadecathlon  switch-engine',
+      '  dense  diamond  rpento-line  bigun',
       '',
       '  life.cell      1–80     7',
       '  life.opacity   0.01–1   0.09',
       '  life.glow      0–40     0',
       '  life.autofill  0–2      1',
+      '  life.rainbow   0–3      0  (0=off 1=time 2=age 3=pos)',
+      '  life.speed     1–20     5  (sim tick rate)',
       '',
       'boids:',
       '  boids.n           1–1000   120',
       '  boids.size        1–200    14',
-      '  boids.speed       0–30     1.8',
+      '  boids.speed       0–30     1.8  (velocity)',
+      '  boids.simspeed    1–20     5    (sim tick rate)',
       '  boids.perception  1–2000   70',
       '  boids.separation  0–1000   50',
       '  boids.opacity     0.01–1   0.14',
@@ -896,39 +1107,50 @@ function toggleTheme() {
     ].join('\n'),
 
     bg: [
-      'bg [life|boids|off]',
+      'bg [life|boids|combo|off]',
       '',
       '  bg           current mode',
       '  bg life      Conway\'s Game of Life',
       '  bg boids     flocking sim',
+      '  bg combo     life + boids layers',
       '  bg off       disable',
       '',
       'help bg    full guide',
     ].join('\n'),
 
     speed: [
-      'speed [1-10]',
+      'speed [life|boids] [1-20]',
       '',
-      '  speed       current level',
-      '  speed 1     slowest',
-      '  speed 5     default',
-      '  speed 10    fastest',
+      '  speed              show both speeds',
+      '  speed life         current life speed',
+      '  speed boids        current boids speed',
+      '  speed life 10      set life to 10',
+      '  speed boids 15     set boids to 15',
+      '  speed 5            set both to 5',
+      '  1=slowest  20=fastest',
     ].join('\n'),
 
     preset: [
       'preset <name>',
       '',
       'life:',
-      '  ghost    barely visible (default)',
-      '  neon     opacity 1  glow 32  — intense',
-      '  pixel    chunky 14px blocks',
-      '  matrix   cell 4  glow 6  speed 9',
+      '  sparse     dim bg (default)',
+      '  bloom      full opacity + glow 32',
+      '  coarse     chunky 14px cells',
+      '  overdrive  tiny cells fast',
+      '  chromatic  rainbow time-shift',
       '',
       'boids:',
-      '  default  120 boids  factory reset',
-      '  swarm    350 fast small boids',
-      '  drift    15 slow large  glow 8',
-      '  nebula   80  opacity 0.9  glow 20',
+      '  flock      120 boids (default)',
+      '  swarm      350 fast small boids',
+      '  drift      15 slow large + glow',
+      '  glow       80 bright + glow 20',
+      '  maxflock   1000 boids full opacity',
+      '',
+      'combo:',
+      '  layered    life + flock overlay',
+      '  chaos      dense life + 200 boids',
+      '  spectrum   rainbow life + glow flock',
     ].join('\n'),
 
     reset:   'reset\n  reinit sim',
@@ -940,26 +1162,31 @@ function toggleTheme() {
       '  <param>   print current value',
       '',
       'life:',
-      '  life.cell 1        pixel cells',
-      '  life.cell 14       chunky',
-      '  life.opacity 0.5   visible',
-      '  life.opacity 1     full',
-      '  life.glow 12       bloom',
-      '  life.glow 30       heavy',
-      '  life.autofill 0    = wipe',
-      '  life.autofill 1    = normal',
-      '  life.autofill 2    = overpopulated',
+      '  life.cell 1         pixel cells',
+      '  life.cell 14        chunky',
+      '  life.opacity 0.5    visible',
+      '  life.opacity 1      full',
+      '  life.glow 12        bloom',
+      '  life.glow 30        heavy',
+      '  life.autofill 0     = wipe',
+      '  life.autofill 2     = overpopulated',
+      '  life.rainbow off    no color',
+      '  life.rainbow time   hue rotates',
+      '  life.rainbow age    born=red → old',
+      '  life.rainbow position  spatial',
+      '  life.speed 5        sim tick rate',
       '',
       'boids:',
-      '  boids.n 30         few',
-      '  boids.n 400        swarm',
-      '  boids.speed 0.5    slow',
-      '  boids.speed 8      fast',
-      '  boids.perception 20   blind',
-      '  boids.perception 500  hive mind',
-      '  boids.separation 0    merge',
-      '  boids.opacity 0.9  bright',
-      '  boids.glow 20      glow',
+      '  boids.n 30          few',
+      '  boids.n 1000        maxflock',
+      '  boids.speed 0.5     slow velocity',
+      '  boids.speed 8       fast velocity',
+      '  boids.simspeed 10   fast ticks',
+      '  boids.perception 20    blind',
+      '  boids.perception 500   hive mind',
+      '  boids.separation 0     merge',
+      '  boids.opacity 0.9   bright',
+      '  boids.glow 20       glow',
     ].join('\n'),
 
     wipe: [
@@ -982,11 +1209,17 @@ function toggleTheme() {
       '  spawn pulsar random       random location',
       '  spawn pulsar random 5     5 random',
       '',
-      '  gosper-gun    glider factory',
+      '  gosper-gun    infinite glider factory',
       '  pulsar        period-3 oscillator',
-      '  lwss          spaceship',
-      '  pentadecathlon  period-15',
+      '  lwss          lightweight spaceship',
+      '  mwss          middleweight spaceship',
+      '  hwss          heavyweight spaceship',
+      '  pentadecathlon  period-15 oscillator',
       '  switch-engine   infinite growth',
+      '  dense           5×5 density bomb',
+      '  diamond         symmetric ring seed',
+      '  rpento-line     4 R-pentomonoes in a row',
+      '  bigun           dual glider guns',
       '',
       '  click mode: esc to cancel',
       '  wipe first for clean canvas',
@@ -1373,18 +1606,37 @@ function toggleTheme() {
       var m = args[0];
       if (!m) { line('bg: ' + (window.getBgMode ? window.getBgMode() : '?'), 'term-line-ok'); return; }
       if (!window.setBgMode || !window.setBgMode(m))
-        line('bg: unknown mode. try: life  boids  off', 'term-line-err');
+        line('bg: unknown mode. try: life  boids  combo  off', 'term-line-err');
       else
         line('bg → ' + m, 'term-line-ok');
     },
 
     speed: function (args) {
+      // speed                     → show both
+      // speed life|boids [1-20]   → set specific
+      // speed [1-20]              → set both
+      var ls = window.getLifeSpeed  ? window.getLifeSpeed()  : '?';
+      var bs = window.getBoidsSpeed ? window.getBoidsSpeed() : '?';
+      if (!args[0]) {
+        line('life.speed = ' + ls + ' / 20\nboids.speed = ' + bs + ' / 20', 'term-line-ok');
+        return;
+      }
+      if (args[0] === 'life' || args[0] === 'boids') {
+        if (args.length > 2) { tooMany('speed'); return; }
+        var which = args[0];
+        if (!args[1]) { line(which + '.speed = ' + (which === 'life' ? ls : bs) + ' / 20', 'term-line-ok'); return; }
+        var n = parseInt(args[1]);
+        if (isNaN(n) || n < 1 || n > 20) { line('speed: value must be 1–20', 'term-line-err'); return; }
+        if (which === 'life'  && window.setLifeSpeed)  window.setLifeSpeed(n);
+        if (which === 'boids' && window.setBoidsSpeed) window.setBoidsSpeed(n);
+        line(which + '.speed → ' + n, 'term-line-ok');
+        return;
+      }
       if (args.length > 1) { tooMany('speed'); return; }
-      if (!args[0]) { line('speed: ' + (window.getBgSpeed ? window.getBgSpeed() : '?') + ' / 10', 'term-line-ok'); return; }
       var n = parseInt(args[0]);
-      if (isNaN(n) || n < 1 || n > 10) { line('speed: value must be 1–10', 'term-line-err'); return; }
+      if (isNaN(n) || n < 1 || n > 20) { line('speed: value must be 1–20', 'term-line-err'); return; }
       if (window.setBgSpeed) window.setBgSpeed(n);
-      line('speed → ' + n, 'term-line-ok');
+      line('speed → ' + n + '  (life + boids)', 'term-line-ok');
     },
 
     reset: function (args) {
@@ -1401,9 +1653,13 @@ function toggleTheme() {
           '',
           '  gosper-gun     infinite glider factory',
           '  pulsar         period-3 oscillator',
-          '  lwss           lightweight spaceship',
+          '  lwss / mwss / hwss   spaceships',
           '  pentadecathlon period-15 oscillator',
           '  switch-engine  infinite growth',
+          '  dense          5×5 density bomb',
+          '  diamond        symmetric ring seed',
+          '  rpento-line    4 R-pentomonoes in a row',
+          '  bigun          dual glider guns',
           '',
           '  spawn pulsar           click to place',
           '  spawn pulsar 3         click 3 times',
@@ -1423,7 +1679,7 @@ function toggleTheme() {
         else { line('unknown flag: ' + args[i], 'term-line-err'); return; }
       }
       if (randomMode) {
-        if (!window.spawnPattern || !SPAWN_PATTERNS[name])
+        if (!window.spawnPattern || names.indexOf(name) < 0)
           { line('unknown pattern: ' + name, 'term-line-err'); return; }
         for (var k = 0; k < count; k++) window.spawnPattern(name);
         line('spawned ' + (count > 1 ? count + 'x ' : '') + name, 'term-line-ok');
@@ -1453,16 +1709,21 @@ function toggleTheme() {
           'preset <name>',
           '',
           'life:',
-          '  ghost    barely visible (default)',
-          '  neon     full opacity + heavy glow',
-          '  pixel    chunky 14px blocks',
-          '  matrix   tiny dense cells, fast',
+          '  sparse     dim (default)',
+          '  bloom      full opacity + glow',
+          '  coarse     chunky 14px cells',
+          '  overdrive  tiny cells fast',
+          '  chromatic  rainbow time-shift',
           '',
           'boids:',
-          '  default  factory reset',
-          '  swarm    350 fast small boids',
-          '  drift    15 slow large boids, glow',
-          '  nebula   80 glowing boids',
+          '  flock      120 boids (default)',
+          '  swarm      350 fast small boids',
+          '  drift      15 slow large + glow',
+          '  glow       80 bright + glow',
+          '  maxflock   1000 full opacity',
+          '',
+          'combo:',
+          '  layered  chaos  spectrum',
         ].join('\n'), 'term-line-pre');
         return;
       }
@@ -1485,15 +1746,18 @@ function toggleTheme() {
       function v(k) { return String(p[k] !== undefined ? p[k] : '?'); }
       line([
         'life:',
-        '  life.cell        ' + v('life.cell')      + '\t(1–80)',
-        '  life.opacity     ' + v('life.opacity')   + '\t(0.01–1)',
-        '  life.glow        ' + v('life.glow')      + '\t(0–40)',
-        '  life.autofill    ' + v('life.autofill')  + '\t(0–2)',
+        '  life.cell        ' + v('life.cell')     + '\t(1–80)',
+        '  life.opacity     ' + v('life.opacity')  + '\t(0.01–1)',
+        '  life.glow        ' + v('life.glow')     + '\t(0–40)',
+        '  life.autofill    ' + v('life.autofill') + '\t(0–2)',
+        '  life.rainbow     ' + v('life.rainbow')  + '\t(0=off 1=time 2=age 3=pos)',
+        '  life.speed       ' + v('life.speed')    + '\t(1–20  sim tick rate)',
         '',
         'boids:',
         '  boids.n          ' + v('boids.n')          + '\t(1–1000)',
         '  boids.size       ' + v('boids.size')        + '\t(1–200)',
-        '  boids.speed      ' + v('boids.speed')       + '\t(0–30)',
+        '  boids.speed      ' + v('boids.speed')       + '\t(0–30  velocity)',
+        '  boids.simspeed   ' + v('boids.simspeed')    + '\t(1–20  sim tick rate)',
         '  boids.perception ' + v('boids.perception')  + '\t(1–2000)',
         '  boids.separation ' + v('boids.separation')  + '\t(0–1000)',
         '  boids.opacity    ' + v('boids.opacity')     + '\t(0.01–1)',
@@ -1506,8 +1770,18 @@ function toggleTheme() {
     set: function (args) {
       if (args.length > 2) { tooMany('set'); return; }
       var key = args[0] || '';
-      var val = parseFloat(args[1]);
-      if (!key || isNaN(val)) { line('usage: set <param> <value>   (see: params)', 'term-line-err'); return; }
+      var rawVal = args[1];
+      if (!key || rawVal === undefined) { line('usage: set <param> <value>   (see: params)', 'term-line-err'); return; }
+      // life.rainbow accepts: off|time|age|position or 0|1|2|3
+      var val;
+      if (key === 'life.rainbow') {
+        var rmap = { 'off':0, 'time':1, 'age':2, 'position':3, '0':0, '1':1, '2':2, '3':3 };
+        if (rmap[rawVal] === undefined) { line('life.rainbow: off | time | age | position', 'term-line-err'); return; }
+        val = rmap[rawVal];
+      } else {
+        val = parseFloat(rawVal);
+        if (isNaN(val)) { line('usage: set <param> <value>   (see: params)', 'term-line-err'); return; }
+      }
       if (!window.setParam || !window.setParam(key, val))
         line('unknown param "' + key + '"  —  see: params', 'term-line-err');
       else
@@ -1752,16 +2026,16 @@ function toggleTheme() {
   }
 
   var ALL_THEMES    = ['tokyo-night', 'gruvbox', 'kanagawa', 'flexoki-light', 'rose-pine', 'ayu-light'];
-  var ALL_PARAMS    = ['life.cell','life.opacity','life.glow','life.autofill','boids.n','boids.size','boids.speed','boids.perception','boids.separation','boids.opacity','boids.glow'];
-  var ALL_PATTERNS  = ['gosper-gun','pulsar','lwss','pentadecathlon','switch-engine'];
+  var ALL_PARAMS    = ['life.cell','life.opacity','life.glow','life.autofill','life.rainbow','life.speed','boids.n','boids.size','boids.speed','boids.simspeed','boids.perception','boids.separation','boids.opacity','boids.glow'];
+  var ALL_PATTERNS  = ['gosper-gun','pulsar','lwss','mwss','hwss','pentadecathlon','switch-engine','dense','diamond','rpento-line','bigun'];
   var HELP_KEYS     = Object.keys(HELP_TOPICS).concat(Object.keys(HELP_CMDS)).sort();
 
   function completeArg(cmd, pos, typed) {
     var CMAP = {
       colorscheme: function (p) { return p === 0 ? ALL_THEMES : []; },
       theme:       function (p) { return p === 0 ? ALL_THEMES : []; },
-      bg:          function (p) { return p === 0 ? ['life', 'boids', 'off'] : []; },
-      speed:       function (p) { return p === 0 ? ['1','2','3','4','5','6','7','8','9','10'] : []; },
+      bg:          function (p) { return p === 0 ? ['life', 'boids', 'combo', 'off'] : []; },
+      speed:       function (p) { return p === 0 ? ['life','boids','1','2','3','4','5','6','7','8','9','10','15','20'] : p === 1 ? ['1','2','3','4','5','10','15','20'] : []; },
       set:         function (p) { return p === 0 ? ALL_PARAMS : []; },
       spawn: function (p, args) {
         if (p === 0) return ALL_PATTERNS;
