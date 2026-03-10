@@ -329,26 +329,26 @@ function toggleTheme() {
     [1,5],[4,5]
   ];
 
-  var PAT_MWSS = [                                                // middleweight spaceship
-    [2,0],[3,0],[4,0],
+  var PAT_MWSS = [                                                // middleweight spaceship (11 cells, c/2)
+    [1,0],[2,0],
     [0,1],[4,1],
-    [4,2],
-    [0,3],[3,3],[4,3]
-  ];
-  var PAT_HWSS = [                                                // heavyweight spaceship
-    [2,0],[3,0],[4,0],[5,0],
-    [0,1],[5,1],
     [5,2],
-    [0,3],[4,3],[5,3]
+    [0,3],[5,3],
+    [1,4],[2,4],[3,4],[4,4]
   ];
-  var PAT_DENSE = [                                               // 5×5 density bomb
-    [0,0],[1,0],[2,0],[3,0],[4,0],
-    [0,1],[1,1],[2,1],[3,1],[4,1],
-    [0,2],[1,2],[2,2],[3,2],[4,2],
-    [0,3],[1,3],[2,3],[3,3],[4,3],
-    [0,4],[1,4],[2,4],[3,4],[4,4]
+  var PAT_HWSS = [                                                // heavyweight spaceship (13 cells, c/2)
+    [1,0],[2,0],[3,0],
+    [0,1],[5,1],
+    [6,2],
+    [0,3],[6,3],
+    [1,4],[2,4],[3,4],[4,4],[5,4]
   ];
-  var PAT_DIAMOND = [                                             // symmetric ring — evolves symmetrically
+  var PAT_DENSE = [                                               // chaotic soup — 3 acorns spread apart, ~15000 gen lifespan
+    [1,0],[3,1],[0,2],[1,2],[4,2],[5,2],[6,2],
+    [21,0],[23,1],[20,2],[21,2],[24,2],[25,2],[26,2],
+    [11,10],[13,11],[10,12],[11,12],[14,12],[15,12],[16,12]
+  ];
+  var PAT_DIAMOND = [                                             // symmetric ring seed
     [3,0],
     [2,1],[4,1],
     [1,2],[5,2],
@@ -356,28 +356,6 @@ function toggleTheme() {
     [1,4],[5,4],
     [2,5],[4,5],
     [3,6]
-  ];
-  var PAT_RPENTO_LINE = [                                         // 4 R-pentomonoes in a row — chaos stream
-    [1,0],[2,0],[0,1],[1,1],[1,2],
-    [9,0],[10,0],[8,1],[9,1],[9,2],
-    [17,0],[18,0],[16,1],[17,1],[17,2],
-    [25,0],[26,0],[24,1],[25,1],[25,2]
-  ];
-  var PAT_BIGUN = [                                               // two glider guns firing at each other
-    // Gosper gun firing right
-    [24,0],[22,1],[24,1],
-    [12,2],[13,2],[20,2],[21,2],[34,2],[35,2],
-    [11,3],[15,3],[20,3],[21,3],[34,3],[35,3],
-    [0,4],[1,4],[10,4],[16,4],[20,4],[21,4],
-    [0,5],[1,5],[10,5],[14,5],[16,5],[17,5],[22,5],[24,5],
-    [10,6],[16,6],[24,6],[11,7],[15,7],[12,8],[13,8],
-    // Gosper gun firing left (mirrored at x=50)
-    [25,20],[27,20],[25,21],
-    [37,22],[36,22],[29,22],[28,22],[15,22],[14,22],
-    [38,23],[34,23],[29,23],[28,23],[14,23],[15,23],
-    [49,24],[48,24],[39,24],[33,24],[29,24],[28,24],
-    [49,25],[48,25],[39,25],[35,25],[33,25],[32,25],[27,25],[25,25],
-    [39,26],[33,26],[25,26],[38,27],[34,27],[37,28],[36,28]
   ];
 
   var SPAWN_PATTERNS = {
@@ -390,8 +368,6 @@ function toggleTheme() {
     'switch-engine':  PAT_SWITCHENGINE,
     'dense':          PAT_DENSE,
     'diamond':        PAT_DIAMOND,
-    'rpento-line':    PAT_RPENTO_LINE,
-    'bigun':          PAT_BIGUN,
   };
 
   function placePattern(cx, cy, cells) {
@@ -692,19 +668,19 @@ function toggleTheme() {
   window.getBgParams = function () {
     return {
       'life.cell':      CELL,
-      'life.opacity':   LIFE_OPACITY,
-      'life.glow':      LIFE_GLOW,
-      'life.autofill':  LIFE_AUTOFILL,
+      'life.opacity':   Math.round(LIFE_OPACITY * 100),
+      'life.glow':      Math.round(LIFE_GLOW / 40 * 100),
+      'life.autofill':  Math.round(LIFE_AUTOFILL / 2 * 100),
       'life.rainbow':   LIFE_RAINBOW,
-      'life.speed':     lifeSpeedLevel,
+      'life.speed':     Math.round((lifeSpeedLevel - 1) / 19 * 100),
       'boids.n':          N,
       'boids.size':       BOID_LEN,
       'boids.speed':      MAX_SPEED,
       'boids.perception': PERCEPTION,
       'boids.separation': SEP_DIST,
-      'boids.opacity':    BOID_OPACITY,
-      'boids.glow':       BOID_GLOW,
-      'boids.simspeed':   boidsSpeedLevel,
+      'boids.opacity':    Math.round(BOID_OPACITY * 100),
+      'boids.glow':       Math.round(BOID_GLOW / 40 * 100),
+      'boids.simspeed':   Math.round((boidsSpeedLevel - 1) / 19 * 100),
     };
   };
 
@@ -712,27 +688,27 @@ function toggleTheme() {
     switch (key) {
       case 'life.cell':
         CELL = Math.max(1, Math.min(80, Math.round(val)));
-        if (MODES[modeIdx] === 'life') initLife();
+        if (MODES[modeIdx] === 'life' || MODES[modeIdx] === 'combo') initLife();
         return true;
       case 'life.opacity':
-        LIFE_OPACITY = Math.max(0.01, Math.min(1, parseFloat(val) || LIFE_OPACITY));
+        LIFE_OPACITY = Math.max(0.01, Math.min(1, parseFloat(val) / 100));
         return true;
       case 'life.glow':
-        LIFE_GLOW = Math.max(0, Math.min(40, parseFloat(val) || 0));
+        LIFE_GLOW = Math.max(0, Math.min(40, (parseFloat(val) / 100) * 40));
         return true;
       case 'life.autofill':
-        LIFE_AUTOFILL = Math.max(0, Math.min(2, parseFloat(val)));
-        if (MODES[modeIdx] === 'life') initLife();
+        LIFE_AUTOFILL = Math.max(0, Math.min(2, (parseFloat(val) / 100) * 2));
+        if (MODES[modeIdx] === 'life' || MODES[modeIdx] === 'combo') initLife();
         return true;
       case 'life.rainbow':
         LIFE_RAINBOW = Math.max(0, Math.min(3, Math.round(parseFloat(val) || 0)));
         if (LIFE_RAINBOW === 2 && !cellAge && grid) cellAge = new Uint16Array(GW * GH);
         return true;
       case 'life.speed':
-        window.setLifeSpeed(val);
+        window.setLifeSpeed(Math.max(1, Math.round(1 + parseFloat(val) / 100 * 19)));
         return true;
       case 'boids.simspeed':
-        window.setBoidsSpeed(val);
+        window.setBoidsSpeed(Math.max(1, Math.round(1 + parseFloat(val) / 100 * 19)));
         return true;
       case 'boids.n':
         N = Math.max(1, Math.min(1000, Math.round(val)));
@@ -753,10 +729,10 @@ function toggleTheme() {
         SEP_DIST = Math.max(0, Math.min(1000, val));
         return true;
       case 'boids.opacity':
-        BOID_OPACITY = Math.max(0.01, Math.min(1, parseFloat(val) || BOID_OPACITY));
+        BOID_OPACITY = Math.max(0.01, Math.min(1, parseFloat(val) / 100));
         return true;
       case 'boids.glow':
-        BOID_GLOW = Math.max(0, Math.min(40, parseFloat(val) || 0));
+        BOID_GLOW = Math.max(0, Math.min(40, (parseFloat(val) / 100) * 40));
         return true;
       default:
         return false;
@@ -764,23 +740,24 @@ function toggleTheme() {
   };
 
   // ── presets ──────────────────────────────────────────────────
+  // All speeds (lspeed/bspeed) are 0–100%. Opacity/glow/autofill params also 0–100%.
   var PRESETS = {
     // life
-    sparse:    { sim:'life',  lspeed:null, bspeed:null, desc:'dim bg',      params:{'life.cell':7,  'life.opacity':0.09, 'life.glow':0,  'life.autofill':1,  'life.rainbow':0} },
-    bloom:     { sim:'life',  lspeed:null, bspeed:null, desc:'full+glow',   params:{'life.cell':7,  'life.opacity':1.0,  'life.glow':32, 'life.autofill':1,  'life.rainbow':0} },
-    coarse:    { sim:'life',  lspeed:null, bspeed:null, desc:'chunky cells',params:{'life.cell':14, 'life.opacity':0.5,  'life.glow':0,  'life.autofill':1,  'life.rainbow':0} },
-    overdrive: { sim:'life',  lspeed:16,   bspeed:null, desc:'fast dense',  params:{'life.cell':4,  'life.opacity':0.09, 'life.glow':0,  'life.autofill':1,  'life.rainbow':0} },
-    chromatic: { sim:'life',  lspeed:null, bspeed:null, desc:'rainbow',     params:{'life.cell':7,  'life.opacity':0.55, 'life.glow':0,  'life.autofill':1,  'life.rainbow':1} },
+    sparse:    { sim:'life',  lspeed:20, bspeed:null, desc:'dim bg',      params:{'life.cell':7,  'life.opacity':9,  'life.glow':0,  'life.autofill':50, 'life.rainbow':0} },
+    bloom:     { sim:'life',  lspeed:25, bspeed:null, desc:'full+glow',   params:{'life.cell':7,  'life.opacity':100,'life.glow':80, 'life.autofill':50, 'life.rainbow':0} },
+    coarse:    { sim:'life',  lspeed:20, bspeed:null, desc:'chunky cells',params:{'life.cell':14, 'life.opacity':50, 'life.glow':0,  'life.autofill':50, 'life.rainbow':0} },
+    overdrive: { sim:'life',  lspeed:75, bspeed:null, desc:'fast dense',  params:{'life.cell':4,  'life.opacity':9,  'life.glow':0,  'life.autofill':50, 'life.rainbow':0} },
+    chromatic: { sim:'life',  lspeed:30, bspeed:null, desc:'rainbow',     params:{'life.cell':7,  'life.opacity':55, 'life.glow':0,  'life.autofill':50, 'life.rainbow':1} },
     // boids
-    flock:     { sim:'boids', lspeed:null, bspeed:null, desc:'120 boids',   params:{'boids.n':120,  'boids.size':14, 'boids.speed':1.8, 'boids.opacity':0.14, 'boids.glow':0} },
-    swarm:     { sim:'boids', lspeed:null, bspeed:null, desc:'350 fast',    params:{'boids.n':350,  'boids.size':8,  'boids.speed':2.8, 'boids.opacity':0.18, 'boids.glow':0} },
-    drift:     { sim:'boids', lspeed:null, bspeed:null, desc:'15 slow+glow',params:{'boids.n':15,   'boids.size':36, 'boids.speed':0.7, 'boids.opacity':0.45, 'boids.glow':8} },
-    glow:      { sim:'boids', lspeed:null, bspeed:null, desc:'80 bright',   params:{'boids.n':80,   'boids.size':18, 'boids.speed':1.5, 'boids.opacity':0.9,  'boids.glow':20} },
-    maxflock:  { sim:'boids', lspeed:null, bspeed:null, desc:'1000 full',   params:{'boids.n':1000, 'boids.size':10, 'boids.speed':2.2, 'boids.opacity':1.0,  'boids.glow':0} },
+    flock:     { sim:'boids', lspeed:null, bspeed:25, desc:'120 boids',   params:{'boids.n':120,  'boids.size':14, 'boids.speed':1.8, 'boids.opacity':14, 'boids.glow':0} },
+    swarm:     { sim:'boids', lspeed:null, bspeed:40, desc:'350 fast',    params:{'boids.n':350,  'boids.size':8,  'boids.speed':2.8, 'boids.opacity':18, 'boids.glow':0} },
+    drift:     { sim:'boids', lspeed:null, bspeed:15, desc:'15 slow+glow',params:{'boids.n':15,   'boids.size':36, 'boids.speed':0.7, 'boids.opacity':45, 'boids.glow':20} },
+    glow:      { sim:'boids', lspeed:null, bspeed:20, desc:'80 bright',   params:{'boids.n':80,   'boids.size':18, 'boids.speed':1.5, 'boids.opacity':90, 'boids.glow':50} },
+    maxflock:  { sim:'boids', lspeed:null, bspeed:35, desc:'1000 full',   params:{'boids.n':1000, 'boids.size':10, 'boids.speed':2.2, 'boids.opacity':100,'boids.glow':0} },
     // combo
-    layered:   { sim:'combo', lspeed:null, bspeed:null, desc:'life+flock',  params:{'life.cell':7,  'life.opacity':0.07, 'life.autofill':1, 'life.rainbow':0, 'boids.n':120, 'boids.opacity':0.18, 'boids.glow':0} },
-    chaos:     { sim:'combo', lspeed:14,   bspeed:null, desc:'fast chaos',  params:{'life.cell':5,  'life.opacity':0.09, 'life.autofill':2, 'life.rainbow':0, 'boids.n':200, 'boids.opacity':0.22, 'boids.glow':0} },
-    spectrum:  { sim:'combo', lspeed:null, bspeed:null, desc:'rainbow+flock',params:{'life.cell':7, 'life.opacity':0.45, 'life.autofill':1, 'life.rainbow':1, 'boids.n':80,  'boids.opacity':0.5,  'boids.glow':6} },
+    layered:   { sim:'combo', lspeed:20, bspeed:25,  desc:'life+flock',   params:{'life.cell':7,  'life.opacity':7,  'life.autofill':50, 'life.rainbow':0, 'boids.n':120, 'boids.opacity':18, 'boids.glow':0} },
+    chaos:     { sim:'combo', lspeed:70, bspeed:40,  desc:'fast chaos',   params:{'life.cell':5,  'life.opacity':9,  'life.autofill':100,'life.rainbow':0, 'boids.n':200, 'boids.opacity':22, 'boids.glow':0} },
+    spectrum:  { sim:'combo', lspeed:30, bspeed:25,  desc:'rainbow+flock',params:{'life.cell':7,  'life.opacity':45, 'life.autofill':50, 'life.rainbow':1, 'boids.n':80,  'boids.opacity':50, 'boids.glow':15} },
   };
 
   window.getPresetNames = function () { return Object.keys(PRESETS); };
@@ -846,8 +823,8 @@ function toggleTheme() {
     var p = PRESETS[name];
     if (!p) return false;
     if (p.sim) window.setBgMode(p.sim);
-    if (p.lspeed != null) window.setLifeSpeed(p.lspeed);
-    if (p.bspeed != null) window.setBoidsSpeed(p.bspeed);
+    if (p.lspeed != null) window.setLifeSpeed(Math.max(1, Math.round(1 + p.lspeed / 100 * 19)));
+    if (p.bspeed != null) window.setBoidsSpeed(Math.max(1, Math.round(1 + p.bspeed / 100 * 19)));
     var keys = Object.keys(p.params);
     for (var i = 0; i < keys.length; i++) window.setParam(keys[i], p.params[keys[i]]);
     activePreset = name;
@@ -987,12 +964,12 @@ function toggleTheme() {
     bg: [
       'bg',
       '',
-      '  bg [life|boids|combo|off]   get/set mode',
-      '  speed [life|boids] [1-20]   get/set speed',
-      '  reset                       reinit from scratch',
-      '  preset <name>               apply a named preset',
-      '  params                      all params + values',
-      '  set <param> <val>           change a param',
+      '  bg [life|boids|combo|off]    get/set mode',
+      '  speed [life|boids] [0-100]   get/set speed (%)',
+      '  reset                        reinit from scratch',
+      '  preset <name>                apply a named preset',
+      '  params                       all params + values',
+      '  set <param> <val>            change a param',
       '',
       'presets (life):',
       '  sparse  bloom  coarse  overdrive  chromatic',
@@ -1008,25 +985,24 @@ function toggleTheme() {
       '  spawn <pat> random [n] n random placements',
       '',
       '  gosper-gun  pulsar  lwss  mwss  hwss',
-      '  pentadecathlon  switch-engine',
-      '  dense  diamond  rpento-line  bigun',
+      '  pentadecathlon  switch-engine  dense  diamond',
       '',
-      '  life.cell      1–80     7',
-      '  life.opacity   0.01–1   0.09',
-      '  life.glow      0–40     0',
-      '  life.autofill  0–2      1',
-      '  life.rainbow   0–3      0  (0=off 1=time 2=age 3=pos)',
-      '  life.speed     1–20     5  (sim tick rate)',
+      '  life.cell      1–80    7',
+      '  life.opacity   0–100%  9',
+      '  life.glow      0–100%  0',
+      '  life.autofill  0–100%  50',
+      '  life.rainbow   0–3     0  (0=off 1=time 2=age 3=pos)',
+      '  life.speed     0–100%  21  (sim tick rate)',
       '',
       'boids:',
       '  boids.n           1–1000   120',
       '  boids.size        1–200    14',
       '  boids.speed       0–30     1.8  (velocity)',
-      '  boids.simspeed    1–20     5    (sim tick rate)',
+      '  boids.simspeed    0–100%   21   (sim tick rate)',
       '  boids.perception  1–2000   70',
       '  boids.separation  0–1000   50',
-      '  boids.opacity     0.01–1   0.14',
-      '  boids.glow        0–40     0',
+      '  boids.opacity     0–100%   14',
+      '  boids.glow        0–100%   0',
       '',
       '  <param>   →  prints current value',
     ].join('\n'),
@@ -1119,15 +1095,15 @@ function toggleTheme() {
     ].join('\n'),
 
     speed: [
-      'speed [life|boids] [1-20]',
+      'speed [life|boids] [0-100]',
       '',
-      '  speed              show both speeds',
+      '  speed              show both speeds (%)',
       '  speed life         current life speed',
       '  speed boids        current boids speed',
-      '  speed life 10      set life to 10',
-      '  speed boids 15     set boids to 15',
-      '  speed 5            set both to 5',
-      '  1=slowest  20=fastest',
+      '  speed life 50      set life to 50%',
+      '  speed boids 75     set boids to 75%',
+      '  speed 25           set both to 25%',
+      '  0%=slowest  100%=fastest',
     ].join('\n'),
 
     preset: [
@@ -1162,31 +1138,32 @@ function toggleTheme() {
       '  <param>   print current value',
       '',
       'life:',
-      '  life.cell 1         pixel cells',
-      '  life.cell 14        chunky',
-      '  life.opacity 0.5    visible',
-      '  life.opacity 1      full',
-      '  life.glow 12        bloom',
-      '  life.glow 30        heavy',
-      '  life.autofill 0     = wipe',
-      '  life.autofill 2     = overpopulated',
-      '  life.rainbow off    no color',
-      '  life.rainbow time   hue rotates',
-      '  life.rainbow age    born=red → old',
+      '  life.cell 1          pixel cells',
+      '  life.cell 14         chunky',
+      '  life.opacity 10      dim (10%)',
+      '  life.opacity 100     full (100%)',
+      '  life.glow 30         bloom (30%)',
+      '  life.glow 80         heavy (80%)',
+      '  life.autofill 0      = wipe',
+      '  life.autofill 100    = overpopulated (100%)',
+      '  life.rainbow off     no color',
+      '  life.rainbow time    hue rotates',
+      '  life.rainbow age     born=red → old',
       '  life.rainbow position  spatial',
-      '  life.speed 5        sim tick rate',
+      '  life.speed 25        slow tick (25%)',
+      '  life.speed 75        fast tick (75%)',
       '',
       'boids:',
-      '  boids.n 30          few',
-      '  boids.n 1000        maxflock',
-      '  boids.speed 0.5     slow velocity',
-      '  boids.speed 8       fast velocity',
-      '  boids.simspeed 10   fast ticks',
-      '  boids.perception 20    blind',
-      '  boids.perception 500   hive mind',
-      '  boids.separation 0     merge',
-      '  boids.opacity 0.9   bright',
-      '  boids.glow 20       glow',
+      '  boids.n 30           few',
+      '  boids.n 1000         maxflock',
+      '  boids.speed 0.5      slow velocity',
+      '  boids.speed 8        fast velocity',
+      '  boids.simspeed 50    mid ticks (50%)',
+      '  boids.perception 20     blind',
+      '  boids.perception 500    hive mind',
+      '  boids.separation 0      merge',
+      '  boids.opacity 90     bright (90%)',
+      '  boids.glow 50        glow (50%)',
     ].join('\n'),
 
     wipe: [
@@ -1209,17 +1186,15 @@ function toggleTheme() {
       '  spawn pulsar random       random location',
       '  spawn pulsar random 5     5 random',
       '',
-      '  gosper-gun    infinite glider factory',
-      '  pulsar        period-3 oscillator',
-      '  lwss          lightweight spaceship',
-      '  mwss          middleweight spaceship',
-      '  hwss          heavyweight spaceship',
+      '  gosper-gun      infinite glider factory',
+      '  pulsar          period-3 oscillator',
+      '  lwss            lightweight spaceship (c/2)',
+      '  mwss            middleweight spaceship (c/2)',
+      '  hwss            heavyweight spaceship (c/2)',
       '  pentadecathlon  period-15 oscillator',
       '  switch-engine   infinite growth',
-      '  dense           5×5 density bomb',
+      '  dense           3 acorns, ~15000 gen chaos',
       '  diamond         symmetric ring seed',
-      '  rpento-line     4 R-pentomonoes in a row',
-      '  bigun           dual glider guns',
       '',
       '  click mode: esc to cancel',
       '  wipe first for clean canvas',
@@ -1242,7 +1217,7 @@ function toggleTheme() {
     top:     'top',
     ps:      'ps',
     df:      'df',
-    env:     'env\n  SITE  COLORSCHEME  BG_MODE  BG_SPEED  all params',
+    env:     'env\n  SITE  COLORSCHEME  BG_MODE  BG_SPEED(%)  all params',
     history: 'history',
     curl:    'curl -L <url>\n  curl -L ekanshgoenka.com',
     neofetch: 'neofetch',
@@ -1612,31 +1587,34 @@ function toggleTheme() {
     },
 
     speed: function (args) {
-      // speed                     → show both
-      // speed life|boids [1-20]   → set specific
-      // speed [1-20]              → set both
-      var ls = window.getLifeSpeed  ? window.getLifeSpeed()  : '?';
-      var bs = window.getBoidsSpeed ? window.getBoidsSpeed() : '?';
+      // speed                      → show both (as %)
+      // speed life|boids [0-100]   → set specific
+      // speed [0-100]              → set both
+      function toPct(n) { return Math.round((n - 1) / 19 * 100); }
+      function toInt(pct) { return Math.max(1, Math.round(1 + pct / 100 * 19)); }
+      var ls = window.getLifeSpeed  ? window.getLifeSpeed()  : 5;
+      var bs = window.getBoidsSpeed ? window.getBoidsSpeed() : 5;
       if (!args[0]) {
-        line('life.speed = ' + ls + ' / 20\nboids.speed = ' + bs + ' / 20', 'term-line-ok');
+        line('life.speed = ' + toPct(ls) + '%\nboids.simspeed = ' + toPct(bs) + '%', 'term-line-ok');
         return;
       }
       if (args[0] === 'life' || args[0] === 'boids') {
         if (args.length > 2) { tooMany('speed'); return; }
         var which = args[0];
-        if (!args[1]) { line(which + '.speed = ' + (which === 'life' ? ls : bs) + ' / 20', 'term-line-ok'); return; }
+        if (!args[1]) { line(which + '.speed = ' + toPct(which === 'life' ? ls : bs) + '%', 'term-line-ok'); return; }
         var n = parseInt(args[1]);
-        if (isNaN(n) || n < 1 || n > 20) { line('speed: value must be 1–20', 'term-line-err'); return; }
-        if (which === 'life'  && window.setLifeSpeed)  window.setLifeSpeed(n);
-        if (which === 'boids' && window.setBoidsSpeed) window.setBoidsSpeed(n);
-        line(which + '.speed → ' + n, 'term-line-ok');
+        if (isNaN(n) || n < 0 || n > 100) { line('speed: value must be 0–100 (%)', 'term-line-err'); return; }
+        if (which === 'life'  && window.setLifeSpeed)  window.setLifeSpeed(toInt(n));
+        if (which === 'boids' && window.setBoidsSpeed) window.setBoidsSpeed(toInt(n));
+        line(which + '.speed → ' + n + '%', 'term-line-ok');
         return;
       }
       if (args.length > 1) { tooMany('speed'); return; }
       var n = parseInt(args[0]);
-      if (isNaN(n) || n < 1 || n > 20) { line('speed: value must be 1–20', 'term-line-err'); return; }
-      if (window.setBgSpeed) window.setBgSpeed(n);
-      line('speed → ' + n + '  (life + boids)', 'term-line-ok');
+      if (isNaN(n) || n < 0 || n > 100) { line('speed: value must be 0–100 (%)', 'term-line-err'); return; }
+      if (window.setLifeSpeed)  window.setLifeSpeed(toInt(n));
+      if (window.setBoidsSpeed) window.setBoidsSpeed(toInt(n));
+      line('speed → ' + n + '%  (life + boids)', 'term-line-ok');
     },
 
     reset: function (args) {
@@ -1651,15 +1629,13 @@ function toggleTheme() {
         line([
           'spawn <pattern> [random] [count]',
           '',
-          '  gosper-gun     infinite glider factory',
-          '  pulsar         period-3 oscillator',
-          '  lwss / mwss / hwss   spaceships',
-          '  pentadecathlon period-15 oscillator',
-          '  switch-engine  infinite growth',
-          '  dense          5×5 density bomb',
-          '  diamond        symmetric ring seed',
-          '  rpento-line    4 R-pentomonoes in a row',
-          '  bigun          dual glider guns',
+          '  gosper-gun      infinite glider factory',
+          '  pulsar          period-3 oscillator',
+          '  lwss / mwss / hwss   spaceships (c/2)',
+          '  pentadecathlon  period-15 oscillator',
+          '  switch-engine   infinite growth',
+          '  dense           3 acorns, ~15000 gen chaos',
+          '  diamond         symmetric ring seed',
           '',
           '  spawn pulsar           click to place',
           '  spawn pulsar 3         click 3 times',
@@ -1747,21 +1723,21 @@ function toggleTheme() {
       line([
         'life:',
         '  life.cell        ' + v('life.cell')     + '\t(1–80)',
-        '  life.opacity     ' + v('life.opacity')  + '\t(0.01–1)',
-        '  life.glow        ' + v('life.glow')     + '\t(0–40)',
-        '  life.autofill    ' + v('life.autofill') + '\t(0–2)',
+        '  life.opacity     ' + v('life.opacity')  + '%\t(0–100%)',
+        '  life.glow        ' + v('life.glow')     + '%\t(0–100%)',
+        '  life.autofill    ' + v('life.autofill') + '%\t(0–100%)',
         '  life.rainbow     ' + v('life.rainbow')  + '\t(0=off 1=time 2=age 3=pos)',
-        '  life.speed       ' + v('life.speed')    + '\t(1–20  sim tick rate)',
+        '  life.speed       ' + v('life.speed')    + '%\t(0–100%  sim tick rate)',
         '',
         'boids:',
         '  boids.n          ' + v('boids.n')          + '\t(1–1000)',
         '  boids.size       ' + v('boids.size')        + '\t(1–200)',
         '  boids.speed      ' + v('boids.speed')       + '\t(0–30  velocity)',
-        '  boids.simspeed   ' + v('boids.simspeed')    + '\t(1–20  sim tick rate)',
+        '  boids.simspeed   ' + v('boids.simspeed')    + '%\t(0–100%  sim tick rate)',
         '  boids.perception ' + v('boids.perception')  + '\t(1–2000)',
         '  boids.separation ' + v('boids.separation')  + '\t(0–1000)',
-        '  boids.opacity    ' + v('boids.opacity')     + '\t(0.01–1)',
-        '  boids.glow       ' + v('boids.glow')        + '\t(0–40)',
+        '  boids.opacity    ' + v('boids.opacity')     + '%\t(0–100%)',
+        '  boids.glow       ' + v('boids.glow')        + '%\t(0–100%)',
         '',
         'set <param> <value>  to change',
       ].join('\n'), 'term-line-pre');
@@ -2027,7 +2003,7 @@ function toggleTheme() {
 
   var ALL_THEMES    = ['tokyo-night', 'gruvbox', 'kanagawa', 'flexoki-light', 'rose-pine', 'ayu-light'];
   var ALL_PARAMS    = ['life.cell','life.opacity','life.glow','life.autofill','life.rainbow','life.speed','boids.n','boids.size','boids.speed','boids.simspeed','boids.perception','boids.separation','boids.opacity','boids.glow'];
-  var ALL_PATTERNS  = ['gosper-gun','pulsar','lwss','mwss','hwss','pentadecathlon','switch-engine','dense','diamond','rpento-line','bigun'];
+  var ALL_PATTERNS  = ['gosper-gun','pulsar','lwss','mwss','hwss','pentadecathlon','switch-engine','dense','diamond'];
   var HELP_KEYS     = Object.keys(HELP_TOPICS).concat(Object.keys(HELP_CMDS)).sort();
 
   function completeArg(cmd, pos, typed) {
@@ -2035,7 +2011,7 @@ function toggleTheme() {
       colorscheme: function (p) { return p === 0 ? ALL_THEMES : []; },
       theme:       function (p) { return p === 0 ? ALL_THEMES : []; },
       bg:          function (p) { return p === 0 ? ['life', 'boids', 'combo', 'off'] : []; },
-      speed:       function (p) { return p === 0 ? ['life','boids','1','2','3','4','5','6','7','8','9','10','15','20'] : p === 1 ? ['1','2','3','4','5','10','15','20'] : []; },
+      speed:       function (p) { return p === 0 ? ['life','boids','0','10','25','50','75','100'] : p === 1 ? ['0','10','25','50','75','100'] : []; },
       set:         function (p) { return p === 0 ? ALL_PARAMS : []; },
       spawn: function (p, args) {
         if (p === 0) return ALL_PATTERNS;
@@ -2117,8 +2093,12 @@ function toggleTheme() {
     if (fn) fn(tokens.slice(1));
     else {
       var p = window.getBgParams ? window.getBgParams() : {};
-      if (p.hasOwnProperty(tokens[0])) line(tokens[0] + ' = ' + p[tokens[0]], 'term-line-ok');
-      else line('command not found: ' + tokens[0], 'term-line-err');
+      if (p.hasOwnProperty(tokens[0])) {
+        if (tokens.length > 1)
+          line('tip: use: set ' + tokens[0] + ' ' + tokens.slice(1).join(' '), 'term-line-err');
+        else
+          line(tokens[0] + ' = ' + p[tokens[0]], 'term-line-ok');
+      } else line('command not found: ' + tokens[0], 'term-line-err');
     }
   }
 
