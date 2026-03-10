@@ -192,7 +192,7 @@ function toggleTheme() {
       if (spd > MAX_SPEED) { b.vx = b.vx/spd*MAX_SPEED; b.vy = b.vy/spd*MAX_SPEED; }
       else if (spd < MIN_SPEED && spd > 1e-4) { b.vx = b.vx/spd*MIN_SPEED; b.vy = b.vy/spd*MIN_SPEED; }
 
-      var sp = boidsCurrentSpeed / 5;
+      var sp = (1 + boidsCurrentSpeed / 100 * 19) / 5;
       b.x += b.vx * sp; b.y += b.vy * sp;
       if (b.x < -20) b.x = W+20; else if (b.x > W+20) b.x = -20;
       if (b.y < -20) b.y = H+20; else if (b.y > H+20) b.y = -20;
@@ -561,11 +561,11 @@ function toggleTheme() {
   };
   window.getBgMode    = function () { return MODES[modeIdx]; };
   window.setLifeSpeed = function (n) {
-    lifeSpeedLevel = Math.max(1, Math.min(20, Math.round(n)));
+    lifeSpeedLevel = Math.max(0, Math.min(100, Math.round(n)));
     localStorage.setItem('bgLifeSpeed', lifeSpeedLevel);
   };
   window.setBoidsSpeed = function (n) {
-    boidsSpeedLevel = Math.max(1, Math.min(20, Math.round(n)));
+    boidsSpeedLevel = Math.max(0, Math.min(100, Math.round(n)));
     localStorage.setItem('bgBoidsSpeed', boidsSpeedLevel);
   };
   window.setBgSpeed = function (n) {  // sets both (backward compat)
@@ -673,7 +673,7 @@ function toggleTheme() {
       'life.glow':      Math.round(LIFE_GLOW / 40 * 100),
       'life.autofill':  Math.round(LIFE_AUTOFILL / 2 * 100),
       'life.rainbow':   LIFE_RAINBOW,
-      'life.speed':     Math.round((lifeSpeedLevel - 1) / 19 * 100),
+      'life.speed':     lifeSpeedLevel,
       'boids.n':          N,
       'boids.size':       BOID_LEN,
       'boids.tick':       MAX_SPEED,
@@ -681,7 +681,7 @@ function toggleTheme() {
       'boids.separation': SEP_DIST,
       'boids.opacity':    Math.round(BOID_OPACITY * 100),
       'boids.glow':       Math.round(BOID_GLOW / 40 * 100),
-      'boids.speed':      Math.round((boidsSpeedLevel - 1) / 19 * 100),
+      'boids.speed':      boidsSpeedLevel,
     };
   };
 
@@ -706,10 +706,10 @@ function toggleTheme() {
         if (LIFE_RAINBOW === 2 && !cellAge && grid) cellAge = new Uint16Array(GW * GH);
         return true;
       case 'life.speed':
-        window.setLifeSpeed(Math.max(1, Math.round(1 + parseFloat(val) / 100 * 19)));
+        window.setLifeSpeed(parseFloat(val));
         return true;
       case 'boids.speed':
-        window.setBoidsSpeed(Math.max(1, Math.round(1 + parseFloat(val) / 100 * 19)));
+        window.setBoidsSpeed(parseFloat(val));
         return true;
       case 'boids.n':
         N = Math.max(1, Math.min(1000, Math.round(val)));
@@ -824,8 +824,8 @@ function toggleTheme() {
     var p = PRESETS[name];
     if (!p) return false;
     if (p.sim) window.setBgMode(p.sim);
-    if (p.lspeed != null) window.setLifeSpeed(Math.max(1, Math.round(1 + p.lspeed / 100 * 19)));
-    if (p.bspeed != null) window.setBoidsSpeed(Math.max(1, Math.round(1 + p.bspeed / 100 * 19)));
+    if (p.lspeed != null) window.setLifeSpeed(p.lspeed);
+    if (p.bspeed != null) window.setBoidsSpeed(p.bspeed);
     var keys = Object.keys(p.params);
     for (var i = 0; i < keys.length; i++) window.setParam(keys[i], p.params[keys[i]]);
     activePreset = name;
@@ -1591,30 +1591,28 @@ function toggleTheme() {
       // speed                      → show both (as %)
       // speed life|boids [0-100]   → set specific
       // speed [0-100]              → set both
-      function toPct(n) { return Math.round((n - 1) / 19 * 100); }
-      function toInt(pct) { return Math.max(1, Math.round(1 + pct / 100 * 19)); }
-      var ls = window.getLifeSpeed  ? window.getLifeSpeed()  : 5;
-      var bs = window.getBoidsSpeed ? window.getBoidsSpeed() : 5;
+      var ls = window.getLifeSpeed  ? window.getLifeSpeed()  : 21;
+      var bs = window.getBoidsSpeed ? window.getBoidsSpeed() : 21;
       if (!args[0]) {
-        line('life.speed = ' + toPct(ls) + '%\nboids.speed = ' + toPct(bs) + '%', 'term-line-ok');
+        line('life.speed = ' + ls + '%\nboids.speed = ' + bs + '%', 'term-line-ok');
         return;
       }
       if (args[0] === 'life' || args[0] === 'boids') {
         if (args.length > 2) { tooMany('speed'); return; }
         var which = args[0];
-        if (!args[1]) { line(which + '.speed = ' + toPct(which === 'life' ? ls : bs) + '%', 'term-line-ok'); return; }
+        if (!args[1]) { line(which + '.speed = ' + (which === 'life' ? ls : bs) + '%', 'term-line-ok'); return; }
         var n = parseInt(args[1]);
         if (isNaN(n) || n < 0 || n > 100) { line('speed: value must be 0–100 (%)', 'term-line-err'); return; }
-        if (which === 'life'  && window.setLifeSpeed)  window.setLifeSpeed(toInt(n));
-        if (which === 'boids' && window.setBoidsSpeed) window.setBoidsSpeed(toInt(n));
+        if (which === 'life'  && window.setLifeSpeed)  window.setLifeSpeed(n);
+        if (which === 'boids' && window.setBoidsSpeed) window.setBoidsSpeed(n);
         line(which + '.speed → ' + n + '%', 'term-line-ok');
         return;
       }
       if (args.length > 1) { tooMany('speed'); return; }
       var n = parseInt(args[0]);
       if (isNaN(n) || n < 0 || n > 100) { line('speed: value must be 0–100 (%)', 'term-line-err'); return; }
-      if (window.setLifeSpeed)  window.setLifeSpeed(toInt(n));
-      if (window.setBoidsSpeed) window.setBoidsSpeed(toInt(n));
+      if (window.setLifeSpeed)  window.setLifeSpeed(n);
+      if (window.setBoidsSpeed) window.setBoidsSpeed(n);
       line('speed → ' + n + '%  (life + boids)', 'term-line-ok');
     },
 
