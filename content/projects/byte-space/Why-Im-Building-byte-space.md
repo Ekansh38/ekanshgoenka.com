@@ -1,5 +1,5 @@
 ---
-title: "Why I'm Building byte-space"
+title: "Why I'm Building Byte-space"
 project: "byte-space"
 date: 2026-03-11
 status: "complete"
@@ -10,7 +10,7 @@ I am building byte-space, or have finished by the time you are reading this arti
 
 byte-space (all lowercase) is an internet simulator that boasts some pretty cool features. I think the most interesting and fun part about byte-space compared to other network simulators is that you can actually interact with the network like a user. Telnet onto machines, send email and do "userly" activities. ACTUALLY USE IT! That is what I find fun about it. Being able to transport myself into a 1980s academic network that I build, or a military one... "Playing" with others in the same network or geeking around alone (with others is more fun, if you have nerdy friends). That is what I find cool about byte-space. You are INSIDE the simulation not just observing it. That is the core feature of byte-space but of course it has other cool features. Some of them include (skip this list if you don't care):
 
-- A whole interpreted shell programming language themed to the era and project: yep, this is for configuring and building cool stuff on servers, like for building a chatroom server or BBS. Or heck a 1980s style X (Twitter) clone. Anything (almost) is possible with this language.
+- A whole interpreted shell programming language themed to the era and project: yep, this is for configuring and building cool stuff on servers, like for building a chat room server or BBS. Or heck a 1980s style X (Twitter) clone. Anything (almost) is possible with this language.
 
 - The visualizer: you can observe the network topology in a graph format and see packets travel between machines. You can click on packets to open them mid flight and inspect the data. Networking in 4k.
 
