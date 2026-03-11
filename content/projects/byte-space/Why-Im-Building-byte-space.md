@@ -54,6 +54,8 @@ That is what I find cool about byte-space. You are <strong>INSIDE</strong> the s
   </li>
 </ul>
 
+<br>
+
 <p>
 Now onto why I want to build it (not vibe-code, build). Building byte-space teaches me how the internet actually works, not from textbooks, but by implementing it all from scratch. I'll understand the INTERNET to a level most developers never reach. Plus, it's fun. Building complex systems is what I enjoy most.
 </p>
