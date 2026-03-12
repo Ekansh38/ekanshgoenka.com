@@ -811,7 +811,7 @@ function toggleTheme() {
   // All speeds (lspeed/bspeed) are 0–100%. Opacity/glow/autofill params also 0–100%.
   var PRESETS = {
     // life
-    sparse:    { sim:'life',  lspeed:20, bspeed:null, desc:'dim bg',      params:{'life.cell':7,  'life.opacity':9,   'life.glow':0,  'life.autofill':50, 'life.rainbow':0, 'trail.glow':40, 'trail.decay':55, 'trail.size':2} },
+    sparse:    { sim:'life',  lspeed:15, bspeed:null, desc:'dim bg',      params:{'life.cell':7,  'life.opacity':9,   'life.glow':0,  'life.autofill':50, 'life.rainbow':0, 'trail.on':1, 'trail.glow':12, 'trail.decay':80, 'trail.size':2} },
     bloom:     { sim:'life',  lspeed:25, bspeed:null, desc:'full+glow',   params:{'life.cell':7,  'life.opacity':100, 'life.glow':80, 'life.autofill':50, 'life.rainbow':0, 'trail.glow':80, 'trail.decay':35, 'trail.size':2} },
     coarse:    { sim:'life',  lspeed:20, bspeed:null, desc:'chunky cells',params:{'life.cell':14, 'life.opacity':50,  'life.glow':0,  'life.autofill':50, 'life.rainbow':0, 'trail.on':1, 'trail.glow':15, 'trail.decay':75, 'trail.size':1} },
     overdrive: { sim:'life',  lspeed:75, bspeed:null, desc:'fast dense',  params:{'life.cell':4,  'life.opacity':100, 'life.glow':0,  'life.autofill':50, 'life.rainbow':0, 'trail.on':0} },
