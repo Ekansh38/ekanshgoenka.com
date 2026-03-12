@@ -1,0 +1,20 @@
+{{ define "main" }}
+
+{{ with .Parent }}<a href="{{ .Permalink }}" class="back">← {{ if .IsHome }}home{{ else }}{{ strings.ToLower .Title }}{{ end }}</a>{{ end }}
+
+<div class="project-title">{{ .Title }}</div>
+
+{{ .Content }}
+
+{{ with .RegularPages }}
+<ul>
+  {{ range . }}
+  <li class="writing-li">
+    <a href="{{ .Params.itchio }}" target="_blank">{{ .Title }}</a>
+    <span class="yr">{{ .Date.Format "2006" }}</span>
+  </li>
+  {{ end }}
+</ul>
+{{ end }}
+
+{{ end }}

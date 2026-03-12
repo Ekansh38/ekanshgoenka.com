@@ -540,6 +540,27 @@ function toggleTheme() {
   window.addEventListener('resize', resize);
   requestAnimationFrame(loop);
 
+  // ── Mouse trail: plant live cells where the cursor moves ──
+  var _trailGX = -1, _trailGY = -1;
+  window.addEventListener('mousemove', function (e) {
+    var mode = MODES[modeIdx];
+    if (mode !== 'life' && mode !== 'combo') return;
+    if (!grid) return;
+    var gx = Math.floor(e.clientX / CELL);
+    var gy = Math.floor(e.clientY / CELL);
+    if (gx === _trailGX && gy === _trailGY) return;
+    _trailGX = gx; _trailGY = gy;
+    // plant a small cross (5 cells) so it has neighbors and evolves rather than dying instantly
+    var pts = [[0,0],[1,0],[-1,0],[0,1],[0,-1]];
+    for (var i = 0; i < pts.length; i++) {
+      var cx = gx + pts[i][0], cy = gy + pts[i][1];
+      if (cx >= 0 && cx < GW && cy >= 0 && cy < GH) {
+        var idx = cy * GW + cx;
+        if (!grid[idx]) { grid[idx] = 1; liveCount++; }
+      }
+    }
+  }, { passive: true });
+
   // expose controls for terminal commands
   window.setBgMode = function (m) {
     var idx = MODES.indexOf(m);

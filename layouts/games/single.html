@@ -1,0 +1,6 @@
+{{ define "main" }}
+{{ with .Params.itchio }}
+<script>window.location.replace("{{ . }}");</script>
+<p>Redirecting to <a href="{{ . }}">{{ . }}</a>…</p>
+{{ end }}
+{{ end }}
