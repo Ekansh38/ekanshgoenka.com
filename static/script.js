@@ -270,6 +270,12 @@ function toggleTheme() {
   var lifeRainbowHue = 0;
   var cellAge        = null;
 
+  var TRAIL_ON    = 1;    // 0=off 1=on
+  var TRAIL_SIZE  = 2;    // 1=single cell  2=cross(5)  3=wide cross(9)
+  var TRAIL_GLOW  = 40;   // 0-100 → extra opacity boost at peak heat
+  var TRAIL_DECAY = 60;   // 0-100 → fade speed (0=slowest 100=fastest)
+  var trailHeat   = null; // Float32Array, same dims as grid
+
   // Known patterns as [dx, dy] offsets from placement origin
   var PAT_GLIDER_SE = [[1,0],[2,1],[0,2],[1,2],[2,2]];            // moves SE
   var PAT_GLIDER_SW = [[1,0],[0,1],[2,1],[0,2],[1,2]];            // moves SW
@@ -373,7 +379,8 @@ function toggleTheme() {
     next      = new Uint8Array(GW * GH);
     liveCount = 0;
     lifeFrame = 0;
-    cellAge = LIFE_RAINBOW === 2 ? new Uint16Array(GW * GH) : null;
+    cellAge   = LIFE_RAINBOW === 2 ? new Uint16Array(GW * GH) : null;
+    trailHeat = new Float32Array(GW * GH);
 
     // Sparse random base — density scales with autofill (>1 = overpopulated)
     var fillRate = LIFE_AUTOFILL <= 1
@@ -484,6 +491,23 @@ function toggleTheme() {
       }
     }
     ctx.shadowBlur = 0;
+
+    // trail glow: second pass — hot cells drawn brighter on top
+    if (TRAIL_ON && TRAIL_GLOW > 0 && trailHeat) {
+      for (var y = 0; y < GH; y++) {
+        for (var x = 0; x < GW; x++) {
+          var idx = y * GW + x;
+          var h = trailHeat[idx];
+          if (!grid[idx] || h < 0.005) continue;
+          var extra = h * (TRAIL_GLOW / 100);
+          ctx.shadowColor = accentRgba(1);
+          ctx.shadowBlur  = extra * 12;
+          ctx.fillStyle   = accentRgba(Math.min(1, LIFE_OPACITY + extra));
+          ctx.fillRect(x*CELL+1, y*CELL+1, CELL-2, CELL-2);
+        }
+      }
+      ctx.shadowBlur = 0;
+    }
   }
 
   // ===== RESIZE / LOOP ======================================
@@ -505,6 +529,15 @@ function toggleTheme() {
   function loop() {
     lifeCurrentSpeed  += (lifeSpeedLevel  - lifeCurrentSpeed)  * 0.07;
     boidsCurrentSpeed += (boidsSpeedLevel - boidsCurrentSpeed) * 0.07;
+
+    // decay trail heat every frame for smooth fade regardless of sim speed
+    if (TRAIL_ON && trailHeat) {
+      var dr = 0.998 - (TRAIL_DECAY / 100) * 0.198;
+      for (var i = 0; i < trailHeat.length; i++) {
+        if (trailHeat[i] > 0.001) trailHeat[i] *= dr;
+        else if (trailHeat[i] > 0) trailHeat[i] = 0;
+      }
+    }
 
     var mode = MODES[modeIdx];
     if (mode === 'life') {
@@ -542,21 +575,26 @@ function toggleTheme() {
 
   // ── Mouse trail: plant live cells where the cursor moves ──
   var _trailGX = -1, _trailGY = -1;
+  var TRAIL_PATTERNS = [
+    [[0,0]],
+    [[0,0],[1,0],[-1,0],[0,1],[0,-1]],
+    [[0,0],[1,0],[-1,0],[0,1],[0,-1],[2,0],[-2,0],[0,2],[0,-2]],
+  ];
   window.addEventListener('mousemove', function (e) {
     var mode = MODES[modeIdx];
-    if (mode !== 'life' && mode !== 'combo') return;
+    if (!TRAIL_ON || (mode !== 'life' && mode !== 'combo')) return;
     if (!grid) return;
     var gx = Math.floor(e.clientX / CELL);
     var gy = Math.floor(e.clientY / CELL);
     if (gx === _trailGX && gy === _trailGY) return;
     _trailGX = gx; _trailGY = gy;
-    // plant a small cross (5 cells) so it has neighbors and evolves rather than dying instantly
-    var pts = [[0,0],[1,0],[-1,0],[0,1],[0,-1]];
+    var pts = TRAIL_PATTERNS[Math.max(0, Math.min(2, TRAIL_SIZE - 1))];
     for (var i = 0; i < pts.length; i++) {
       var cx = gx + pts[i][0], cy = gy + pts[i][1];
       if (cx >= 0 && cx < GW && cy >= 0 && cy < GH) {
         var idx = cy * GW + cx;
         if (!grid[idx]) { grid[idx] = 1; liveCount++; }
+        if (trailHeat) trailHeat[idx] = 1.0;
       }
     }
   }, { passive: true });
@@ -695,6 +733,10 @@ function toggleTheme() {
       'boids.opacity':    Math.round(BOID_OPACITY * 100),
       'boids.glow':       Math.round(BOID_GLOW / 40 * 100),
       'boids.speed':      boidsSpeedLevel,
+      'trail.on':         TRAIL_ON,
+      'trail.size':       TRAIL_SIZE,
+      'trail.glow':       TRAIL_GLOW,
+      'trail.decay':      TRAIL_DECAY,
     };
   };
 
@@ -748,6 +790,18 @@ function toggleTheme() {
       case 'boids.glow':
         BOID_GLOW = Math.max(0, Math.min(40, (parseFloat(val) / 100) * 40));
         return true;
+      case 'trail.on':
+        TRAIL_ON = val ? 1 : 0;
+        return true;
+      case 'trail.size':
+        TRAIL_SIZE = Math.max(1, Math.min(3, Math.round(val)));
+        return true;
+      case 'trail.glow':
+        TRAIL_GLOW = Math.max(0, Math.min(100, Math.round(parseFloat(val))));
+        return true;
+      case 'trail.decay':
+        TRAIL_DECAY = Math.max(0, Math.min(100, Math.round(parseFloat(val))));
+        return true;
       default:
         return false;
     }
@@ -757,11 +811,11 @@ function toggleTheme() {
   // All speeds (lspeed/bspeed) are 0–100%. Opacity/glow/autofill params also 0–100%.
   var PRESETS = {
     // life
-    sparse:    { sim:'life',  lspeed:20, bspeed:null, desc:'dim bg',      params:{'life.cell':7,  'life.opacity':9,  'life.glow':0,  'life.autofill':50, 'life.rainbow':0} },
-    bloom:     { sim:'life',  lspeed:25, bspeed:null, desc:'full+glow',   params:{'life.cell':7,  'life.opacity':100,'life.glow':80, 'life.autofill':50, 'life.rainbow':0} },
-    coarse:    { sim:'life',  lspeed:20, bspeed:null, desc:'chunky cells',params:{'life.cell':14, 'life.opacity':50, 'life.glow':0,  'life.autofill':50, 'life.rainbow':0} },
-    overdrive: { sim:'life',  lspeed:75, bspeed:null, desc:'fast dense',  params:{'life.cell':4,  'life.opacity':100, 'life.glow':0,  'life.autofill':50, 'life.rainbow':0} },
-    chromatic: { sim:'life',  lspeed:20, bspeed:null, desc:'rainbow',     params:{'life.cell':7,  'life.opacity':55, 'life.glow':0,  'life.autofill':50, 'life.rainbow':1} },
+    sparse:    { sim:'life',  lspeed:20, bspeed:null, desc:'dim bg',      params:{'life.cell':7,  'life.opacity':9,   'life.glow':0,  'life.autofill':50, 'life.rainbow':0, 'trail.glow':40, 'trail.decay':55, 'trail.size':2} },
+    bloom:     { sim:'life',  lspeed:25, bspeed:null, desc:'full+glow',   params:{'life.cell':7,  'life.opacity':100, 'life.glow':80, 'life.autofill':50, 'life.rainbow':0, 'trail.glow':80, 'trail.decay':35, 'trail.size':2} },
+    coarse:    { sim:'life',  lspeed:20, bspeed:null, desc:'chunky cells',params:{'life.cell':14, 'life.opacity':50,  'life.glow':0,  'life.autofill':50, 'life.rainbow':0, 'trail.glow':55, 'trail.decay':55, 'trail.size':3} },
+    overdrive: { sim:'life',  lspeed:75, bspeed:null, desc:'fast dense',  params:{'life.cell':4,  'life.opacity':100, 'life.glow':0,  'life.autofill':50, 'life.rainbow':0, 'trail.glow':20, 'trail.decay':90, 'trail.size':1} },
+    chromatic: { sim:'life',  lspeed:20, bspeed:null, desc:'rainbow',     params:{'life.cell':7,  'life.opacity':55,  'life.glow':0,  'life.autofill':50, 'life.rainbow':1, 'trail.glow':30, 'trail.decay':65, 'trail.size':2} },
     // boids
     flock:     { sim:'boids', lspeed:null, bspeed:25, desc:'120 boids',   params:{'boids.n':120,  'boids.size':14, 'boids.tick':1.8, 'boids.opacity':14, 'boids.glow':0} },
     swarm:     { sim:'boids', lspeed:null, bspeed:40, desc:'350 fast',    params:{'boids.n':350,  'boids.size':8,  'boids.tick':2.8, 'boids.opacity':18, 'boids.glow':0} },
@@ -769,9 +823,9 @@ function toggleTheme() {
     glow:      { sim:'boids', lspeed:null, bspeed:20, desc:'80 bright',   params:{'boids.n':80,   'boids.size':18, 'boids.tick':1.5, 'boids.opacity':90, 'boids.glow':50} },
     maxflock:  { sim:'boids', lspeed:null, bspeed:35, desc:'1000 full',   params:{'boids.n':1000, 'boids.size':10, 'boids.tick':2.2, 'boids.opacity':100,'boids.glow':0} },
     // combo
-    layered:   { sim:'combo', lspeed:20, bspeed:25,  desc:'life+flock',   params:{'life.cell':7,  'life.opacity':7,  'life.autofill':50, 'life.rainbow':0, 'boids.n':120, 'boids.opacity':18, 'boids.glow':0} },
-    chaos:     { sim:'combo', lspeed:70, bspeed:40,  desc:'fast chaos',   params:{'life.cell':5,  'life.opacity':9,  'life.autofill':100,'life.rainbow':0, 'boids.n':200, 'boids.opacity':22, 'boids.glow':0} },
-    spectrum:  { sim:'combo', lspeed:30, bspeed:25,  desc:'rainbow+flock',params:{'life.cell':7,  'life.opacity':45, 'life.autofill':50, 'life.rainbow':1, 'boids.n':80,  'boids.opacity':50, 'boids.glow':15} },
+    layered:   { sim:'combo', lspeed:20, bspeed:25,  desc:'life+flock',   params:{'life.cell':7,  'life.opacity':7,  'life.autofill':50, 'life.rainbow':0, 'boids.n':120, 'boids.opacity':18, 'boids.glow':0, 'trail.glow':35, 'trail.decay':60, 'trail.size':2} },
+    chaos:     { sim:'combo', lspeed:70, bspeed:40,  desc:'fast chaos',   params:{'life.cell':5,  'life.opacity':9,  'life.autofill':100,'life.rainbow':0, 'boids.n':200, 'boids.opacity':22, 'boids.glow':0, 'trail.glow':15, 'trail.decay':95, 'trail.size':1} },
+    spectrum:  { sim:'combo', lspeed:30, bspeed:25,  desc:'rainbow+flock',params:{'life.cell':7,  'life.opacity':45, 'life.autofill':50, 'life.rainbow':1, 'boids.n':80,  'boids.opacity':50, 'boids.glow':15, 'trail.glow':50, 'trail.decay':50, 'trail.size':2} },
   };
 
   window.getPresetNames = function () { return Object.keys(PRESETS); };
@@ -1750,6 +1804,12 @@ function toggleTheme() {
         '  boids.opacity    ' + v('boids.opacity')     + '%\t(0–100%)',
         '  boids.glow       ' + v('boids.glow')        + '%\t(0–100%)',
         '',
+        'trail:',
+        '  trail.on         ' + v('trail.on')    + '\t(0=off 1=on)',
+        '  trail.size       ' + v('trail.size')  + '\t(1=single 2=cross 3=wide)',
+        '  trail.glow       ' + v('trail.glow')  + '%\t(0–100%)',
+        '  trail.decay      ' + v('trail.decay') + '%\t(0=slow 100=fast)',
+        '',
         'set <param> <value>  to change',
       ].join('\n'), 'term-line-pre');
     },
@@ -1884,6 +1944,12 @@ function toggleTheme() {
       else line('no manual entry for ' + a[0], 'term-line-err');
     },
     clear:  function (args) { if (args.length) { tooMany('clear'); return; } output.innerHTML = ''; },
+    'default': function (args) {
+      if (args.length) { tooMany('default'); return; }
+      localStorage.clear();
+      line('all settings cleared — reloading…', 'term-line-ok');
+      setTimeout(function () { location.reload(); }, 700);
+    },
     exit:   function (args) { if (args.length) { tooMany('exit'); return; } close(); },
     q:      function (args) { if (args.length) { tooMany('q'); return; } close(); },
     echo:   function (args) { line(args.join(' ')); },
