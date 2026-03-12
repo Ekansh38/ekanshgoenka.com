@@ -272,8 +272,8 @@ function toggleTheme() {
 
   var TRAIL_ON    = 1;    // 0=off 1=on
   var TRAIL_SIZE  = 2;    // 1=single cell  2=cross(5)  3=wide cross(9)
-  var TRAIL_GLOW  = 40;   // 0-100 → extra opacity boost at peak heat
-  var TRAIL_DECAY = 60;   // 0-100 → fade speed (0=slowest 100=fastest)
+  var TRAIL_GLOW  = 12;   // 0-100 → extra opacity boost at peak heat
+  var TRAIL_DECAY = 80;   // 0-100 → fade speed (0=slowest 100=fastest)
   var trailHeat   = null; // Float32Array, same dims as grid
 
   // Known patterns as [dx, dy] offsets from placement origin
@@ -813,9 +813,9 @@ function toggleTheme() {
     // life
     sparse:    { sim:'life',  lspeed:20, bspeed:null, desc:'dim bg',      params:{'life.cell':7,  'life.opacity':9,   'life.glow':0,  'life.autofill':50, 'life.rainbow':0, 'trail.glow':40, 'trail.decay':55, 'trail.size':2} },
     bloom:     { sim:'life',  lspeed:25, bspeed:null, desc:'full+glow',   params:{'life.cell':7,  'life.opacity':100, 'life.glow':80, 'life.autofill':50, 'life.rainbow':0, 'trail.glow':80, 'trail.decay':35, 'trail.size':2} },
-    coarse:    { sim:'life',  lspeed:20, bspeed:null, desc:'chunky cells',params:{'life.cell':14, 'life.opacity':50,  'life.glow':0,  'life.autofill':50, 'life.rainbow':0, 'trail.glow':55, 'trail.decay':55, 'trail.size':3} },
-    overdrive: { sim:'life',  lspeed:75, bspeed:null, desc:'fast dense',  params:{'life.cell':4,  'life.opacity':100, 'life.glow':0,  'life.autofill':50, 'life.rainbow':0, 'trail.glow':20, 'trail.decay':90, 'trail.size':1} },
-    chromatic: { sim:'life',  lspeed:20, bspeed:null, desc:'rainbow',     params:{'life.cell':7,  'life.opacity':55,  'life.glow':0,  'life.autofill':50, 'life.rainbow':1, 'trail.glow':30, 'trail.decay':65, 'trail.size':2} },
+    coarse:    { sim:'life',  lspeed:20, bspeed:null, desc:'chunky cells',params:{'life.cell':14, 'life.opacity':50,  'life.glow':0,  'life.autofill':50, 'life.rainbow':0, 'trail.on':1, 'trail.glow':15, 'trail.decay':75, 'trail.size':1} },
+    overdrive: { sim:'life',  lspeed:75, bspeed:null, desc:'fast dense',  params:{'life.cell':4,  'life.opacity':100, 'life.glow':0,  'life.autofill':50, 'life.rainbow':0, 'trail.on':0} },
+    chromatic: { sim:'life',  lspeed:20, bspeed:null, desc:'rainbow',     params:{'life.cell':7,  'life.opacity':55,  'life.glow':0,  'life.autofill':50, 'life.rainbow':1, 'trail.on':0} },
     // boids
     flock:     { sim:'boids', lspeed:null, bspeed:25, desc:'120 boids',   params:{'boids.n':120,  'boids.size':14, 'boids.tick':1.8, 'boids.opacity':14, 'boids.glow':0} },
     swarm:     { sim:'boids', lspeed:null, bspeed:40, desc:'350 fast',    params:{'boids.n':350,  'boids.size':8,  'boids.tick':2.8, 'boids.opacity':18, 'boids.glow':0} },
@@ -1100,8 +1100,8 @@ function toggleTheme() {
       'params:',
       '  trail.on      0=off 1=on        default 1',
       '  trail.size    1–3               default 2  (1=dot 2=cross 3=wide)',
-      '  trail.glow    0–100%            default 40 (brightness boost)',
-      '  trail.decay   0–100%            default 60 (0=slow fade 100=fast)',
+      '  trail.glow    0–100%            default 12 (brightness boost)',
+      '  trail.decay   0–100%            default 80 (0=slow fade 100=fast)',
       '',
       '  set trail.glow 80    brighter trail',
       '  set trail.decay 20   trail lingers longer',
