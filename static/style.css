@@ -11,6 +11,17 @@
   --accent: #7aa2f7;
   --border: #292e42;
   --shadow: rgba(0,0,0,0.55);
+  --code-bg: #13141f;
+  --code-fg: #a9b1d6;
+  --code-kw: #bb9af7;
+  --code-type: #2ac3de;
+  --code-fn: #7aa2f7;
+  --code-str: #9ece6a;
+  --code-num: #ff9e64;
+  --code-op: #89ddff;
+  --code-cmt: #565f89;
+  --code-err: #f7768e;
+  --code-attr: #73daca;
 }
 
 /* Rosé Pine Dawn (light) */
@@ -21,6 +32,17 @@
   --accent: #b4637a;
   --border: #f2e9e1;
   --shadow: transparent;
+  --code-bg: #e9e0d9;
+  --code-fg: #575279;
+  --code-kw: #b4637a;
+  --code-type: #286983;
+  --code-fn: #56949f;
+  --code-str: #907aa9;
+  --code-num: #ea9d34;
+  --code-op: #286983;
+  --code-cmt: #9893a5;
+  --code-err: #b4637a;
+  --code-attr: #56949f;
 }
 
 /* Gruvbox Dark */
@@ -31,6 +53,17 @@
   --accent: #d79921;
   --border: #3c3836;
   --shadow: rgba(0,0,0,0.55);
+  --code-bg: #1d2021;
+  --code-fg: #ebdbb2;
+  --code-kw: #fb4934;
+  --code-type: #8ec07c;
+  --code-fn: #fabd2f;
+  --code-str: #b8bb26;
+  --code-num: #d3869b;
+  --code-op: #83a598;
+  --code-cmt: #928374;
+  --code-err: #fb4934;
+  --code-attr: #8ec07c;
 }
 
 /* Kanagawa (dark) */
@@ -41,6 +74,17 @@
   --accent: #7e9cd8;
   --border: #2a2a37;
   --shadow: rgba(0,0,0,0.55);
+  --code-bg: #16161d;
+  --code-fg: #dcd7ba;
+  --code-kw: #957fb8;
+  --code-type: #7fb4ca;
+  --code-fn: #7e9cd8;
+  --code-str: #98bb6c;
+  --code-num: #ffa066;
+  --code-op: #7fb4ca;
+  --code-cmt: #727169;
+  --code-err: #c34043;
+  --code-attr: #7aa89f;
 }
 
 /* Flexoki Light */
@@ -51,6 +95,17 @@
   --accent: #4385be;
   --border: #e6e4d9;
   --shadow: transparent;
+  --code-bg: #f0ede0;
+  --code-fg: #100f0f;
+  --code-kw: #8b7ec8;
+  --code-type: #3aa99f;
+  --code-fn: #4385be;
+  --code-str: #879a39;
+  --code-num: #da702c;
+  --code-op: #3aa99f;
+  --code-cmt: #6f6e69;
+  --code-err: #d14d41;
+  --code-attr: #3aa99f;
 }
 
 /* Ayu Light */
@@ -61,6 +116,17 @@
   --accent: #f2ae49;
   --border: #e7e8e9;
   --shadow: transparent;
+  --code-bg: #ebebeb;
+  --code-fg: #5c6166;
+  --code-kw: #f07171;
+  --code-type: #55b4d4;
+  --code-fn: #f2ae49;
+  --code-str: #86b300;
+  --code-num: #a37acc;
+  --code-op: #55b4d4;
+  --code-cmt: #abb0b6;
+  --code-err: #f07171;
+  --code-attr: #4cbf99;
 }
 
 ::selection {
@@ -97,18 +163,33 @@ body.page ul { list-style: disc; padding-left: 1.4em; }
 body.page ol { list-style: decimal; padding-left: 1.4em; }
 body.page li { padding: 4px 0; }
 
-/* code blocks in articles */
+/* ── CODE BLOCKS ─────────────────────────────────────────── */
+
+/* Chroma wrapper (Hugo syntax highlighting) */
+body.page .highlight {
+  margin: 1.4em 0;
+  border-radius: 4px;
+  overflow: hidden;
+  border-left: 3px solid var(--accent);
+}
+body.page .highlight pre {
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  border-left: none;
+}
+
+/* pre/code shared base — adapts to active theme via --code-* vars */
 body.page pre {
-  background: var(--border);
-  color: var(--fg);
+  background: var(--code-bg);
+  color: var(--code-fg);
   padding: 1rem 1.2rem;
   border-radius: 4px;
   overflow-x: auto;
   font-size: 0.82rem;
-  line-height: 1.6;
+  line-height: 1.65;
   margin: 1.2em 0;
-  border: 1px solid var(--muted);
-  opacity: 0.85;
+  border-left: 3px solid var(--accent);
 }
 body.page code {
   font-family: 'JetBrains Mono', monospace;
@@ -117,12 +198,60 @@ body.page code {
 body.page pre code {
   background: none;
   padding: 0;
+  font-size: inherit;
 }
 body.page :not(pre) > code {
   background: var(--border);
-  padding: 0.15em 0.4em;
+  color: var(--accent);
+  padding: 0.15em 0.45em;
   border-radius: 3px;
+  font-size: 0.85em;
 }
+
+/* Chroma token colors — adapts to active theme via CSS variables */
+.chroma { background: var(--code-bg); color: var(--code-fg); }
+.chroma .err { color: var(--code-err); }
+.chroma .k,  .chroma .kc, .chroma .kd,
+.chroma .kn, .chroma .kp, .chroma .kr { color: var(--code-kw); font-style: italic; } /* keyword */
+.chroma .kt  { color: var(--code-type); }         /* keyword type */
+.chroma .na  { color: var(--code-attr); }         /* attr name */
+.chroma .nb  { color: var(--code-type); }         /* builtin */
+.chroma .nc  { color: var(--code-type); }         /* class name */
+.chroma .nf, .chroma .fm { color: var(--code-fn); } /* func name */
+.chroma .nn  { color: var(--code-fg); }           /* namespace */
+.chroma .s,  .chroma .sa, .chroma .sb,
+.chroma .sc, .chroma .dl, .chroma .sd,
+.chroma .s2, .chroma .se, .chroma .sh,
+.chroma .si, .chroma .sx, .chroma .sr,
+.chroma .s1, .chroma .ss { color: var(--code-str); } /* string */
+.chroma .m,  .chroma .mb, .chroma .mf,
+.chroma .mh, .chroma .mi, .chroma .il,
+.chroma .mo  { color: var(--code-num); }          /* number */
+.chroma .o,  .chroma .ow { color: var(--code-op); } /* operator */
+.chroma .p   { color: var(--code-fg); }           /* punctuation */
+.chroma .c,  .chroma .ch, .chroma .cm,
+.chroma .c1, .chroma .cs, .chroma .cp,
+.chroma .cpf { color: var(--code-cmt); font-style: italic; } /* comment */
+.chroma .gi  { color: var(--code-str); }          /* diff added */
+.chroma .gd  { color: var(--code-err); }          /* diff deleted */
+.chroma .gu  { color: var(--code-fn); font-weight: bold; } /* diff heading */
+.chroma .ln, .chroma .lnt { color: var(--code-cmt); padding-right: 1em; user-select: none; } /* line numbers */
+
+/* ── READING PROGRESS COLUMN ──────────────────────────────── */
+#read-progress {
+  position: fixed;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  opacity: 0.7;
+  pointer-events: none;
+  z-index: 10;
+}
+#read-progress canvas { display: block; }
+@media (max-width: 1000px) { #read-progress { display: none; } }
 
 h1 { font-size: 1.35rem; font-weight: 700; }
 h2 { color: var(--muted); margin: 32px 0 10px; font-size: 0.88rem; }

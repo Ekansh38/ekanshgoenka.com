@@ -6,6 +6,11 @@ title = "Ekansh Goenka"
   unsafe = true
   hardWraps = true
 
+[markup.highlight]
+  codeFences = true
+  noClasses = false
+  lineNos = false
+
 [params]
   tagline = "helly · belly · shmelly"
   github  = "https://github.com/ekansh38"
