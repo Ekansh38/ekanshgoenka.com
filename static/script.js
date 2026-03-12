@@ -2112,7 +2112,7 @@ function toggleTheme() {
   }
 
   var ALL_THEMES    = ['tokyo-night', 'gruvbox', 'kanagawa', 'flexoki-light', 'rose-pine', 'ayu-light'];
-  var ALL_PARAMS    = ['life.cell','life.opacity','life.glow','life.autofill','life.rainbow','life.speed','boids.n','boids.size','boids.tick','boids.speed','boids.perception','boids.separation','boids.opacity','boids.glow'];
+  var ALL_PARAMS    = ['life.cell','life.opacity','life.glow','life.autofill','life.rainbow','life.speed','boids.n','boids.size','boids.tick','boids.speed','boids.perception','boids.separation','boids.opacity','boids.glow','trail.on','trail.size','trail.glow','trail.decay'];
   var ALL_PATTERNS  = ['r-pentomino','acorn','gosper-gun','queen-bee','pulsar','pentadecathlon','lwss','hwss'];
   var HELP_KEYS     = Object.keys(HELP_TOPICS).concat(Object.keys(HELP_CMDS)).sort();
 
