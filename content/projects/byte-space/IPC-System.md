@@ -8,29 +8,29 @@ weight: 2
 
 <h2>Architecture Overview</h2>  
   
-<pre><code>  
-┌────────────┐                   
-│            │                   
-│  User CLI  │                   
-│            │                   
-└────▲──┬────┘                   
-     │  │                        
-     │  │                        
-     │  │                        
+```
+┌────────────┐
+│            │
+│  User CLI  │
+│            │
+└────▲──┬────┘
+     │  │
+     │  │
+     │  │
  ┌───┼──▼───┐     ┌─────────────┐
  │          │────►│             │
  │  Engine  │     │ Visualizer  │
  │          │◄────│             │
  └───▲──┬───┘     └─────────────┘
-     │  │                        
-     │  │                        
-     │  │                        
-┌────┼──▼───┐                    
-│           │                    
-│ Admin CLI │                    
-│           │                    
-└───────────┘                                     
-</code></pre>
+     │  │
+     │  │
+     │  │
+┌────┼──▼───┐
+│           │
+│ Admin CLI │
+│           │
+└───────────┘
+```
 
 <p>Byte-space needs multiple programs communicating with each other. The first versions of byte-space will run locally on your machine. However, I am designing the project architecture proactively for local and maybe even global multiplayer. How does that work? That is what this article explores. Hope you enjoy!</p>
 
@@ -58,28 +58,28 @@ weight: 2
 
 <p>Here is how the IPC packets look in code:</p>
 
-<pre><code class="language-go">
+```go
 type ClientIPCMessage struct {
 	Program string
 	RequestId int
 	IP string
 	Command string
 }
-</code></pre>
+```
 
 <p>For the response:</p>
 
-<pre><code class="language-go">
+```go
 type EngineIPCMessage struct {
 	RequestId int
 	Status int
 	Result string `json:"result"`
 }
-</code></pre>
+```
 
 <p>This is how it looks in JSON:</p>
 
-<pre><code class="language-json">
+```json
 {
   "program": "client",
   "request_id": 31,
@@ -92,7 +92,7 @@ type EngineIPCMessage struct {
   "status": 0,
   "result": "home/\nlogs/\nconfig.json\nREADME.txt"
 }
-</code></pre>
+```
 
 <p>As you can see each IPC packet is pretty simple and does what it needs to. It has a few pieces of data for the engine to work with and the response is plain and simple, usually the status is success or error with some context. The status is just if the operation was a success or fail. The client then parses and displays this response to the user in some fancy color indicating success or failure. In some cases when the status is a different value the message is for the client, this is usually when connecting to a "home" node or setting up the connection.</p>
 
