@@ -270,7 +270,7 @@ function toggleTheme() {
   var lifeRainbowHue = 0;
   var cellAge        = null;
 
-  var TRAIL_ON    = 1;    // 0=off 1=on
+  var TRAIL_ON    = 0;    // 0=off 1=on
   var TRAIL_SIZE  = 2;    // 1=single cell  2=cross(5)  3=wide cross(9)
   var TRAIL_GLOW  = 12;   // 0-100 → extra opacity boost at peak heat
   var TRAIL_DECAY = 80;   // 0-100 → fade speed (0=slowest 100=fastest)
@@ -811,9 +811,9 @@ function toggleTheme() {
   // All speeds (lspeed/bspeed) are 0–100%. Opacity/glow/autofill params also 0–100%.
   var PRESETS = {
     // life
-    sparse:    { sim:'life',  lspeed:15, bspeed:null, desc:'dim bg',      params:{'life.cell':7,  'life.opacity':9,   'life.glow':0,  'life.autofill':50, 'life.rainbow':0, 'trail.on':1, 'trail.glow':12, 'trail.decay':80, 'trail.size':2} },
-    bloom:     { sim:'life',  lspeed:25, bspeed:null, desc:'full+glow',   params:{'life.cell':7,  'life.opacity':100, 'life.glow':80, 'life.autofill':50, 'life.rainbow':0, 'trail.glow':80, 'trail.decay':35, 'trail.size':2} },
-    coarse:    { sim:'life',  lspeed:20, bspeed:null, desc:'chunky cells',params:{'life.cell':14, 'life.opacity':50,  'life.glow':0,  'life.autofill':50, 'life.rainbow':0, 'trail.on':1, 'trail.glow':15, 'trail.decay':75, 'trail.size':1} },
+    sparse:    { sim:'life',  lspeed:15, bspeed:null, desc:'dim bg',      params:{'life.cell':7,  'life.opacity':9,   'life.glow':0,  'life.autofill':50, 'life.rainbow':0, 'trail.on':0} },
+    bloom:     { sim:'life',  lspeed:25, bspeed:null, desc:'full+glow',   params:{'life.cell':7,  'life.opacity':100, 'life.glow':80, 'life.autofill':50, 'life.rainbow':0, 'trail.on':1, 'trail.glow':25, 'trail.decay':70, 'trail.size':2} },
+    coarse:    { sim:'life',  lspeed:20, bspeed:null, desc:'chunky cells',params:{'life.cell':14, 'life.opacity':50,  'life.glow':0,  'life.autofill':50, 'life.rainbow':0, 'trail.on':0} },
     overdrive: { sim:'life',  lspeed:75, bspeed:null, desc:'fast dense',  params:{'life.cell':4,  'life.opacity':100, 'life.glow':0,  'life.autofill':50, 'life.rainbow':0, 'trail.on':0} },
     chromatic: { sim:'life',  lspeed:20, bspeed:null, desc:'rainbow',     params:{'life.cell':7,  'life.opacity':55,  'life.glow':0,  'life.autofill':50, 'life.rainbow':1, 'trail.on':0} },
     // boids
@@ -823,9 +823,9 @@ function toggleTheme() {
     glow:      { sim:'boids', lspeed:null, bspeed:20, desc:'80 bright',   params:{'boids.n':80,   'boids.size':18, 'boids.tick':1.5, 'boids.opacity':90, 'boids.glow':50} },
     maxflock:  { sim:'boids', lspeed:null, bspeed:35, desc:'1000 full',   params:{'boids.n':1000, 'boids.size':10, 'boids.tick':2.2, 'boids.opacity':100,'boids.glow':0} },
     // combo
-    layered:   { sim:'combo', lspeed:20, bspeed:25,  desc:'life+flock',   params:{'life.cell':7,  'life.opacity':7,  'life.autofill':50, 'life.rainbow':0, 'boids.n':120, 'boids.opacity':18, 'boids.glow':0, 'trail.glow':35, 'trail.decay':60, 'trail.size':2} },
-    chaos:     { sim:'combo', lspeed:70, bspeed:40,  desc:'fast chaos',   params:{'life.cell':5,  'life.opacity':9,  'life.autofill':100,'life.rainbow':0, 'boids.n':200, 'boids.opacity':22, 'boids.glow':0, 'trail.glow':15, 'trail.decay':95, 'trail.size':1} },
-    spectrum:  { sim:'combo', lspeed:30, bspeed:25,  desc:'rainbow+flock',params:{'life.cell':7,  'life.opacity':45, 'life.autofill':50, 'life.rainbow':1, 'boids.n':80,  'boids.opacity':50, 'boids.glow':15, 'trail.glow':50, 'trail.decay':50, 'trail.size':2} },
+    layered:   { sim:'combo', lspeed:20, bspeed:25,  desc:'life+flock',   params:{'life.cell':7,  'life.opacity':7,  'life.autofill':50, 'life.rainbow':0, 'boids.n':120, 'boids.opacity':18, 'boids.glow':0,  'trail.on':0} },
+    chaos:     { sim:'combo', lspeed:70, bspeed:40,  desc:'fast chaos',   params:{'life.cell':5,  'life.opacity':9,  'life.autofill':100,'life.rainbow':0, 'boids.n':200, 'boids.opacity':22, 'boids.glow':0,  'trail.on':0} },
+    spectrum:  { sim:'combo', lspeed:30, bspeed:25,  desc:'rainbow+flock',params:{'life.cell':7,  'life.opacity':45, 'life.autofill':50, 'life.rainbow':1, 'boids.n':80,  'boids.opacity':50, 'boids.glow':15, 'trail.on':0} },
   };
 
   window.getPresetNames = function () { return Object.keys(PRESETS); };

@@ -73,7 +73,7 @@ type ClientIPCMessage struct {
 type EngineIPCMessage struct {
 	RequestId int
 	Status int
-	Result string `json:"result"`
+	Result string 
 }
 ```
 
