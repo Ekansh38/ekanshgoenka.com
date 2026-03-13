@@ -596,7 +596,7 @@ function toggleTheme() {
   ];
   window.addEventListener('mousemove', function (e) {
     var mode = MODES[modeIdx];
-    if (!TRAIL_ON || (mode !== 'life' && mode !== 'combo')) return;
+    if (!TRAIL_ON || (mode !== 'life' && mode !== 'combo') || window._pendingSpawn) return;
     if (!grid) return;
     var gx = Math.floor(e.clientX / CELL);
     var gy = Math.floor(e.clientY / CELL);
