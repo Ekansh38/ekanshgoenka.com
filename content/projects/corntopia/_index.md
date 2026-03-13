@@ -1,7 +1,7 @@
 ---
 title: "corntopia"
 layout: "list"
-summary: "a fake country's economy I built at school — banking, crypto exchange, marketplace, 56 users. shut down for fraud."
+summary: "fake school economy. crypto exchange, marketplace, 56 users. got shut down for fraud."
 stack: "Django · Python · SQLite"
 status: "shutdown"
 github: "https://github.com/ekansh38/corn-coins"
