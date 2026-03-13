@@ -589,7 +589,7 @@ function toggleTheme() {
   requestAnimationFrame(loop);
 
   // ── Mouse trail: plant live cells where the cursor moves ──
-  var _trailGX = -1, _trailGY = -1;
+  var _trailGX = -1, _trailGY = -1, _trailBlocked = false;
   var TRAIL_PATTERNS = [
     [[0,0]],
     [[0,0],[1,0],[-1,0],[0,1],[0,-1]],
@@ -597,7 +597,7 @@ function toggleTheme() {
   ];
   window.addEventListener('mousemove', function (e) {
     var mode = MODES[modeIdx];
-    if (!TRAIL_ON || (mode !== 'life' && mode !== 'combo') || window._pendingSpawn) return;
+    if (!TRAIL_ON || (mode !== 'life' && mode !== 'combo') || window._pendingSpawn || _trailBlocked) return;
     if (!grid) return;
     var gx = Math.floor(e.clientX / CELL);
     var gy = Math.floor(e.clientY / CELL);
@@ -677,6 +677,8 @@ function toggleTheme() {
     window._pendingSpawnCount = 0;
     if (spawnOverlay) spawnOverlay.classList.remove('active');
     _trailGX = -1; _trailGY = -1;
+    _trailBlocked = true;
+    setTimeout(function () { _trailBlocked = false; }, 500);
   }
   window.cancelSpawn = cancelSpawn;
 
