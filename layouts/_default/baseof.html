@@ -3,7 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ if .IsHome }}{{ .Site.Title }}{{ else }}{{ .Title }} — {{ .Site.Title }}{{ end }}</title>
+
+  {{ $title := cond .IsHome .Site.Title (printf "%s — %s" .Title .Site.Title) }}
+  {{ $desc  := cond .IsHome "developer, builder, learner" (cond (ne .Summary "") .Summary "Ekansh Goenka — developer, builder, learner") }}
+
+  <title>{{ $title }}</title>
+  <meta name="description" content="{{ $desc }}">
+
+  <meta property="og:type"        content="{{ if .IsHome }}website{{ else }}article{{ end }}">
+  <meta property="og:url"         content="{{ .Permalink }}">
+  <meta property="og:title"       content="{{ $title }}">
+  <meta property="og:description" content="{{ $desc }}">
+  <meta property="og:site_name"   content="{{ .Site.Title }}">
+
+  <meta name="twitter:card"        content="summary">
+  <meta name="twitter:title"       content="{{ $title }}">
+  <meta name="twitter:description" content="{{ $desc }}">
+
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="stylesheet" href="/style.css">
 </head>
