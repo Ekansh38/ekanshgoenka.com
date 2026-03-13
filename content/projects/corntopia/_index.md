@@ -14,5 +14,4 @@ The country started with a couple friends, but expanded across the middle school
 
 full story + screenshots on GitHub.
 
-If you can't find the Github link, here it is:
-<a href="https://github.com/ekansh38/corn-coins">https://github.com/ekansh38/corn-coins</a>
+The Github link should just bellow this text:
