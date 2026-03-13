@@ -295,6 +295,26 @@ header { margin-bottom: 28px; }
 .links { display: flex; gap: 16px; margin-top: 24px; flex-wrap: wrap; }
 .links a { color: var(--accent); font-size: 0.88rem; }
 
+#copy-toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  background: var(--fg);
+  color: var(--bg);
+  font-size: 0.8rem;
+  padding: 6px 14px;
+  border-radius: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s, transform 0.15s;
+  z-index: 999;
+}
+#copy-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
 footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 0.77rem; }
 .footer-meta { color: var(--muted); }
 .footer-links { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 4px; }

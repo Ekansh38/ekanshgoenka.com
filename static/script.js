@@ -1,3 +1,17 @@
+document.addEventListener('click', function (e) {
+  var el = e.target.closest('.copy-email');
+  if (!el) return;
+  e.preventDefault();
+  var email = el.getAttribute('data-email');
+  navigator.clipboard.writeText(email).then(function () {
+    var toast = document.getElementById('copy-toast');
+    if (!toast) return;
+    toast.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function () { toast.classList.remove('show'); }, 2000);
+  });
+});
+
 var THEMES = ['tokyo-night', 'gruvbox', 'kanagawa', 'flexoki-light', 'rose-pine', 'ayu-light'];
 var LIGHT_THEMES = ['flexoki-light', 'rose-pine', 'ayu-light'];
 
