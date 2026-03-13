@@ -1,7 +1,8 @@
 document.addEventListener('click', function (e) {
   var el = e.target.closest('.copy-email');
   if (!el) return;
-  e.preventDefault();
+  // don't intercept if the user is selecting the email text
+  if (window.getSelection && window.getSelection().toString().length > 0) return;
   var email = el.getAttribute('data-email');
   navigator.clipboard.writeText(email).then(function () {
     var toast = document.getElementById('copy-toast');
@@ -675,6 +676,7 @@ function toggleTheme() {
     window._pendingSpawn = null;
     window._pendingSpawnCount = 0;
     if (spawnOverlay) spawnOverlay.classList.remove('active');
+    _trailGX = -1; _trailGY = -1;
   }
   window.cancelSpawn = cancelSpawn;
 
