@@ -330,8 +330,10 @@ footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--border
   font-weight: 700;
   cursor: pointer;
   user-select: none;
+  padding-right: 10px;
 }
-.copy-email:hover { color: var(--accent); }
+.copy-email:hover { color: var(--accent); text-decoration: underline; }
+.copy-email:hover .email-expand { text-decoration: none; }
 .email-expand {
   display: inline-block;
   max-width: 0;
@@ -343,11 +345,16 @@ footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--border
   font-weight: 400;
   user-select: text;
   cursor: text;
-  transition: max-width 0.25s ease, opacity 0.25s ease;
+  padding-right: 6px;
+  transition: max-width 0.25s ease, opacity 0.2s ease;
 }
 .copy-email:hover .email-expand {
-  max-width: 220px;
+  max-width: 240px;
   opacity: 1;
+  transition: max-width 0.25s ease, opacity 0.2s ease;
+}
+.copy-email .email-expand {
+  transition: max-width 0.25s ease, opacity 0.2s ease 0.1s;
 }
 
 /* ================================================================
