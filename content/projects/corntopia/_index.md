@@ -1,7 +1,7 @@
 ---
 title: "Corntopia"
 layout: "list"
-summary: "virtual school economy. crypto exchange, marketplace, 56 users. got shut down for fraud."
+summary: "Virtual school economy. crypto exchange, marketplace, got shut down."
 stack: "Django · Python · SQLite"
 status: "shutdown"
 github: "https://github.com/ekansh38/corn-coins"
