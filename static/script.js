@@ -85,7 +85,7 @@ function toggleTheme() {
   var ctx = canvas.getContext('2d');
 
   var MODES = ['life', 'boids', 'combo', 'off'];
-  var modeIdx = Math.max(0, MODES.indexOf(localStorage.getItem('bgMode') || 'life'));
+  var modeIdx = Math.max(0, MODES.indexOf(localStorage.getItem('bgMode') || 'combo'));
   var lifeSpeedLevel  = Math.max(0, Math.min(100, parseInt(localStorage.getItem('bgLifeSpeed')  || '15')));
   var boidsSpeedLevel = Math.max(0, Math.min(100, parseInt(localStorage.getItem('bgBoidsSpeed') || '15')));
   var W, H;
