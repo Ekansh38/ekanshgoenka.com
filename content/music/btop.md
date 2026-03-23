@@ -21,7 +21,7 @@ Bitcrushed and degraded samples. Layered percussion and synths.
 
 total: 14:27
 
-Listen on <a href="https://bytecolony.bandcamp.com/album/btop">bandcamp</a>.
+Listen on <a href="https://bytecolony.bandcamp.com/album/btop" target="_blank">bandcamp</a>.
 
 <br>
 
