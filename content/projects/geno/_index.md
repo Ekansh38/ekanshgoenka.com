@@ -1,5 +1,6 @@
 ---
 title: "GENO"
+layout: "list"
 summary: "A genetic evolution simulator. genomes, natural selection, emergent behavior."
 stack: "Go"
 status: "in progress"

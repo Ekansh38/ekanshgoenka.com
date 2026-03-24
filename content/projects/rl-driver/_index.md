@@ -1,5 +1,6 @@
 ---
 title: "rl-driver"
+layout: "list"
 summary: "A custom top-down 2D racing enviroment and AI driver playground"
 stack: "Python · Pygame"
 status: "in progress"
