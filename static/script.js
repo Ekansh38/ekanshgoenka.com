@@ -1046,7 +1046,7 @@ function toggleTheme() {
       '  pwd            working dir',
       '  open <path>    navigate to page',
       '',
-      '  projects/   writing/   music/   games/   experience/',
+      '  projects/   writing/   music/   games/',
       '',
       '  ls projects/geno',
       '  cat music/btop',
@@ -1172,7 +1172,6 @@ function toggleTheme() {
       '  ls writing           posts',
       '  ls music             releases',
       '  ls games             games',
-      '  ls experience        work / internships',
     ].join('\n'),
 
     cat: [

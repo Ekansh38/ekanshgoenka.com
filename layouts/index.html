@@ -15,6 +15,7 @@
   {{ end }}
 </ul>
 
+{{/* EXPERIENCE SECTION — commented out, re-enable when ready
 <hr>
 
 {{ $experience := .Site.GetPage "/experience" }}
@@ -24,12 +25,13 @@
   <li>
     <span class="li-name"><a href="{{ .Permalink }}">{{ .Title }}</a></span> —
     <span class="li-desc">{{ .Params.summary }}</span>
-    <div class="li-meta">{{ .Params.stack }} · {{ .Params.year }} · {{ .Params.type }}</div>
+    <div class="li-meta">{{ .Params.stack }} · {{ .Params.year }}</div>
   </li>
   {{ end }}
 </ul>
 
 <hr>
+*/}}
 
 {{ $writing := .Site.GetPage "/writing" }}
 <h2><a href="/writing" class="now-link">Writing</a></h2>

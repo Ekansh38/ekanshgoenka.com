@@ -82,10 +82,12 @@
       {{ with .Site.GetPage "/writing" }}{{ range .Pages -}}
       {{ printf "writing/%s" .File.BaseFileName | jsonify | safeJS }}: { type: "file", title: {{ .Title | jsonify | safeJS }}, body: {{ .Plain | jsonify | safeJS }}, url: {{ .RelPermalink | jsonify | safeJS }} },
       {{ end }}{{ end }}
+      /* EXPERIENCE — commented out, re-enable when ready
       'experience': { type: 'dir' },
       {{ with .Site.GetPage "/experience" }}{{ range .Pages -}}
       {{ printf "experience/%s" .File.BaseFileName | jsonify | safeJS }}: { type: "file", title: {{ .Title | jsonify | safeJS }}, body: {{ .Plain | jsonify | safeJS }}, stack: {{ default "" .Params.stack | jsonify | safeJS }}, status: {{ printf "%s · %s" (default "" .Params.role) (default "" .Params.year) | jsonify | safeJS }}, url: {{ .RelPermalink | jsonify | safeJS }} },
       {{ end }}{{ end }}
+      */
     };
   </script>
 
