@@ -5,7 +5,7 @@ company: "AMH Singapore"
 year: "2026"
 type: "Contract"
 stack: "Anthropic API · Composio MCP · Vercel"
-url: "https://amh-assistant.vercel.app"
+live: "https://amh-assistant.vercel.app"
 summary: "Built and deployed an AI chat interface connecting a 40-person company's Trello, Google Sheets, and Gmail into a queryable assistant."
 date: 2026-01-01
 ---
