@@ -1001,6 +1001,7 @@ function toggleTheme() {
     'age       12',
     'editor    vim',
     'hobbies   bjj  music  cs  reading',
+    'work      AI intern @ AMH Singapore',
     '',
     'github    github.com/ekansh38',
   ].join('\n');
@@ -1046,7 +1047,7 @@ function toggleTheme() {
       '  pwd            working dir',
       '  open <path>    navigate to page',
       '',
-      '  projects/   writing/   music/   games/',
+      '  projects/   writing/   music/   games/   experience/',
       '',
       '  ls projects/geno',
       '  cat music/btop',
@@ -1172,6 +1173,7 @@ function toggleTheme() {
       '  ls writing           posts',
       '  ls music             releases',
       '  ls games             games',
+      '  ls experience        work / internships',
     ].join('\n'),
 
     cat: [
