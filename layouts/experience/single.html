@@ -1,0 +1,14 @@
+{{ define "main" }}
+
+<a href="{{ .Parent.Permalink }}" class="back">← experience</a>
+
+<div class="project-title">{{ .Title }}</div>
+<div class="project-meta">{{ .Params.role }} · {{ .Params.year }} · {{ .Params.type }}</div>
+
+{{ .Content }}
+
+<div class="links">
+  {{ with .Params.url }}<a href="{{ . }}" target="_blank">live ↗</a>{{ end }}
+</div>
+
+{{ end }}
