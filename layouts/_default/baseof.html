@@ -84,7 +84,7 @@
       {{ end }}{{ end }}
       'experience': { type: 'dir' },
       {{ with .Site.GetPage "/experience" }}{{ range .Pages -}}
-      {{ printf "experience/%s" .File.BaseFileName | jsonify | safeJS }}: { type: "file", title: {{ .Title | jsonify | safeJS }}, body: {{ .Plain | jsonify | safeJS }}, stack: {{ default "" .Params.stack | jsonify | safeJS }}, status: {{ printf "%s · %s · %s" (default "" .Params.role) (default "" .Params.year) (default "" .Params.type) | jsonify | safeJS }}, url: {{ .RelPermalink | jsonify | safeJS }} },
+      {{ printf "experience/%s" .File.BaseFileName | jsonify | safeJS }}: { type: "file", title: {{ .Title | jsonify | safeJS }}, body: {{ .Plain | jsonify | safeJS }}, stack: {{ default "" .Params.stack | jsonify | safeJS }}, status: {{ printf "%s · %s" (default "" .Params.role) (default "" .Params.year) | jsonify | safeJS }}, url: {{ .RelPermalink | jsonify | safeJS }} },
       {{ end }}{{ end }}
     };
   </script>
