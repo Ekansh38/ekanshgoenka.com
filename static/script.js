@@ -1001,7 +1001,6 @@ function toggleTheme() {
     'age       12',
     'editor    vim',
     'hobbies   bjj  music  cs  reading',
-    'work      AI intern @ AMH Singapore',
     '',
     'github    github.com/ekansh38',
   ].join('\n');
