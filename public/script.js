@@ -988,7 +988,7 @@ function toggleTheme() {
 
     whoami: function (args) {
       if (args.length) { tooMany('whoami'); return; }
-      line('ekansh goenka. 12. building things. bjj. music.');
+      line('ekansh goenka. 13. building things. bjj. music.');
     },
 
     neofetch: function (args) {
