@@ -246,6 +246,31 @@
     text-transform: uppercase;
   }
 
+  /* ── WHY ME (personal) ── */
+  .why-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    max-width: 780px;
+  }
+  .why-card {
+    border: 1px solid #292e42;
+    padding: 20px 22px;
+  }
+  .why-card-head {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    color: #c0caf5;
+    margin-bottom: 8px;
+  }
+  .why-card-head em { color: #7aa2f7; font-style: normal; }
+  .why-card-body {
+    font-size: 0.76rem;
+    color: #565f89;
+    line-height: 1.7;
+  }
+
   /* ── SLIDE 5 — HOW IT WORKS ── */
   .steps { display: flex; flex-direction: column; max-width: 680px; }
   .step {
@@ -549,6 +574,30 @@
       </div>
     </div>
     <p class="pkg-note">All prices are starting points — every project is different and pricing can be discussed.</p>
+  </div>
+
+  <!-- WHY ME — PERSONAL -->
+  <div class="slide">
+    <div class="eyebrow">why work with me</div>
+    <h2 class="sh2">Not just cheaper.<br><em style="color:#7aa2f7;font-style:normal;">Actually better.</em></h2>
+    <div class="why-grid">
+      <div class="why-card">
+        <div class="why-card-head"><em>Fast.</em> No waiting around.</div>
+        <div class="why-card-body">Most agencies take weeks just to send a quote. I move fast — first version in days, not months. You'll see progress immediately.</div>
+      </div>
+      <div class="why-card">
+        <div class="why-card-head"><em>On time.</em> Every time.</div>
+        <div class="why-card-body">I give a deadline and I hit it. No excuses, no "we're still in review." You always know exactly where things stand.</div>
+      </div>
+      <div class="why-card">
+        <div class="why-card-head"><em>You talk to me.</em> Not a middleman.</div>
+        <div class="why-card-body">No account managers, no support tickets, no being passed around. One message to me and it's done. Direct line, always.</div>
+      </div>
+      <div class="why-card">
+        <div class="why-card-head"><em>Built right.</em> Not slapped together.</div>
+        <div class="why-card-body">Custom code, 100/100 performance score, fast load times, mobile-ready, SEO-structured. The kind of quality big agencies charge 10x for.</div>
+      </div>
+    </div>
   </div>
 
   <!-- 5. HOW IT WORKS -->
