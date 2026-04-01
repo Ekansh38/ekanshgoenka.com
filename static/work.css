@@ -216,7 +216,7 @@ body.work .w-title { font-size: clamp(3rem, 8vw, 6rem); }
 
 .wt-line { display: block; white-space: pre; }
 .wt-cmd  { color: var(--fg); }
-.wt-dim  { color: var(--muted); }
+.wt-dim  { color: color-mix(in srgb, var(--fg) 60%, var(--muted)); }
 .wt-ok   { color: var(--accent); }
 
 /* ── STATS ──────────────────────────────────────────────────────── */
@@ -291,6 +291,54 @@ body.work .w-title { font-size: clamp(3rem, 8vw, 6rem); }
 .w-card-name { font-weight: 700; color: var(--fg); margin-bottom: 8px; font-size: 0.92rem; }
 .w-card-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.65; }
 
+/* ── PAST WORK ──────────────────────────────────────────────────── */
+
+.w-past {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+}
+
+.w-past-item {
+  display: grid;
+  grid-template-columns: 32px 1fr auto;
+  align-items: center;
+  gap: 20px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+  text-decoration: none;
+  transition: background 0.18s, color 0.18s;
+  color: var(--fg);
+}
+.w-past-item:last-child { border-bottom: none; }
+.w-past-item:hover {
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
+  text-decoration: none;
+  color: var(--fg);
+}
+.w-past-item:hover .w-past-url { color: var(--accent); }
+
+.w-past-n {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--accent);
+  opacity: 0.55;
+  letter-spacing: 0.06em;
+}
+
+.w-past-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.w-past-url {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--muted);
+  transition: color 0.18s;
+}
+
 /* ── PACKAGES ───────────────────────────────────────────────────── */
 
 .w-packages {
@@ -315,8 +363,8 @@ body.work .w-title { font-size: clamp(3rem, 8vw, 6rem); }
   transition: opacity 0.3s;
   pointer-events: none;
 }
-.w-pkg:hover { border-color: var(--accent); box-shadow: 0 0 48px -8px var(--accent), 0 0 80px -24px var(--accent); }
-.w-pkg:hover::after { opacity: 1; }
+.w-pkg:hover { border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
+.w-pkg:hover::after { opacity: 0.4; }
 
 .w-pkg-hot {
   border-color: var(--accent);
@@ -575,6 +623,10 @@ body.work .w-title { font-size: clamp(3rem, 8vw, 6rem); }
   .w-card-icon { margin-bottom: 0; font-size: 1.1rem; flex-shrink: 0; padding-top: 1px; }
   .w-card-name { margin-bottom: 3px; font-size: 0.88rem; }
   .w-card-desc { font-size: 0.77rem; }
+
+  /* past work */
+  .w-past-item { grid-template-columns: 28px 1fr; gap: 12px; padding: 16px; }
+  .w-past-url { display: none; }
 
   /* packages */
   .w-pkg { padding: 20px 16px; }
