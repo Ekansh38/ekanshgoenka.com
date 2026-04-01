@@ -315,6 +315,33 @@
   }
   .receipt-note strong { color: #c0caf5; font-weight: 700; }
 
+  .maint-cmp {
+    margin-top: 24px;
+    max-width: 540px;
+  }
+  .maint-cmp-title {
+    font-size: 0.65rem;
+    color: #565f89;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .maint-rows { display: flex; flex-direction: column; border: 1px solid #292e42; }
+  .maint-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 24px;
+    padding: 8px 16px;
+    border-bottom: 1px solid #1e2030;
+    opacity: 0.45;
+  }
+  .maint-row:last-child { border-bottom: none; }
+  .maint-row.maint-me { opacity: 1; background: rgba(122,162,247,0.06); }
+  .maint-row-name { font-size: 0.76rem; color: #c0caf5; }
+  .maint-row-price { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.9rem; color: #f7768e; }
+  .maint-row.maint-me .maint-row-price { color: #9ece6a; }
+
   /* ── SLIDE 8 — CTA ── */
   #s8 { align-items: center; text-align: center; }
   #s8 .sh1 { margin-bottom: 10px; }
@@ -553,9 +580,17 @@
       <div class="receipt-total"><span class="receipt-total-label">Total / month</span><span class="receipt-total-val">$50.00</span></div>
     </div>
     <p class="receipt-note">
-      <strong>Any updates, copy changes, or small feature additions?</strong> Send me a message and it's handled within 48–72 hours — no back and forth, no extra invoices.<br><br>
-      All of the above is covered under the <strong>maintenance plan ($100/mo)</strong>, including the running costs, monitoring, and ongoing support.
+      <strong>Any updates, copy changes, or small feature additions?</strong> Send me a message and it's handled within 48–72 hours — no back and forth, no extra invoices. All covered under maintenance.
     </p>
+    <div class="maint-cmp">
+      <div class="maint-cmp-title">what others charge for maintenance</div>
+      <div class="maint-rows">
+        <div class="maint-row"><span class="maint-row-name">US / UK agency retainer</span><span class="maint-row-price">$500 – $3,000/mo</span></div>
+        <div class="maint-row"><span class="maint-row-name">WebFX / large freelance platforms</span><span class="maint-row-price">$150 – $500/mo</span></div>
+        <div class="maint-row"><span class="maint-row-name">Indian web agency</span><span class="maint-row-price">$100 – $400/mo</span></div>
+        <div class="maint-row maint-me"><span class="maint-row-name">Me — updates, monitoring, backups, support</span><span class="maint-row-price">$100/mo</span></div>
+      </div>
+    </div>
   </div>
 
   <!-- 8. CTA -->
