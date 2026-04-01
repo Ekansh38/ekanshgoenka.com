@@ -155,12 +155,14 @@ body.work .w-title { font-size: clamp(3rem, 8vw, 6rem); }
   grid-template-columns: repeat(3, 1fr);
   border: 1px solid var(--border);
   margin-bottom: 0;
+  overflow: hidden;
 }
 
 .w-stat {
   padding: 36px 28px;
   text-align: center;
   border-right: 1px solid var(--border);
+  min-width: 0;
 }
 .w-stat:last-child { border-right: none; }
 
@@ -384,15 +386,74 @@ body.work .w-title { font-size: clamp(3rem, 8vw, 6rem); }
 .w-final-email a { color: var(--muted); }
 .w-final-email a:hover { color: var(--accent); }
 
+/* ── TABLET ─────────────────────────────────────────────────────── */
+
+@media (max-width: 800px) {
+  .w-packages { grid-template-columns: 1fr; gap: 12px; }
+  .w-cards { grid-template-columns: 1fr; gap: 10px; }
+}
+
 /* ── MOBILE ─────────────────────────────────────────────────────── */
 
-@media (max-width: 660px) {
-  .w-title { font-size: 2.6rem; letter-spacing: -0.02em; }
-  .w-stats { grid-template-columns: 1fr; }
-  .w-stat { border-right: none; border-bottom: 1px solid var(--border); }
-  .w-stat:last-child { border-bottom: none; }
-  .w-cards { grid-template-columns: 1fr; }
-  .w-packages { grid-template-columns: 1fr; }
-  .w-h2 { font-size: 1.3rem; }
-  .w-final-title { font-size: 2rem; }
+@media (max-width: 600px) {
+
+  /* body */
+  body.work { padding-top: 32px; }
+
+  /* hero */
+  .w-hero { padding: 40px 0 52px; }
+  .w-eyebrow { margin-bottom: 20px; font-size: 0.68rem; }
+  .w-title { letter-spacing: -0.025em; line-height: 1.02; }
+  .w-sub { font-size: 0.88rem; margin-bottom: 32px; max-width: 100%; }
+  .w-btn { display: block; text-align: center; padding: 14px; }
+
+  /* terminal */
+  .w-term { margin: 32px 0; font-size: 0.78rem; }
+  .w-term-body { padding: 14px 16px; min-height: 96px; }
+
+  /* stats — STAY 3 columns, just tighter */
+  .w-stats { grid-template-columns: repeat(3, 1fr); }
+  .w-stat { padding: 22px 8px; }
+  .w-stat-n { font-size: 1.9rem; }
+  .w-stat-l { font-size: 0.6rem; letter-spacing: 0; margin-top: 5px; }
+
+  /* sections */
+  .w-section { padding: 40px 0; }
+  .w-h2 { font-size: 1.2rem !important; margin-bottom: 22px !important; }
+
+  /* what i build — horizontal strips instead of stacked boxes */
+  .w-cards { grid-template-columns: 1fr; gap: 0; border: 1px solid var(--border); }
+  .w-card {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 18px 16px;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    box-shadow: none !important;
+  }
+  .w-card:last-child { border-bottom: none; }
+  .w-card-icon { margin-bottom: 0; font-size: 1.1rem; flex-shrink: 0; padding-top: 1px; }
+  .w-card-name { margin-bottom: 3px; font-size: 0.88rem; }
+  .w-card-desc { font-size: 0.77rem; }
+
+  /* packages — stacked, compact */
+  .w-packages { grid-template-columns: 1fr; gap: 12px; }
+  .w-pkg { padding: 20px 16px; }
+  .w-pkg-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0;
+  }
+  .w-pkg-hot { order: -1; } /* featured first on mobile */
+
+  /* steps */
+  .w-step { padding: 14px 0; }
+  .w-step-t { font-size: 0.88rem; }
+
+  /* cta */
+  .w-final { padding: 56px 0 32px; }
+  .w-final-title { font-size: 2rem !important; }
+  .w-btn-lg { display: block; text-align: center; padding: 16px; }
+  .w-final-sub { font-size: 0.78rem; }
 }
