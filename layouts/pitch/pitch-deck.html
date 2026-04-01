@@ -194,6 +194,45 @@
     opacity: 0.65;
   }
 
+  /* ── SLIDE 4 — WHY ME ── */
+  .cmp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+  }
+  .cmp-table th {
+    padding: 10px 16px;
+    text-align: left;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 0.8rem;
+    border-bottom: 1px solid #292e42;
+    color: #565f89;
+  }
+  .cmp-table th.cmp-me {
+    color: #7aa2f7;
+    border-bottom-color: #7aa2f7;
+  }
+  .cmp-table td {
+    padding: 9px 16px;
+    border-bottom: 1px solid #1e2030;
+    color: #565f89;
+    vertical-align: middle;
+  }
+  .cmp-table td.cmp-label {
+    color: #c0caf5;
+    font-weight: 700;
+    font-size: 0.78rem;
+  }
+  .cmp-table td.cmp-me {
+    color: #c0caf5;
+    background: rgba(122,162,247,0.05);
+  }
+  .cmp-table tr:last-child td { border-bottom: none; }
+  .yes  { color: #7aa2f7; font-weight: 700; }
+  .no   { color: #f7768e; opacity: 0.8; }
+  .meh  { color: #e0af68; opacity: 0.8; }
+
   /* ── SLIDE 5 — HOW IT WORKS ── */
   .steps { display: flex; flex-direction: column; max-width: 680px; }
   .step {
@@ -215,10 +254,10 @@
   }
   .step-t { font-size: 0.92rem; color: #c0caf5; }
 
-  /* ── SLIDE 6 — CTA ── */
-  #s6 { align-items: center; text-align: center; }
-  #s6 .sh1 { margin-bottom: 10px; }
-  #s6 .sub { text-align: center; max-width: 440px; }
+  /* ── SLIDE 7 — CTA ── */
+  #s7 { align-items: center; text-align: center; }
+  #s7 .sh1 { margin-bottom: 10px; }
+  #s7 .sub { text-align: center; max-width: 440px; }
   .cta-btn {
     display: inline-block;
     padding: 12px 32px;
@@ -348,7 +387,67 @@
     </div>
   </div>
 
-  <!-- 4. PACKAGES -->
+  <!-- 4. WHY ME -->
+  <div class="slide" id="s4">
+    <h2 class="sh2">Why me?</h2>
+    <table class="cmp-table">
+      <thead>
+        <tr>
+          <th style="width:22%"></th>
+          <th>Wix / Squarespace</th>
+          <th>Fiverr freelancer</th>
+          <th>Agency</th>
+          <th class="cmp-me">Me</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="cmp-label">Custom code</td>
+          <td><span class="no">✗ templates only</span></td>
+          <td><span class="meh">~ usually templates</span></td>
+          <td><span class="yes">✓</span></td>
+          <td class="cmp-me"><span class="yes">✓ always</span></td>
+        </tr>
+        <tr>
+          <td class="cmp-label">Performance</td>
+          <td><span class="meh">~ 60–75 / 100</span></td>
+          <td><span class="meh">~ 70–80 / 100</span></td>
+          <td><span class="meh">~ varies</span></td>
+          <td class="cmp-me"><span class="yes">✓ 100 / 100</span></td>
+        </tr>
+        <tr>
+          <td class="cmp-label">Price</td>
+          <td><span class="meh">monthly subscription</span></td>
+          <td><span class="yes">$ low</span></td>
+          <td><span class="no">$$$$ high</span></td>
+          <td class="cmp-me"><span class="yes">$$ fair</span></td>
+        </tr>
+        <tr>
+          <td class="cmp-label">You own it</td>
+          <td><span class="no">✗ locked in</span></td>
+          <td><span class="yes">✓</span></td>
+          <td><span class="yes">✓</span></td>
+          <td class="cmp-me"><span class="yes">✓ fully yours</span></td>
+        </tr>
+        <tr>
+          <td class="cmp-label">Personal contact</td>
+          <td><span class="no">✗ support tickets</span></td>
+          <td><span class="meh">~ hit or miss</span></td>
+          <td><span class="no">✗ account manager</span></td>
+          <td class="cmp-me"><span class="yes">✓ direct line to me</span></td>
+        </tr>
+        <tr>
+          <td class="cmp-label">Post-launch support</td>
+          <td><span class="no">✗</span></td>
+          <td><span class="no">✗ usually none</span></td>
+          <td><span class="meh">~ costs extra</span></td>
+          <td class="cmp-me"><span class="yes">✓ included</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 5. PACKAGES -->
   <div class="slide" id="s4">
     <h2 class="sh2">Packages</h2>
     <div class="pkg-grid">
@@ -366,7 +465,7 @@
       </div>
       <div class="pkg hot">
         <div class="pkg-name">Site</div>
-        <div class="pkg-tag">multi-page</div>
+        <div class="pkg-tag">multi-page · <span style="color:#9ece6a">special rate</span></div>
         <div class="pkg-price">$400 <span>USD</span></div>
         <hr class="pkg-rule">
         <ul class="pkg-list">
@@ -408,8 +507,8 @@
     </div>
   </div>
 
-  <!-- 6. CTA -->
-  <div class="slide" id="s6">
+  <!-- 7. CTA -->
+  <div class="slide" id="s7">
     <div class="eyebrow">takes 2 minutes</div>
     <h1 class="sh1">Let's talk.</h1>
     <p class="sub">Fill out the form and I'll get back within 24–48 hours. Or just hop on a call.</p>
