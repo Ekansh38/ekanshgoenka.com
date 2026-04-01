@@ -1,0 +1,185 @@
+{{ define "main" }}
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/work.css">
+
+<!-- HERO -->
+<section class="w-hero">
+  <div class="w-eyebrow">ekansh goenka &nbsp;·&nbsp; freelance web dev</div>
+  <h1 class="w-title">
+    I build websites<br>
+    that <span class="w-glitch" data-text="actually work.">actually work.</span>
+  </h1>
+  <p class="w-sub">Custom code, no templates, no Wix. Fast, sharp, and built to impress.</p>
+  <a href="#packages" class="w-btn">see packages ↓</a>
+</section>
+
+<!-- TERMINAL -->
+<div class="w-term">
+  <div class="w-term-bar">
+    <span class="w-dot"></span><span class="w-dot"></span><span class="w-dot"></span>
+    <span class="w-term-label">build.sh</span>
+  </div>
+  <div class="w-term-body" id="w-term-body"></div>
+</div>
+
+<!-- STATS -->
+<div class="w-stats">
+  <div class="w-stat">
+    <span class="w-stat-n" data-target="5" data-suffix="+">0</span>
+    <span class="w-stat-l">projects shipped</span>
+  </div>
+  <div class="w-stat">
+    <span class="w-stat-n" data-target="40" data-suffix="+">0</span>
+    <span class="w-stat-l">daily active users</span>
+  </div>
+  <div class="w-stat">
+    <span class="w-stat-n" data-target="4" data-suffix="">0</span>
+    <span class="w-stat-l">languages</span>
+  </div>
+</div>
+
+<!-- WHAT I BUILD -->
+<section class="w-section">
+  <h2 class="w-h2">what i build</h2>
+  <div class="w-cards">
+    <div class="w-card">
+      <div class="w-card-icon">⚡</div>
+      <div class="w-card-name">Landing pages</div>
+      <div class="w-card-desc">Fast and sharp. Built to convert visitors, not just look pretty.</div>
+    </div>
+    <div class="w-card">
+      <div class="w-card-icon">◈</div>
+      <div class="w-card-name">Portfolio sites</div>
+      <div class="w-card-desc">Your work, shown properly. Custom-built, not a theme.</div>
+    </div>
+    <div class="w-card">
+      <div class="w-card-icon">⚙</div>
+      <div class="w-card-name">Web tools</div>
+      <div class="w-card-desc">Dashboards, internal tools, apps that actually do things.</div>
+    </div>
+  </div>
+</section>
+
+<!-- PACKAGES -->
+<section class="w-section" id="packages">
+  <h2 class="w-h2">packages</h2>
+  <div class="w-packages">
+
+    <div class="w-pkg">
+      <div class="w-pkg-name">Starter</div>
+      <div class="w-pkg-price">coming soon</div>
+      <div class="w-pkg-desc">A clean, fast single-page site. Good for a landing page or personal portfolio.</div>
+      <ul class="w-pkg-list">
+        <li>Custom design</li>
+        <li>Mobile responsive</li>
+        <li>Fast load times</li>
+        <li>1 revision round</li>
+      </ul>
+    </div>
+
+    <div class="w-pkg w-pkg-hot">
+      <div class="w-pkg-badge">popular</div>
+      <div class="w-pkg-name">Pro</div>
+      <div class="w-pkg-price">coming soon</div>
+      <div class="w-pkg-desc">Multi-page site with custom features and interactions.</div>
+      <ul class="w-pkg-list">
+        <li>Everything in Starter</li>
+        <li>Multiple pages</li>
+        <li>Custom animations</li>
+        <li>SEO setup</li>
+        <li>2 revision rounds</li>
+      </ul>
+    </div>
+
+    <div class="w-pkg">
+      <div class="w-pkg-name">Custom</div>
+      <div class="w-pkg-price">let's talk</div>
+      <div class="w-pkg-desc">Web apps, tools, or anything more complex. Built to your spec.</div>
+      <ul class="w-pkg-list">
+        <li>Everything in Pro</li>
+        <li>Web app / dashboard</li>
+        <li>API integrations</li>
+        <li>Ongoing support</li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="w-section">
+  <h2 class="w-h2">how it works</h2>
+  <div class="w-steps">
+    <div class="w-step"><span class="w-step-n">01</span><span class="w-step-t">fill out the form with what you need</span></div>
+    <div class="w-step"><span class="w-step-n">02</span><span class="w-step-t">we talk, i figure out exactly what to build</span></div>
+    <div class="w-step"><span class="w-step-n">03</span><span class="w-step-t">i build it, you give feedback</span></div>
+    <div class="w-step"><span class="w-step-n">04</span><span class="w-step-t">you get a live website</span></div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="w-final">
+  <div class="w-final-label">ready?</div>
+  <h2 class="w-final-title">let's build something.</h2>
+  <p class="w-final-sub">fill out the form and i'll get back within 24 hours</p>
+  <a href="GOOGLE_FORM_URL" class="w-btn w-btn-lg" target="_blank">get started ↗</a>
+  <p class="w-final-email">or just email <a href="mailto:{{ .Site.Params.email }}">{{ .Site.Params.email }}</a></p>
+</section>
+
+<script>
+(function () {
+  // ── Terminal typewriter ────────────────────────────────────────
+  var body = document.getElementById('w-term-body');
+  if (body) {
+    var seq = [
+      { t: '$ hugo build --minify', cls: 'wt-cmd', type: true },
+      { t: '✓ design compiled      0.3s', cls: 'wt-ok',  type: false },
+      { t: '✓ custom code written  0.9s', cls: 'wt-ok',  type: false },
+      { t: '✓ deployed to vercel   1.8s', cls: 'wt-ok',  type: false },
+      { t: '✓ your site is live.',        cls: 'wt-ok',  type: false },
+    ];
+    var si = 0;
+    function nextLine() {
+      if (si >= seq.length) return;
+      var s = seq[si++];
+      var el = document.createElement('div');
+      el.className = 'wt-line ' + s.cls;
+      body.appendChild(el);
+      if (!s.type) {
+        el.textContent = s.t;
+        setTimeout(nextLine, si < seq.length ? 280 : 0);
+      } else {
+        var ci = 0;
+        var iv = setInterval(function () {
+          el.textContent = s.t.slice(0, ++ci);
+          if (ci >= s.t.length) { clearInterval(iv); setTimeout(nextLine, 600); }
+        }, 48);
+      }
+    }
+    setTimeout(nextLine, 500);
+  }
+
+  // ── Count-up stats ─────────────────────────────────────────────
+  var nums = document.querySelectorAll('.w-stat-n');
+  var statsEl = document.querySelector('.w-stats');
+  if (statsEl && nums.length) {
+    var fired = false;
+    var obs = new IntersectionObserver(function (entries) {
+      if (fired || !entries[0].isIntersecting) return;
+      fired = true;
+      nums.forEach(function (el) {
+        var target = parseInt(el.getAttribute('data-target'));
+        var suffix = el.getAttribute('data-suffix') || '';
+        var n = 0;
+        var iv = setInterval(function () {
+          n++;
+          el.textContent = n + suffix;
+          if (n >= target) clearInterval(iv);
+        }, 900 / target);
+      });
+    }, { threshold: 0.6 });
+    obs.observe(statsEl);
+  }
+})();
+</script>
+{{ end }}
