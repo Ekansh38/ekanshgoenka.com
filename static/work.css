@@ -401,12 +401,20 @@ body.work .w-title { font-size: clamp(3rem, 8vw, 6rem); }
   line-height: 1;
 }
 
+.w-pkg-currency {
+  font-size: 1rem;
+  font-weight: 700;
+  opacity: 0.5;
+  letter-spacing: 0.04em;
+}
+
 .w-pkg-note {
-  margin-top: 20px;
-  font-size: 0.75rem;
-  color: var(--muted);
-  font-family: 'JetBrains Mono', monospace;
-  opacity: 0.7;
+  margin-top: 24px;
+  font-size: 0.88rem;
+  color: var(--fg);
+  border-left: 2px solid var(--accent);
+  padding-left: 14px;
+  opacity: 0.75;
 }
 
 .w-pkg-desc {
