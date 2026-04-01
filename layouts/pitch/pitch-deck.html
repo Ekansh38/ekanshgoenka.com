@@ -1,0 +1,478 @@
+{{ define "main" }}
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #1a1b26;
+    color: #c0caf5;
+    font-family: 'JetBrains Mono', monospace;
+    height: 100vh;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* ── DECK ── */
+  #deck {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: clamp(36px, 7vw, 100px) clamp(40px, 10vw, 140px);
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 0.38s ease, transform 0.38s ease;
+    pointer-events: none;
+  }
+  .slide.active {
+    opacity: 1;
+    transform: none;
+    pointer-events: all;
+  }
+  .slide.out {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+
+  /* ── COMMON ── */
+  .eyebrow {
+    font-size: 0.7rem;
+    color: #7aa2f7;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #7aa2f7;
+    display: inline-block;
+    flex-shrink: 0;
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(122,162,247,0.4); }
+    50%      { box-shadow: 0 0 0 5px rgba(122,162,247,0); }
+  }
+  .sh1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2.8rem, 6vw, 5.2rem);
+    font-weight: 800;
+    line-height: 1.0;
+    letter-spacing: -0.03em;
+    color: #c0caf5;
+    margin-bottom: 20px;
+  }
+  .sh1 em { color: #7aa2f7; font-style: normal; }
+  .sh2 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(1.6rem, 3vw, 2.4rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #c0caf5;
+    margin-bottom: 36px;
+  }
+  .sub {
+    font-size: 0.9rem;
+    color: #565f89;
+    line-height: 1.75;
+    max-width: 520px;
+    margin-bottom: 36px;
+  }
+  .accent { color: #7aa2f7; }
+  .muted  { color: #565f89; }
+  .border { border: 1px solid #292e42; }
+  hr.rule { border: none; border-top: 1px solid #292e42; margin: 24px 0; }
+
+  /* ── SLIDE 1 — TITLE ── */
+  #s1 .sh1 { margin-bottom: 16px; }
+  #s1 .avail {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    color: #7aa2f7;
+    margin-top: 8px;
+  }
+
+  /* ── SLIDE 2 — WHAT I BUILD ── */
+  .service-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .service {
+    border: 1px solid #292e42;
+    padding: 22px 20px;
+  }
+  .service-icon { font-size: 1.2rem; margin-bottom: 12px; color: #7aa2f7; }
+  .service-name { font-weight: 700; color: #c0caf5; margin-bottom: 6px; font-size: 0.88rem; }
+  .service-desc { font-size: 0.76rem; color: #565f89; line-height: 1.65; }
+
+  /* ── SLIDE 3 — PAST WORK ── */
+  .work-list { border: 1px solid #292e42; }
+  .work-row {
+    display: grid;
+    grid-template-columns: 28px 1fr auto;
+    align-items: center;
+    gap: 20px;
+    padding: 16px 22px;
+    border-bottom: 1px solid #292e42;
+    text-decoration: none;
+    color: #c0caf5;
+    transition: background 0.15s;
+  }
+  .work-row:last-child { border-bottom: none; }
+  .work-row:hover { background: rgba(122,162,247,0.05); }
+  .work-row:hover .work-url { color: #7aa2f7; }
+  .work-n  { font-size: 0.68rem; color: #7aa2f7; opacity: 0.55; letter-spacing: 0.06em; }
+  .work-name { font-size: 0.92rem; font-weight: 700; }
+  .work-url { font-size: 0.72rem; color: #565f89; transition: color 0.15s; }
+
+  /* ── SLIDE 4 — PACKAGES ── */
+  .pkg-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .pkg {
+    border: 1px solid #292e42;
+    padding: 24px 20px;
+  }
+  .pkg.hot {
+    border-color: #7aa2f7;
+    box-shadow: 0 0 30px -8px rgba(122,162,247,0.3);
+  }
+  .pkg-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #c0caf5;
+    margin-bottom: 2px;
+  }
+  .pkg-tag {
+    font-size: 0.65rem;
+    color: #7aa2f7;
+    letter-spacing: 0.06em;
+    margin-bottom: 12px;
+    opacity: 0.8;
+  }
+  .pkg-price {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #c0caf5;
+    letter-spacing: -0.03em;
+    margin-bottom: 14px;
+    line-height: 1;
+  }
+  .pkg-price span { font-size: 0.85rem; opacity: 0.5; font-weight: 700; }
+  .pkg-rule { border: none; border-top: 1px solid #292e42; margin-bottom: 14px; }
+  .pkg-list { list-style: none; padding: 0; }
+  .pkg-list li {
+    font-size: 0.74rem;
+    color: #565f89;
+    padding: 3px 0 3px 14px;
+    position: relative;
+  }
+  .pkg-list li::before { content: '✓'; position: absolute; left: 0; color: #7aa2f7; font-size: 0.68rem; }
+  .pkg-note {
+    margin-top: 18px;
+    font-size: 0.76rem;
+    color: #c0caf5;
+    border-left: 2px solid #7aa2f7;
+    padding-left: 12px;
+    opacity: 0.65;
+  }
+
+  /* ── SLIDE 5 — HOW IT WORKS ── */
+  .steps { display: flex; flex-direction: column; max-width: 680px; }
+  .step {
+    display: flex;
+    align-items: baseline;
+    gap: 20px;
+    padding: 16px 0;
+    border-bottom: 1px solid #292e42;
+  }
+  .step:first-child { border-top: 1px solid #292e42; }
+  .step-n {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #7aa2f7;
+    letter-spacing: 0.1em;
+    min-width: 24px;
+    opacity: 0.7;
+  }
+  .step-t { font-size: 0.92rem; color: #c0caf5; }
+
+  /* ── SLIDE 6 — CTA ── */
+  #s6 { align-items: center; text-align: center; }
+  #s6 .sh1 { margin-bottom: 10px; }
+  #s6 .sub { text-align: center; max-width: 440px; }
+  .cta-btn {
+    display: inline-block;
+    padding: 12px 32px;
+    background: #7aa2f7;
+    color: #1a1b26;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.84rem;
+    font-weight: 700;
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    transition: opacity 0.15s, transform 0.15s;
+    margin-bottom: 20px;
+  }
+  .cta-btn:hover { opacity: 0.85; transform: translateY(-2px); }
+  .cta-email { font-size: 0.76rem; color: #565f89; }
+  .cta-email a { color: #565f89; }
+  .cta-email a:hover { color: #7aa2f7; }
+
+  /* ── NAV ── */
+  #nav {
+    position: fixed;
+    bottom: 28px;
+    right: 36px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    z-index: 100;
+  }
+  #nav button {
+    background: none;
+    border: 1px solid #292e42;
+    color: #565f89;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  #nav button:hover { border-color: #7aa2f7; color: #7aa2f7; }
+  #nav button:disabled { opacity: 0.25; pointer-events: none; }
+  #counter { font-size: 0.68rem; color: #565f89; letter-spacing: 0.06em; min-width: 36px; text-align: center; }
+
+  /* ── PROGRESS DOTS ── */
+  #dots {
+    position: fixed;
+    bottom: 34px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+  }
+  .d {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: #292e42;
+    transition: background 0.2s, transform 0.2s;
+    cursor: pointer;
+  }
+  .d.on { background: #7aa2f7; transform: scale(1.3); }
+
+  /* ── KEY HINT ── */
+  #hint {
+    position: fixed;
+    bottom: 32px;
+    left: 36px;
+    font-size: 0.65rem;
+    color: #292e42;
+    letter-spacing: 0.06em;
+    transition: color 0.3s;
+  }
+  body:hover #hint { color: #565f89; }
+</style>
+
+<div id="deck">
+
+  <!-- 1. TITLE -->
+  <div class="slide active" id="s1">
+    <div class="eyebrow"><span class="dot"></span>ekansh goenka · web developer</div>
+    <h1 class="sh1">I build websites<br>that <em>actually work.</em></h1>
+    <p class="sub">Custom code. No templates. No drag-and-drop.<br>Fast, sharp, and built to perform.</p>
+    <div class="avail">
+      <span class="dot"></span>available for new projects
+    </div>
+  </div>
+
+  <!-- 2. WHAT I BUILD -->
+  <div class="slide" id="s2">
+    <h2 class="sh2">What I build</h2>
+    <div class="service-grid">
+      <div class="service">
+        <div class="service-icon">⚡</div>
+        <div class="service-name">Landing pages</div>
+        <div class="service-desc">Fast and sharp. Built to convert visitors, not just look pretty.</div>
+      </div>
+      <div class="service">
+        <div class="service-icon">◈</div>
+        <div class="service-name">Portfolio sites</div>
+        <div class="service-desc">Your work, shown properly. Custom-built, not a theme.</div>
+      </div>
+      <div class="service">
+        <div class="service-icon">⚙</div>
+        <div class="service-name">Web tools</div>
+        <div class="service-desc">Dashboards, internal tools, apps that actually do things.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. PAST WORK -->
+  <div class="slide" id="s3">
+    <h2 class="sh2">Past work</h2>
+    <div class="work-list">
+      <a href="https://www.natenan.com" class="work-row" target="_blank" rel="noopener">
+        <span class="work-n">01</span>
+        <span class="work-name">natenan.com</span>
+        <span class="work-url">www.natenan.com ↗</span>
+      </a>
+      <a href="https://www.ekanshgoenka.com" class="work-row" target="_blank" rel="noopener">
+        <span class="work-n">02</span>
+        <span class="work-name">ekanshgoenka.com</span>
+        <span class="work-url">www.ekanshgoenka.com ↗</span>
+      </a>
+      <a href="https://amh-assistant.vercel.app" class="work-row" target="_blank" rel="noopener">
+        <span class="work-n">03</span>
+        <span class="work-name">AMH Assistant</span>
+        <span class="work-url">amh-assistant.vercel.app ↗</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- 4. PACKAGES -->
+  <div class="slide" id="s4">
+    <h2 class="sh2">Packages</h2>
+    <div class="pkg-grid">
+      <div class="pkg">
+        <div class="pkg-name">Page</div>
+        <div class="pkg-tag">single page</div>
+        <div class="pkg-price">$150 <span>USD</span></div>
+        <hr class="pkg-rule">
+        <ul class="pkg-list">
+          <li>Built from scratch, zero templates</li>
+          <li>Contact form or booking link</li>
+          <li>Core Web Vitals: all green</li>
+          <li>1 revision round</li>
+        </ul>
+      </div>
+      <div class="pkg hot">
+        <div class="pkg-name">Site</div>
+        <div class="pkg-tag">multi-page</div>
+        <div class="pkg-price">$400 <span>USD</span></div>
+        <hr class="pkg-rule">
+        <ul class="pkg-list">
+          <li>Everything in Page</li>
+          <li>Up to 15 pages</li>
+          <li>Mobile responsive</li>
+          <li>Blog / content section</li>
+          <li>SEO: Search Console, GA4</li>
+          <li>2 revision rounds</li>
+          <li>1 month post-launch support</li>
+        </ul>
+      </div>
+      <div class="pkg">
+        <div class="pkg-name">System</div>
+        <div class="pkg-tag">full build</div>
+        <div class="pkg-price">$1,000 <span>USD</span></div>
+        <hr class="pkg-rule">
+        <ul class="pkg-list">
+          <li>Everything in Site</li>
+          <li>No page limit</li>
+          <li>AI assistant (email, Trello, WhatsApp)</li>
+          <li>Booking + payment processing</li>
+          <li>Advanced analytics</li>
+          <li>3 months post-launch support</li>
+        </ul>
+      </div>
+    </div>
+    <p class="pkg-note">All prices are starting points — every project is different and pricing can be discussed.</p>
+  </div>
+
+  <!-- 5. HOW IT WORKS -->
+  <div class="slide" id="s5">
+    <h2 class="sh2">How it works</h2>
+    <div class="steps">
+      <div class="step"><span class="step-n">01</span><span class="step-t">Fill out the form with what you need</span></div>
+      <div class="step"><span class="step-n">02</span><span class="step-t">I review it and get back within 24–48 hours</span></div>
+      <div class="step"><span class="step-n">03</span><span class="step-t">We hop on a call if needed. I'll demo what I've built</span></div>
+      <div class="step"><span class="step-n">04</span><span class="step-t">I send a custom proposal, we build it</span></div>
+    </div>
+  </div>
+
+  <!-- 6. CTA -->
+  <div class="slide" id="s6">
+    <div class="eyebrow">takes 2 minutes</div>
+    <h1 class="sh1">Let's talk.</h1>
+    <p class="sub">Fill out the form and I'll get back within 24–48 hours. Or just hop on a call.</p>
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLSfiiPSqj_ru-1-KpB0Fq_9OMrM2_PYXXRysSfQ2k0FZOJFadw/viewform?usp=publish-editor" class="cta-btn" target="_blank">Fill out the form ↗</a>
+    <p class="cta-email">or email <a href="mailto:{{ .Site.Params.email }}">{{ .Site.Params.email }}</a> to schedule a call</p>
+  </div>
+
+</div>
+
+<!-- PROGRESS DOTS -->
+<div id="dots"></div>
+
+<!-- NAV -->
+<div id="nav">
+  <button id="prev">←</button>
+  <span id="counter"></span>
+  <button id="next">→</button>
+</div>
+
+<div id="hint">← → to navigate</div>
+
+<script>
+(function () {
+  var slides  = Array.from(document.querySelectorAll('.slide'));
+  var total   = slides.length;
+  var current = 0;
+
+  // build dots
+  var dotsEl = document.getElementById('dots');
+  slides.forEach(function (_, i) {
+    var d = document.createElement('span');
+    d.className = 'd';
+    d.addEventListener('click', function () { go(i); });
+    dotsEl.appendChild(d);
+  });
+
+  function go(n) {
+    if (n < 0 || n >= total) return;
+    slides[current].classList.remove('active');
+    slides[current].classList.add('out');
+    setTimeout((function (old) { return function () { slides[old].classList.remove('out'); }; })(current), 400);
+    current = n;
+    slides[current].classList.add('active');
+    update();
+  }
+
+  function update() {
+    document.getElementById('counter').textContent = (current + 1) + ' / ' + total;
+    document.getElementById('prev').disabled = current === 0;
+    document.getElementById('next').disabled = current === total - 1;
+    var dots = dotsEl.querySelectorAll('.d');
+    dots.forEach(function (d, i) { d.classList.toggle('on', i === current); });
+  }
+
+  document.getElementById('prev').addEventListener('click', function () { go(current - 1); });
+  document.getElementById('next').addEventListener('click', function () { go(current + 1); });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); go(current + 1); }
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')                    { e.preventDefault(); go(current - 1); }
+  });
+
+  update();
+})();
+</script>
+{{ end }}
