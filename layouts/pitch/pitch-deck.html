@@ -195,43 +195,56 @@
   }
 
   /* ── SLIDE 4 — WHY ME ── */
-  .cmp-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.8rem;
-  }
-  .cmp-table th {
-    padding: 10px 16px;
-    text-align: left;
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 0.8rem;
-    border-bottom: 1px solid #292e42;
-    color: #565f89;
-  }
-  .cmp-table th.cmp-me {
-    color: #7aa2f7;
-    border-bottom-color: #7aa2f7;
-  }
-  .cmp-table td {
-    padding: 9px 16px;
+  .cmp-rows { display: flex; flex-direction: column; width: 100%; gap: 0; }
+  .cmp-row {
+    display: grid;
+    grid-template-columns: 200px 180px 1fr;
+    align-items: center;
+    gap: 24px;
+    padding: 12px 18px;
     border-bottom: 1px solid #1e2030;
-    color: #565f89;
-    vertical-align: middle;
+    opacity: 0.45;
+    transition: opacity 0.2s;
   }
-  .cmp-table td.cmp-label {
-    color: #c0caf5;
+  .cmp-row:first-child { border-top: 1px solid #1e2030; }
+  .cmp-row.cmp-me-row {
+    opacity: 1;
+    background: rgba(122,162,247,0.06);
+    border-color: rgba(122,162,247,0.25);
+    border-top: 1px solid rgba(122,162,247,0.25);
+  }
+  .cmp-service {
+    font-size: 0.82rem;
     font-weight: 700;
-    font-size: 0.78rem;
-  }
-  .cmp-table td.cmp-me {
     color: #c0caf5;
-    background: rgba(122,162,247,0.05);
   }
-  .cmp-table tr:last-child td { border-bottom: none; }
-  .yes  { color: #7aa2f7; font-weight: 700; }
-  .no   { color: #f7768e; opacity: 0.8; }
-  .meh  { color: #e0af68; opacity: 0.8; }
+  .cmp-me-row .cmp-service { color: #7aa2f7; }
+  .cmp-price {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #f7768e;
+    letter-spacing: -0.02em;
+  }
+  .cmp-me-row .cmp-price { color: #9ece6a; font-size: 1.3rem; }
+  .cmp-detail {
+    font-size: 0.72rem;
+    color: #565f89;
+    line-height: 1.5;
+  }
+  .cmp-me-row .cmp-detail { color: #c0caf5; }
+  .cmp-badge {
+    display: inline-block;
+    background: #9ece6a;
+    color: #1a1b26;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 2px 7px;
+    margin-left: 8px;
+    vertical-align: middle;
+    text-transform: uppercase;
+  }
 
   /* ── SLIDE 5 — HOW IT WORKS ── */
   .steps { display: flex; flex-direction: column; max-width: 680px; }
@@ -389,62 +402,29 @@
 
   <!-- 4. WHY ME -->
   <div class="slide" id="s4">
-    <h2 class="sh2">Why me?</h2>
-    <table class="cmp-table">
-      <thead>
-        <tr>
-          <th style="width:22%"></th>
-          <th>Wix / Squarespace</th>
-          <th>Fiverr freelancer</th>
-          <th>Agency</th>
-          <th class="cmp-me">Me</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="cmp-label">Custom code</td>
-          <td><span class="no">✗ templates only</span></td>
-          <td><span class="meh">~ usually templates</span></td>
-          <td><span class="yes">✓</span></td>
-          <td class="cmp-me"><span class="yes">✓ always</span></td>
-        </tr>
-        <tr>
-          <td class="cmp-label">Performance</td>
-          <td><span class="meh">~ 60–75 / 100</span></td>
-          <td><span class="meh">~ 70–80 / 100</span></td>
-          <td><span class="meh">~ varies</span></td>
-          <td class="cmp-me"><span class="yes">✓ 100 / 100</span></td>
-        </tr>
-        <tr>
-          <td class="cmp-label">Price</td>
-          <td><span class="meh">monthly subscription</span></td>
-          <td><span class="yes">$ low</span></td>
-          <td><span class="no">$$$$ high</span></td>
-          <td class="cmp-me"><span class="yes">$$ fair</span></td>
-        </tr>
-        <tr>
-          <td class="cmp-label">You own it</td>
-          <td><span class="no">✗ locked in</span></td>
-          <td><span class="yes">✓</span></td>
-          <td><span class="yes">✓</span></td>
-          <td class="cmp-me"><span class="yes">✓ fully yours</span></td>
-        </tr>
-        <tr>
-          <td class="cmp-label">Personal contact</td>
-          <td><span class="no">✗ support tickets</span></td>
-          <td><span class="meh">~ hit or miss</span></td>
-          <td><span class="no">✗ account manager</span></td>
-          <td class="cmp-me"><span class="yes">✓ direct line to me</span></td>
-        </tr>
-        <tr>
-          <td class="cmp-label">Post-launch support</td>
-          <td><span class="no">✗</span></td>
-          <td><span class="no">✗ usually none</span></td>
-          <td><span class="meh">~ costs extra</span></td>
-          <td class="cmp-me"><span class="yes">✓ included</span></td>
-        </tr>
-      </tbody>
-    </table>
+    <h2 class="sh2">What this normally costs</h2>
+    <div class="cmp-rows">
+      <div class="cmp-row">
+        <span class="cmp-service">Indian web agency</span>
+        <span class="cmp-price">$1,500 – $5,000</span>
+        <span class="cmp-detail">Slow. You deal with a middleman, not the actual developer. Hidden revision costs.</span>
+      </div>
+      <div class="cmp-row">
+        <span class="cmp-service">Upwork / top freelancer</span>
+        <span class="cmp-price">$1,000 – $3,000</span>
+        <span class="cmp-detail">Hit or miss quality. No accountability after delivery. Hard to communicate across timezones.</span>
+      </div>
+      <div class="cmp-row">
+        <span class="cmp-service">US / UK agency</span>
+        <span class="cmp-price">$5,000 – $15,000</span>
+        <span class="cmp-detail">High quality — but built for corporations, not small businesses. Way out of budget.</span>
+      </div>
+      <div class="cmp-row cmp-me-row">
+        <span class="cmp-service">Me <span class="cmp-badge">special rate</span></span>
+        <span class="cmp-price">$400 one-time</span>
+        <span class="cmp-detail">Same custom code. Fast turnaround. You own it forever. I'm one message away. Support included.</span>
+      </div>
+    </div>
   </div>
 
   <!-- 5. PACKAGES -->
@@ -500,20 +480,20 @@
   <div class="slide" id="s5">
     <h2 class="sh2">How it works</h2>
     <div class="steps">
-      <div class="step"><span class="step-n">01</span><span class="step-t">Fill out the form with what you need</span></div>
-      <div class="step"><span class="step-n">02</span><span class="step-t">I review it and get back within 24–48 hours</span></div>
-      <div class="step"><span class="step-n">03</span><span class="step-t">We hop on a call if needed. I'll demo what I've built</span></div>
-      <div class="step"><span class="step-n">04</span><span class="step-t">I send a custom proposal, we build it</span></div>
+      <div class="step"><span class="step-n">01</span><span class="step-t">Zoom call — we talk through your vision, goals, and what you need</span></div>
+      <div class="step"><span class="step-n">02</span><span class="step-t">I send a custom proposal within 24–48 hours</span></div>
+      <div class="step"><span class="step-n">03</span><span class="step-t">Token payment — 10% upfront to kick things off <span style="color:#565f89;font-size:0.8em">($40 in this case)</span></span></div>
+      <div class="step"><span class="step-n">04</span><span class="step-t">I build it — you review and give feedback along the way</span></div>
+      <div class="step"><span class="step-n">05</span><span class="step-t">Final delivery — remaining balance on handover, site is fully yours</span></div>
     </div>
   </div>
 
   <!-- 7. CTA -->
   <div class="slide" id="s7">
-    <div class="eyebrow">takes 2 minutes</div>
-    <h1 class="sh1">Let's talk.</h1>
-    <p class="sub">Fill out the form and I'll get back within 24–48 hours. Or just hop on a call.</p>
-    <a href="https://docs.google.com/forms/d/e/1FAIpQLSfiiPSqj_ru-1-KpB0Fq_9OMrM2_PYXXRysSfQ2k0FZOJFadw/viewform?usp=publish-editor" class="cta-btn" target="_blank">Fill out the form ↗</a>
-    <p class="cta-email">or email <a href="mailto:{{ .Site.Params.email }}">{{ .Site.Params.email }}</a> to schedule a call</p>
+    <div class="eyebrow">let's get started</div>
+    <h1 class="sh1">Any questions?</h1>
+    <p class="sub">Happy to walk through anything. Once you're ready, I'll send the proposal over and we go from there.</p>
+    <p class="cta-email" style="margin-top:8px;">{{ .Site.Params.email }}</p>
   </div>
 
 </div>
