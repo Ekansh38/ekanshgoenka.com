@@ -2,19 +2,25 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/work.css">
 
+<!-- custom cursor (desktop only) -->
+<div id="w-cur-dot"></div>
+<div id="w-cur-ring"></div>
+
 <!-- HERO -->
-<section class="w-hero">
-  <div class="w-eyebrow">ekansh goenka &nbsp;·&nbsp; freelance web dev</div>
+<section class="w-hero w-reveal">
+  <div class="w-eyebrow">
+    <span class="w-avail-dot"></span>available for new projects
+  </div>
   <h1 class="w-title">
     I build websites<br>
     that <span class="w-glitch" data-text="actually work.">actually work.</span>
   </h1>
-  <p class="w-sub">Custom code, no templates, no Wix. Fast, sharp, and built to impress.</p>
-  <a href="CALENDLY_URL" class="w-btn" target="_blank">schedule a free call ↗</a>
+  <p class="w-sub">Custom code, no templates, no drag-and-drop. Fast, sharp, and built to perform.</p>
+  <a href="CALENDLY_URL" class="w-btn" target="_blank">Schedule a free call ↗</a>
 </section>
 
 <!-- TERMINAL -->
-<div class="w-term">
+<div class="w-term w-reveal">
   <div class="w-term-bar">
     <span class="w-dot"></span><span class="w-dot"></span><span class="w-dot"></span>
     <span class="w-term-label">build.sh</span>
@@ -23,7 +29,7 @@
 </div>
 
 <!-- STATS -->
-<div class="w-stats">
+<div class="w-stats w-reveal">
   <div class="w-stat">
     <span class="w-stat-n" data-target="5" data-suffix="+">0</span>
     <span class="w-stat-l">projects shipped</span>
@@ -39,8 +45,8 @@
 </div>
 
 <!-- WHAT I BUILD -->
-<section class="w-section">
-  <h2 class="w-h2">what i build</h2>
+<section class="w-section w-reveal">
+  <h2 class="w-h2">What I build</h2>
   <div class="w-cards">
     <div class="w-card">
       <div class="w-card-icon">⚡</div>
@@ -61,82 +67,160 @@
 </section>
 
 <!-- PACKAGES -->
-<section class="w-section" id="packages">
-  <h2 class="w-h2">packages</h2>
+<section class="w-section w-reveal" id="packages">
+  <h2 class="w-h2">Packages</h2>
   <div class="w-packages">
 
     <div class="w-pkg">
-      <div class="w-pkg-name">Starter</div>
-      <div class="w-pkg-price">coming soon</div>
-      <div class="w-pkg-desc">A clean, fast single-page site. Good for a landing page or personal portfolio.</div>
+      <div class="w-pkg-name">Page</div>
+      <div class="w-pkg-tag">single page</div>
+      <div class="w-pkg-desc">One sharp, fast page. For getting online properly.</div>
       <ul class="w-pkg-list">
-        <li>Custom design</li>
-        <li>Mobile responsive</li>
-        <li>Fast load times</li>
+        <li>Built from scratch — zero templates</li>
+        <li>Mobile-first, sub-1s load time</li>
+        <li>On-page SEO (meta, schema, Open Graph)</li>
+        <li>Contact form or booking link</li>
+        <li>Core Web Vitals: all green</li>
         <li>1 revision round</li>
       </ul>
     </div>
 
     <div class="w-pkg w-pkg-hot">
-      <div class="w-pkg-badge">popular</div>
-      <div class="w-pkg-name">Pro</div>
-      <div class="w-pkg-price">coming soon</div>
-      <div class="w-pkg-desc">Multi-page site with custom features and interactions.</div>
+      <div class="w-pkg-badge">most popular</div>
+      <div class="w-pkg-name">Site</div>
+      <div class="w-pkg-tag">multi-page</div>
+      <div class="w-pkg-desc">Full presence. For building something real.</div>
       <ul class="w-pkg-list">
-        <li>Everything in Starter</li>
-        <li>Multiple pages</li>
-        <li>Custom animations</li>
-        <li>SEO setup</li>
+        <li>Everything in Page</li>
+        <li>Up to 8 pages</li>
+        <li>Blog / content section</li>
+        <li>Keyword research + Search Console</li>
+        <li>GA4 with conversion tracking</li>
         <li>2 revision rounds</li>
+        <li>1 month post-launch support</li>
       </ul>
     </div>
 
     <div class="w-pkg">
-      <div class="w-pkg-name">Custom</div>
-      <div class="w-pkg-price">let's talk</div>
-      <div class="w-pkg-desc">Web apps, tools, or anything more complex. Built to your spec.</div>
+      <div class="w-pkg-name">System</div>
+      <div class="w-pkg-tag">full build</div>
+      <div class="w-pkg-desc">Built for growth. For businesses that mean it.</div>
       <ul class="w-pkg-list">
-        <li>Everything in Pro</li>
-        <li>Web app / dashboard</li>
-        <li>API integrations</li>
-        <li>Ongoing support</li>
+        <li>Everything in Site</li>
+        <li>No page limit</li>
+        <li>Booking / scheduling integration</li>
+        <li>Email marketing + CRM setup</li>
+        <li>Payment processing</li>
+        <li>Advanced analytics</li>
+        <li>3 months post-launch support</li>
       </ul>
     </div>
 
   </div>
 </section>
 
+<!-- MAINTENANCE -->
+<section class="w-section w-reveal">
+  <h2 class="w-h2">Maintenance</h2>
+  <div class="w-maintenance">
+    <div class="w-maint-body">
+      <p class="w-maint-lead">Monthly retainer. Changes via email.</p>
+      <p class="w-maint-sub">You email when something needs updating — copy, images, layout, anything. I handle it, usually within 48–72hrs. No CMS to learn, no logins to manage. Includes security updates, automated backups, uptime monitoring, and a monthly performance report.</p>
+    </div>
+    <ul class="w-maint-list">
+      <li>Email-based content updates</li>
+      <li>Security patches + dependency updates</li>
+      <li>Automated daily backups</li>
+      <li>Uptime + performance monitoring</li>
+      <li>Monthly Core Web Vitals report</li>
+    </ul>
+  </div>
+</section>
+
 <!-- HOW IT WORKS -->
-<section class="w-section">
-  <h2 class="w-h2">how it works</h2>
+<section class="w-section w-reveal">
+  <h2 class="w-h2">How it works</h2>
   <div class="w-steps">
-    <div class="w-step"><span class="w-step-n">01</span><span class="w-step-t">schedule a free zoom call</span></div>
-    <div class="w-step"><span class="w-step-n">02</span><span class="w-step-t">we talk through your idea, i demo what i've built</span></div>
-    <div class="w-step"><span class="w-step-n">03</span><span class="w-step-t">i put together a custom proposal for you</span></div>
-    <div class="w-step"><span class="w-step-n">04</span><span class="w-step-t">we build it</span></div>
+    <div class="w-step"><span class="w-step-n">01</span><span class="w-step-t">Schedule a free 30-min Zoom call</span></div>
+    <div class="w-step"><span class="w-step-n">02</span><span class="w-step-t">We talk through your idea — I'll demo what I've built</span></div>
+    <div class="w-step"><span class="w-step-n">03</span><span class="w-step-t">I put together a custom proposal for you</span></div>
+    <div class="w-step"><span class="w-step-n">04</span><span class="w-step-t">We build it</span></div>
   </div>
 </section>
 
 <!-- CTA -->
-<section class="w-final">
+<section class="w-final w-reveal">
   <div class="w-final-label">free 30-min call</div>
-  <h2 class="w-final-title">let's talk.</h2>
-  <p class="w-final-sub">no commitment — just a call to see if we're a good fit</p>
-  <a href="CALENDLY_URL" class="w-btn w-btn-lg" target="_blank">schedule a call ↗</a>
+  <h2 class="w-final-title">Let's talk.</h2>
+  <p class="w-final-sub">No commitment — just a call to see if we're a good fit</p>
+  <a href="CALENDLY_URL" class="w-btn w-btn-lg" target="_blank">Schedule a call ↗</a>
   <p class="w-final-email">or just email <a href="mailto:{{ .Site.Params.email }}">{{ .Site.Params.email }}</a></p>
 </section>
 
 <script>
 (function () {
+
+  var isDesktop = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+  // ── Custom cursor ──────────────────────────────────────────────
+  if (isDesktop) {
+    var dot  = document.getElementById('w-cur-dot');
+    var ring = document.getElementById('w-cur-ring');
+    var mx = -100, my = -100;
+    var rx = -100, ry = -100;
+    var cursorVisible = false;
+
+    document.addEventListener('mousemove', function (e) {
+      mx = e.clientX; my = e.clientY;
+      if (!cursorVisible) {
+        cursorVisible = true;
+        dot.style.opacity = '1';
+        ring.style.opacity = '1';
+      }
+      dot.style.left = mx + 'px';
+      dot.style.top  = my + 'px';
+    });
+
+    (function animRing() {
+      rx += (mx - rx) * 0.10;
+      ry += (my - ry) * 0.10;
+      ring.style.left = rx + 'px';
+      ring.style.top  = ry + 'px';
+      requestAnimationFrame(animRing);
+    })();
+
+    // hover expand
+    document.querySelectorAll('a, button, .w-card, .w-pkg').forEach(function (el) {
+      el.addEventListener('mouseenter', function () { ring.classList.add('w-cur-hover'); });
+      el.addEventListener('mouseleave', function () { ring.classList.remove('w-cur-hover'); });
+    });
+
+    // click burst
+    document.addEventListener('click', function () {
+      ring.classList.add('w-cur-click');
+      setTimeout(function () { ring.classList.remove('w-cur-click'); }, 300);
+    });
+
+    // enable trail on bg canvas so cursor drags the sim
+    setTimeout(function () {
+      if (window.setParam) window.setParam('trail.on', 1);
+    }, 800);
+  }
+
   // ── Terminal typewriter ────────────────────────────────────────
-  var body = document.getElementById('w-term-body');
-  if (body) {
+  var tbody = document.getElementById('w-term-body');
+  if (tbody) {
     var seq = [
-      { t: '$ hugo build --minify', cls: 'wt-cmd', type: true },
-      { t: '✓ design compiled      0.3s', cls: 'wt-ok',  type: false },
-      { t: '✓ custom code written  0.9s', cls: 'wt-ok',  type: false },
-      { t: '✓ deployed to vercel   1.8s', cls: 'wt-ok',  type: false },
-      { t: '✓ your site is live.',        cls: 'wt-ok',  type: false },
+      { t: '$ ./build.sh --prod --audit', cls: 'wt-cmd', typed: true  },
+      { t: '[1/4] resolving modules',      cls: 'wt-dim', typed: false },
+      { t: '[2/4] tree-shaking  ·  47 → 12 modules', cls: 'wt-dim', typed: false },
+      { t: '[3/4] minify        ·  94.3kb → 18.2kb (−81%)', cls: 'wt-dim', typed: false },
+      { t: '[4/4] audit',                  cls: 'wt-dim', typed: false },
+      { t: '      performance        100', cls: 'wt-ok',  typed: false },
+      { t: '      seo                100', cls: 'wt-ok',  typed: false },
+      { t: '      accessibility      100', cls: 'wt-ok',  typed: false },
+      { t: '✓  ttfb 142ms  ·  lcp 0.7s  ·  cls 0.000', cls: 'wt-ok', typed: false },
+      { t: '✓  done in 2.3s',              cls: 'wt-ok',  typed: false },
     ];
     var si = 0;
     function nextLine() {
@@ -144,27 +228,28 @@
       var s = seq[si++];
       var el = document.createElement('div');
       el.className = 'wt-line ' + s.cls;
-      body.appendChild(el);
-      if (!s.type) {
+      tbody.appendChild(el);
+      var pause = si === seq.length ? 0 : (s.cls === 'wt-ok' ? 120 : 180);
+      if (!s.typed) {
         el.textContent = s.t;
-        setTimeout(nextLine, si < seq.length ? 280 : 0);
+        setTimeout(nextLine, pause);
       } else {
         var ci = 0;
         var iv = setInterval(function () {
           el.textContent = s.t.slice(0, ++ci);
-          if (ci >= s.t.length) { clearInterval(iv); setTimeout(nextLine, 600); }
-        }, 48);
+          if (ci >= s.t.length) { clearInterval(iv); setTimeout(nextLine, 500); }
+        }, 42);
       }
     }
-    setTimeout(nextLine, 500);
+    setTimeout(nextLine, 400);
   }
 
   // ── Count-up stats ─────────────────────────────────────────────
-  var nums = document.querySelectorAll('.w-stat-n');
+  var nums    = document.querySelectorAll('.w-stat-n');
   var statsEl = document.querySelector('.w-stats');
   if (statsEl && nums.length) {
     var fired = false;
-    var obs = new IntersectionObserver(function (entries) {
+    new IntersectionObserver(function (entries) {
       if (fired || !entries[0].isIntersecting) return;
       fired = true;
       nums.forEach(function (el) {
@@ -172,14 +257,26 @@
         var suffix = el.getAttribute('data-suffix') || '';
         var n = 0;
         var iv = setInterval(function () {
-          n++;
-          el.textContent = n + suffix;
+          el.textContent = ++n + suffix;
           if (n >= target) clearInterval(iv);
         }, 900 / target);
       });
-    }, { threshold: 0.6 });
-    obs.observe(statsEl);
+    }, { threshold: 0.6 }).observe(statsEl);
   }
+
+  // ── Scroll reveal ──────────────────────────────────────────────
+  var revealEls = document.querySelectorAll('.w-reveal');
+  if ('IntersectionObserver' in window) {
+    var ro = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add('w-revealed'); ro.unobserve(e.target); }
+      });
+    }, { threshold: 0.08 });
+    revealEls.forEach(function (el) { ro.observe(el); });
+  } else {
+    revealEls.forEach(function (el) { el.classList.add('w-revealed'); });
+  }
+
 })();
 </script>
 {{ end }}
