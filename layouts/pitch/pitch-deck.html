@@ -267,10 +267,58 @@
   }
   .step-t { font-size: 0.92rem; color: #c0caf5; }
 
-  /* ── SLIDE 7 — CTA ── */
-  #s7 { align-items: center; text-align: center; }
-  #s7 .sh1 { margin-bottom: 10px; }
-  #s7 .sub { text-align: center; max-width: 440px; }
+  /* ── SLIDE 7 — RECEIPT ── */
+  .receipt {
+    border: 1px solid #292e42;
+    max-width: 540px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .receipt-header {
+    background: #292e42;
+    padding: 12px 20px;
+    font-size: 0.7rem;
+    color: #565f89;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .receipt-body { padding: 6px 0; }
+  .receipt-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 7px 20px;
+    font-size: 0.78rem;
+    border-bottom: 1px dashed #1e2030;
+  }
+  .receipt-row:last-child { border-bottom: none; }
+  .receipt-label { color: #565f89; }
+  .receipt-val { color: #c0caf5; font-weight: 700; }
+  .receipt-divider { border: none; border-top: 1px solid #292e42; margin: 4px 0; }
+  .receipt-total {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 20px 14px;
+    font-size: 0.88rem;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+  }
+  .receipt-total-label { color: #c0caf5; }
+  .receipt-total-val { color: #f7768e; }
+  .receipt-note {
+    margin-top: 20px;
+    max-width: 540px;
+    font-size: 0.78rem;
+    color: #565f89;
+    line-height: 1.75;
+    border-left: 2px solid #292e42;
+    padding-left: 14px;
+  }
+  .receipt-note strong { color: #c0caf5; font-weight: 700; }
+
+  /* ── SLIDE 8 — CTA ── */
+  #s8 { align-items: center; text-align: center; }
+  #s8 .sh1 { margin-bottom: 10px; }
+  #s8 .sub { text-align: center; max-width: 440px; }
   .cta-btn {
     display: inline-block;
     padding: 12px 32px;
@@ -488,8 +536,30 @@
     </div>
   </div>
 
-  <!-- 7. CTA -->
+  <!-- 7. RECEIPT -->
   <div class="slide" id="s7">
+    <h2 class="sh2">Running costs</h2>
+    <div class="receipt">
+      <div class="receipt-header">monthly breakdown — what keeps your site live</div>
+      <div class="receipt-body">
+        <div class="receipt-row"><span class="receipt-label">Domain registration</span><span class="receipt-val">$2.00</span></div>
+        <div class="receipt-row"><span class="receipt-label">Web hosting &amp; CDN</span><span class="receipt-val">$15.00</span></div>
+        <div class="receipt-row"><span class="receipt-label">SSL certificate &amp; security</span><span class="receipt-val">$5.00</span></div>
+        <div class="receipt-row"><span class="receipt-label">Uptime &amp; performance monitoring</span><span class="receipt-val">$10.00</span></div>
+        <div class="receipt-row"><span class="receipt-label">Development tools &amp; licenses</span><span class="receipt-val">$13.00</span></div>
+        <div class="receipt-row"><span class="receipt-label">Backup &amp; storage</span><span class="receipt-val">$5.00</span></div>
+      </div>
+      <hr class="receipt-divider">
+      <div class="receipt-total"><span class="receipt-total-label">Total / month</span><span class="receipt-total-val">$50.00</span></div>
+    </div>
+    <p class="receipt-note">
+      <strong>Any updates, copy changes, or small feature additions?</strong> Send me a message and it's handled within 48–72 hours — no back and forth, no extra invoices.<br><br>
+      All of the above is covered under the <strong>maintenance plan ($100/mo)</strong>, including the running costs, monitoring, and ongoing support.
+    </p>
+  </div>
+
+  <!-- 8. CTA -->
+  <div class="slide" id="s8">
     <div class="eyebrow">let's get started</div>
     <h1 class="sh1">Any questions?</h1>
     <p class="sub">Happy to walk through anything. Once you're ready, I'll send the proposal over and we go from there.</p>
