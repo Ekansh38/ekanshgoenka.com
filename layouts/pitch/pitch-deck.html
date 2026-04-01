@@ -250,25 +250,26 @@
   .why-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 14px;
-    max-width: 780px;
+    gap: 16px;
+    width: 100%;
   }
   .why-card {
     border: 1px solid #292e42;
-    padding: 20px 22px;
+    padding: 28px 30px;
   }
   .why-card-head {
     font-family: 'Syne', sans-serif;
-    font-size: 1rem;
+    font-size: 1.25rem;
     font-weight: 800;
     color: #c0caf5;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
+    line-height: 1.2;
   }
   .why-card-head em { color: #7aa2f7; font-style: normal; }
   .why-card-body {
-    font-size: 0.76rem;
+    font-size: 0.88rem;
     color: #565f89;
-    line-height: 1.7;
+    line-height: 1.75;
   }
 
   /* ── SLIDE 5 — HOW IT WORKS ── */
@@ -293,37 +294,46 @@
   .step-t { font-size: 0.92rem; color: #c0caf5; }
 
   /* ── SLIDE 7 — RECEIPT ── */
+  #s7 { align-items: center; }
+  #s7 .sh2 { text-align: center; }
+  #s7 .receipt-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    width: 100%;
+    max-width: 900px;
+    align-items: start;
+  }
   .receipt {
     border: 1px solid #292e42;
-    max-width: 540px;
     font-family: 'JetBrains Mono', monospace;
   }
   .receipt-header {
     background: #292e42;
-    padding: 12px 20px;
-    font-size: 0.7rem;
+    padding: 11px 20px;
+    font-size: 0.68rem;
     color: #565f89;
     letter-spacing: 0.1em;
     text-transform: uppercase;
   }
-  .receipt-body { padding: 6px 0; }
+  .receipt-body { padding: 4px 0; }
   .receipt-row {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    padding: 7px 20px;
-    font-size: 0.78rem;
+    padding: 9px 20px;
+    font-size: 0.82rem;
     border-bottom: 1px dashed #1e2030;
   }
   .receipt-row:last-child { border-bottom: none; }
-  .receipt-label { color: #565f89; }
-  .receipt-val { color: #c0caf5; font-weight: 700; }
+  .receipt-label { color: #c0caf5; }
+  .receipt-val { color: #c0caf5; font-weight: 700; margin-left: 24px; }
   .receipt-divider { border: none; border-top: 1px solid #292e42; margin: 4px 0; }
   .receipt-total {
     display: flex;
     justify-content: space-between;
-    padding: 12px 20px 14px;
-    font-size: 0.88rem;
+    padding: 13px 20px 15px;
+    font-size: 1rem;
     font-family: 'Syne', sans-serif;
     font-weight: 800;
   }
@@ -340,31 +350,29 @@
   }
   .receipt-note strong { color: #c0caf5; font-weight: 700; }
 
-  .maint-cmp {
-    margin-top: 24px;
-    max-width: 540px;
-  }
+  .maint-cmp { margin-top: 0; }
   .maint-cmp-title {
     font-size: 0.65rem;
     color: #565f89;
     letter-spacing: 0.12em;
     text-transform: uppercase;
     margin-bottom: 10px;
+    font-family: 'JetBrains Mono', monospace;
   }
   .maint-rows { display: flex; flex-direction: column; border: 1px solid #292e42; }
   .maint-row {
     display: grid;
     grid-template-columns: 1fr auto;
     align-items: center;
-    gap: 24px;
-    padding: 8px 16px;
+    gap: 16px;
+    padding: 10px 16px;
     border-bottom: 1px solid #1e2030;
-    opacity: 0.45;
+    opacity: 0.4;
   }
   .maint-row:last-child { border-bottom: none; }
   .maint-row.maint-me { opacity: 1; background: rgba(122,162,247,0.06); }
-  .maint-row-name { font-size: 0.76rem; color: #c0caf5; }
-  .maint-row-price { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.9rem; color: #f7768e; }
+  .maint-row-name { font-size: 0.78rem; color: #c0caf5; }
+  .maint-row-price { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.92rem; color: #f7768e; white-space: nowrap; }
   .maint-row.maint-me .maint-row-price { color: #9ece6a; }
 
   /* ── SLIDE 8 — CTA ── */
@@ -615,29 +623,34 @@
   <!-- 7. RECEIPT -->
   <div class="slide" id="s7">
     <h2 class="sh2">Running costs</h2>
-    <div class="receipt">
-      <div class="receipt-header">monthly breakdown — what keeps your site live</div>
-      <div class="receipt-body">
-        <div class="receipt-row"><span class="receipt-label">Domain registration</span><span class="receipt-val">$2.00</span></div>
-        <div class="receipt-row"><span class="receipt-label">Web hosting &amp; CDN</span><span class="receipt-val">$15.00</span></div>
-        <div class="receipt-row"><span class="receipt-label">SSL certificate &amp; security</span><span class="receipt-val">$5.00</span></div>
-        <div class="receipt-row"><span class="receipt-label">Uptime &amp; performance monitoring</span><span class="receipt-val">$10.00</span></div>
-        <div class="receipt-row"><span class="receipt-label">Development tools &amp; licenses</span><span class="receipt-val">$13.00</span></div>
-        <div class="receipt-row"><span class="receipt-label">Backup &amp; storage</span><span class="receipt-val">$5.00</span></div>
+    <div class="receipt-wrap">
+      <div class="receipt">
+        <div class="receipt-header">monthly breakdown — what keeps your site live</div>
+        <div class="receipt-body">
+          <div class="receipt-row"><span class="receipt-label">Domain registration</span><span class="receipt-val">$2.00</span></div>
+          <div class="receipt-row"><span class="receipt-label">Web hosting &amp; CDN</span><span class="receipt-val">$15.00</span></div>
+          <div class="receipt-row"><span class="receipt-label">SSL certificate &amp; security</span><span class="receipt-val">$5.00</span></div>
+          <div class="receipt-row"><span class="receipt-label">Uptime &amp; performance monitoring</span><span class="receipt-val">$10.00</span></div>
+          <div class="receipt-row"><span class="receipt-label">Development tools &amp; licenses</span><span class="receipt-val">$13.00</span></div>
+          <div class="receipt-row"><span class="receipt-label">Backup &amp; storage</span><span class="receipt-val">$5.00</span></div>
+          <div class="receipt-row"><span class="receipt-label">Other costs &amp; miscellaneous</span><span class="receipt-val">$10.00</span></div>
+        </div>
+        <hr class="receipt-divider">
+        <div class="receipt-total"><span class="receipt-total-label">Total / month</span><span class="receipt-total-val">$60.00</span></div>
       </div>
-      <hr class="receipt-divider">
-      <div class="receipt-total"><span class="receipt-total-label">Total / month</span><span class="receipt-total-val">$50.00</span></div>
-    </div>
-    <p class="receipt-note">
-      <strong>Any updates, copy changes, or small feature additions?</strong> Send me a message and it's handled within 48–72 hours — no back and forth, no extra invoices. All covered under maintenance.
-    </p>
-    <div class="maint-cmp">
-      <div class="maint-cmp-title">what others charge for maintenance</div>
-      <div class="maint-rows">
-        <div class="maint-row"><span class="maint-row-name">US / UK agency retainer</span><span class="maint-row-price">$500 – $3,000/mo</span></div>
-        <div class="maint-row"><span class="maint-row-name">WebFX / large freelance platforms</span><span class="maint-row-price">$150 – $500/mo</span></div>
-        <div class="maint-row"><span class="maint-row-name">Indian web agency</span><span class="maint-row-price">$100 – $400/mo</span></div>
-        <div class="maint-row maint-me"><span class="maint-row-name">Me — updates, monitoring, backups, support</span><span class="maint-row-price">$100/mo</span></div>
+      <div>
+        <p class="receipt-note" style="margin-top:0; margin-bottom:20px;">
+          <strong>Any updates, copy changes, or small feature additions?</strong> Send me a message and it's handled within 48–72 hours — no back and forth, no extra invoices. All covered under maintenance.
+        </p>
+        <div class="maint-cmp">
+          <div class="maint-cmp-title">what others charge for maintenance</div>
+          <div class="maint-rows">
+            <div class="maint-row"><span class="maint-row-name">US / UK agency retainer</span><span class="maint-row-price">$500 – $3,000/mo</span></div>
+            <div class="maint-row"><span class="maint-row-name">WebFX / large platforms</span><span class="maint-row-price">$150 – $500/mo</span></div>
+            <div class="maint-row"><span class="maint-row-name">Indian web agency</span><span class="maint-row-price">$100 – $400/mo</span></div>
+            <div class="maint-row maint-me"><span class="maint-row-name">Me — updates, monitoring, backups, support</span><span class="maint-row-price">$100/mo</span></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
