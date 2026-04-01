@@ -8,6 +8,7 @@
 {{ .Content }}
 
 <div class="links">
+  {{ with .Params.live }}<a href="{{ . }}" target="_blank">live site ↗</a>{{ end }}
   {{ with .Params.github }}<a href="{{ . }}" target="_blank">github ↗</a>{{ end }}
   {{ with .Params.devlog }}<a href="{{ . }}" target="_blank">dev log series ↗</a>{{ end }}
 </div>
