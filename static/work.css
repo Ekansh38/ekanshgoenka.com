@@ -391,6 +391,24 @@ body.work .w-title { font-size: clamp(3rem, 8vw, 6rem); }
   opacity: 0.8;
 }
 
+.w-pkg-price {
+  font-family: 'Syne', sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--fg);
+  letter-spacing: -0.03em;
+  margin-bottom: 16px;
+  line-height: 1;
+}
+
+.w-pkg-note {
+  margin-top: 20px;
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+  opacity: 0.7;
+}
+
 .w-pkg-desc {
   font-size: 0.8rem;
   color: var(--muted);
