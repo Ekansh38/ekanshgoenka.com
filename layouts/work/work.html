@@ -2,9 +2,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/work.css">
 
+<!-- scroll progress bar -->
+<div id="w-progress"></div>
+
 <!-- custom cursor (desktop only) -->
 <div id="w-cur-dot"></div>
-<div id="w-cur-ring"></div>
 
 <!-- HERO -->
 <section class="w-hero w-reveal">
@@ -16,7 +18,7 @@
     that <span class="w-glitch" data-text="actually work.">actually work.</span>
   </h1>
   <p class="w-sub">Custom code, no templates, no drag-and-drop. Fast, sharp, and built to perform.</p>
-  <a href="CALENDLY_URL" class="w-btn" target="_blank">Schedule a free call ↗</a>
+  <a href="GOOGLE_FORM_URL" class="w-btn" target="_blank">Get started ↗</a>
 </section>
 
 <!-- TERMINAL -->
@@ -41,6 +43,44 @@
   <div class="w-stat">
     <span class="w-stat-n" data-target="4" data-suffix="">0</span>
     <span class="w-stat-l">languages</span>
+  </div>
+</div>
+
+<!-- MARQUEE -->
+<div class="w-ticker">
+  <div class="w-ticker-inner">
+    <div class="w-ticker-track" aria-hidden="false">
+      <span>Hugo</span><span class="w-sep">·</span>
+      <span>Go</span><span class="w-sep">·</span>
+      <span>Python</span><span class="w-sep">·</span>
+      <span>JavaScript</span><span class="w-sep">·</span>
+      <span>Anthropic API</span><span class="w-sep">·</span>
+      <span>Composio MCP</span><span class="w-sep">·</span>
+      <span>REST APIs</span><span class="w-sep">·</span>
+      <span>PostgreSQL</span><span class="w-sep">·</span>
+      <span>Webhooks</span><span class="w-sep">·</span>
+      <span>OAuth 2.0</span><span class="w-sep">·</span>
+      <span>Cloudflare</span><span class="w-sep">·</span>
+      <span>Core Web Vitals</span><span class="w-sep">·</span>
+      <span>Lighthouse 100</span><span class="w-sep">·</span>
+      <span>Git</span><span class="w-sep">·</span>
+    </div>
+    <div class="w-ticker-track" aria-hidden="true">
+      <span>Hugo</span><span class="w-sep">·</span>
+      <span>Go</span><span class="w-sep">·</span>
+      <span>Python</span><span class="w-sep">·</span>
+      <span>JavaScript</span><span class="w-sep">·</span>
+      <span>Anthropic API</span><span class="w-sep">·</span>
+      <span>Composio MCP</span><span class="w-sep">·</span>
+      <span>REST APIs</span><span class="w-sep">·</span>
+      <span>PostgreSQL</span><span class="w-sep">·</span>
+      <span>Webhooks</span><span class="w-sep">·</span>
+      <span>OAuth 2.0</span><span class="w-sep">·</span>
+      <span>Cloudflare</span><span class="w-sep">·</span>
+      <span>Core Web Vitals</span><span class="w-sep">·</span>
+      <span>Lighthouse 100</span><span class="w-sep">·</span>
+      <span>Git</span><span class="w-sep">·</span>
+    </div>
   </div>
 </div>
 
@@ -76,9 +116,8 @@
       <div class="w-pkg-tag">single page</div>
       <div class="w-pkg-desc">One sharp, fast page. For getting online properly.</div>
       <ul class="w-pkg-list">
-        <li>Built from scratch — zero templates</li>
-        <li>Mobile-first, sub-1s load time</li>
-        <li>On-page SEO (meta, schema, Open Graph)</li>
+        <li>Built from scratch, zero templates</li>
+        <li>Sub-1s load time</li>
         <li>Contact form or booking link</li>
         <li>Core Web Vitals: all green</li>
         <li>1 revision round</li>
@@ -86,16 +125,15 @@
     </div>
 
     <div class="w-pkg w-pkg-hot">
-      <div class="w-pkg-badge">most popular</div>
       <div class="w-pkg-name">Site</div>
       <div class="w-pkg-tag">multi-page</div>
       <div class="w-pkg-desc">Full presence. For building something real.</div>
       <ul class="w-pkg-list">
         <li>Everything in Page</li>
-        <li>Up to 8 pages</li>
+        <li>Up to 15 pages</li>
+        <li>Mobile responsive</li>
         <li>Blog / content section</li>
-        <li>Keyword research + Search Console</li>
-        <li>GA4 with conversion tracking</li>
+        <li>SEO: keyword research, Search Console, GA4</li>
         <li>2 revision rounds</li>
         <li>1 month post-launch support</li>
       </ul>
@@ -108,8 +146,8 @@
       <ul class="w-pkg-list">
         <li>Everything in Site</li>
         <li>No page limit</li>
+        <li>AI assistant connected to your email, Trello, WhatsApp, and more</li>
         <li>Booking / scheduling integration</li>
-        <li>Email marketing + CRM setup</li>
         <li>Payment processing</li>
         <li>Advanced analytics</li>
         <li>3 months post-launch support</li>
@@ -125,7 +163,8 @@
   <div class="w-maintenance">
     <div class="w-maint-body">
       <p class="w-maint-lead">Monthly retainer. Changes via email.</p>
-      <p class="w-maint-sub">You email when something needs updating — copy, images, layout, anything. I handle it, usually within 48–72hrs. No CMS to learn, no logins to manage. Includes security updates, automated backups, uptime monitoring, and a monthly performance report.</p>
+      <p class="w-maint-price">pricing coming soon</p>
+      <p class="w-maint-sub">You email when something needs updating: copy, images, layout, anything. I handle it within 48–72hrs. No CMS to learn, no logins to manage. Includes security updates, automated backups, uptime monitoring, and a monthly performance report.</p>
     </div>
     <ul class="w-maint-list">
       <li>Email-based content updates</li>
@@ -141,19 +180,19 @@
 <section class="w-section w-reveal">
   <h2 class="w-h2">How it works</h2>
   <div class="w-steps">
-    <div class="w-step"><span class="w-step-n">01</span><span class="w-step-t">Schedule a free 30-min Zoom call</span></div>
-    <div class="w-step"><span class="w-step-n">02</span><span class="w-step-t">We talk through your idea — I'll demo what I've built</span></div>
-    <div class="w-step"><span class="w-step-n">03</span><span class="w-step-t">I put together a custom proposal for you</span></div>
-    <div class="w-step"><span class="w-step-n">04</span><span class="w-step-t">We build it</span></div>
+    <div class="w-step"><span class="w-step-n">01</span><span class="w-step-t">Fill out the form with what you need</span></div>
+    <div class="w-step"><span class="w-step-n">02</span><span class="w-step-t">I review it and get back within 24–48 hours</span></div>
+    <div class="w-step"><span class="w-step-n">03</span><span class="w-step-t">We hop on a call if needed. I'll demo what I've built</span></div>
+    <div class="w-step"><span class="w-step-n">04</span><span class="w-step-t">I send a custom proposal, we build it</span></div>
   </div>
 </section>
 
 <!-- CTA -->
 <section class="w-final w-reveal">
-  <div class="w-final-label">free 30-min call</div>
+  <div class="w-final-label">takes 2 minutes</div>
   <h2 class="w-final-title">Let's talk.</h2>
-  <p class="w-final-sub">No commitment — just a call to see if we're a good fit</p>
-  <a href="CALENDLY_URL" class="w-btn w-btn-lg" target="_blank">Schedule a call ↗</a>
+  <p class="w-final-sub">Fill out the form. I'll review and get back within 24–48 hours</p>
+  <a href="GOOGLE_FORM_URL" class="w-btn w-btn-lg" target="_blank">Get started ↗</a>
   <p class="w-final-email">or just email <a href="mailto:{{ .Site.Params.email }}">{{ .Site.Params.email }}</a></p>
 </section>
 
@@ -164,44 +203,25 @@
 
   // ── Custom cursor ──────────────────────────────────────────────
   if (isDesktop) {
-    var dot  = document.getElementById('w-cur-dot');
-    var ring = document.getElementById('w-cur-ring');
-    var mx = -100, my = -100;
-    var rx = -100, ry = -100;
+    var dot = document.getElementById('w-cur-dot');
     var cursorVisible = false;
 
     document.addEventListener('mousemove', function (e) {
-      mx = e.clientX; my = e.clientY;
-      if (!cursorVisible) {
-        cursorVisible = true;
-        dot.style.opacity = '1';
-        ring.style.opacity = '1';
-      }
-      dot.style.left = mx + 'px';
-      dot.style.top  = my + 'px';
+      if (!cursorVisible) { cursorVisible = true; dot.style.opacity = '1'; }
+      dot.style.left = e.clientX + 'px';
+      dot.style.top  = e.clientY + 'px';
     });
 
-    (function animRing() {
-      rx += (mx - rx) * 0.10;
-      ry += (my - ry) * 0.10;
-      ring.style.left = rx + 'px';
-      ring.style.top  = ry + 'px';
-      requestAnimationFrame(animRing);
-    })();
-
-    // hover expand
     document.querySelectorAll('a, button, .w-card, .w-pkg').forEach(function (el) {
-      el.addEventListener('mouseenter', function () { ring.classList.add('w-cur-hover'); });
-      el.addEventListener('mouseleave', function () { ring.classList.remove('w-cur-hover'); });
+      el.addEventListener('mouseenter', function () { dot.classList.add('w-cur-hover'); });
+      el.addEventListener('mouseleave', function () { dot.classList.remove('w-cur-hover'); });
     });
 
-    // click burst
     document.addEventListener('click', function () {
-      ring.classList.add('w-cur-click');
-      setTimeout(function () { ring.classList.remove('w-cur-click'); }, 300);
+      dot.classList.add('w-cur-click');
+      setTimeout(function () { dot.classList.remove('w-cur-click'); }, 200);
     });
 
-    // enable trail on bg canvas so cursor drags the sim
     setTimeout(function () {
       if (window.setParam) window.setParam('trail.on', 1);
     }, 800);
@@ -275,6 +295,87 @@
     revealEls.forEach(function (el) { ro.observe(el); });
   } else {
     revealEls.forEach(function (el) { el.classList.add('w-revealed'); });
+  }
+
+  // ── Scroll progress bar ────────────────────────────────────────
+  var prog = document.getElementById('w-progress');
+  if (prog) {
+    window.addEventListener('scroll', function () {
+      var s = document.documentElement;
+      var pct = s.scrollTop / (s.scrollHeight - s.clientHeight) * 100;
+      prog.style.width = pct + '%';
+    }, { passive: true });
+  }
+
+  // ── Magnetic CTA button ────────────────────────────────────────
+  if (isDesktop) {
+    document.querySelectorAll('.w-btn').forEach(function (btn) {
+      btn.addEventListener('mousemove', function (e) {
+        var r = btn.getBoundingClientRect();
+        var x = (e.clientX - r.left - r.width  / 2) * 0.38;
+        var y = (e.clientY - r.top  - r.height / 2) * 0.38;
+        btn.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+      });
+      btn.addEventListener('mouseleave', function () {
+        btn.style.transform = '';
+      });
+    });
+  }
+
+  // ── 3D card tilt ───────────────────────────────────────────────
+  if (isDesktop) {
+    document.querySelectorAll('.w-pkg, .w-card').forEach(function (el) {
+      el.addEventListener('mousemove', function (e) {
+        var r = el.getBoundingClientRect();
+        var x = (e.clientX - r.left) / r.width  - 0.5;
+        var y = (e.clientY - r.top)  / r.height - 0.5;
+        el.style.transform = 'perspective(700px) rotateX(' + (-y * 9) + 'deg) rotateY(' + (x * 9) + 'deg) scale(1.012)';
+      });
+      el.addEventListener('mouseleave', function () {
+        el.style.transform = '';
+      });
+    });
+  }
+
+  // ── Text scramble on headings ──────────────────────────────────
+  var CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&';
+  function scramble(el) {
+    var orig = el.textContent;
+    var iter = 0;
+    var iv = setInterval(function () {
+      el.textContent = orig.split('').map(function (c, i) {
+        if (c === ' ') return ' ';
+        if (i < Math.floor(iter)) return orig[i];
+        return CHARS[Math.floor(Math.random() * CHARS.length)];
+      }).join('');
+      iter += 0.45;
+      if (iter >= orig.length) { el.textContent = orig; clearInterval(iv); }
+    }, 26);
+  }
+  if ('IntersectionObserver' in window) {
+    var so = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { scramble(e.target); so.unobserve(e.target); }
+      });
+    }, { threshold: 0.5 });
+    document.querySelectorAll('.w-h2').forEach(function (el) { so.observe(el); });
+  }
+
+  // ── Staggered package list ─────────────────────────────────────
+  if ('IntersectionObserver' in window) {
+    var lo = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        e.target.querySelectorAll('.w-pkg-list li').forEach(function (li, i) {
+          setTimeout(function () { li.classList.remove('w-li-hidden'); li.classList.add('w-li-show'); }, i * 75);
+        });
+        lo.unobserve(e.target);
+      });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.w-pkg').forEach(function (el) {
+      el.querySelectorAll('.w-pkg-list li').forEach(function (li) { li.classList.add('w-li-hidden'); });
+      lo.observe(el);
+    });
   }
 
 })();

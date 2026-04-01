@@ -1,5 +1,19 @@
 /* ── /work page — only loads on /work ───────────────────────────── */
 
+/* ── SCROLL PROGRESS BAR ────────────────────────────────────────── */
+
+#w-progress {
+  position: fixed;
+  top: 0; left: 0;
+  height: 2px;
+  width: 0%;
+  background: var(--accent);
+  box-shadow: 0 0 8px 2px color-mix(in srgb, var(--accent) 70%, transparent);
+  z-index: 10000;
+  pointer-events: none;
+  transition: width 0.05s linear;
+}
+
 body.work { max-width: min(960px, 92vw); }
 
 /* ── CUSTOM CURSOR (desktop only) ──────────────────────────────── */
@@ -11,44 +25,32 @@ body.work { max-width: min(960px, 92vw); }
 
   #w-cur-dot {
     position: fixed;
-    width: 5px; height: 5px;
+    width: 8px; height: 8px;
     background: var(--accent);
     border-radius: 50%;
     pointer-events: none;
     z-index: 9999;
     transform: translate(-50%, -50%);
     opacity: 0;
-    transition: opacity 0.3s, width 0.15s, height 0.15s;
+    box-shadow: 0 0 10px 3px color-mix(in srgb, var(--accent) 60%, transparent);
+    transition: opacity 0.3s, width 0.15s, height 0.15s, box-shadow 0.15s;
   }
 
-  #w-cur-ring {
-    position: fixed;
-    width: 28px; height: 28px;
-    border: 1px solid var(--accent);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 9998;
-    transform: translate(-50%, -50%);
-    opacity: 0;
-    transition: opacity 0.3s, width 0.2s, height 0.2s, border-color 0.2s;
+  #w-cur-dot.w-cur-hover {
+    width: 12px; height: 12px;
+    box-shadow: 0 0 18px 6px color-mix(in srgb, var(--accent) 50%, transparent);
   }
 
-  #w-cur-ring.w-cur-hover {
-    width: 52px; height: 52px;
-    border-color: var(--accent);
-    opacity: 0.6 !important;
-  }
-
-  #w-cur-ring.w-cur-click {
-    width: 72px; height: 72px;
-    opacity: 0 !important;
-    transition: width 0.3s ease-out, height 0.3s ease-out, opacity 0.3s ease-out;
+  #w-cur-dot.w-cur-click {
+    width: 16px; height: 16px;
+    box-shadow: 0 0 28px 10px color-mix(in srgb, var(--accent) 30%, transparent);
+    transition: width 0.15s, height 0.15s, box-shadow 0.15s;
   }
 }
 
-/* hide cursor elements on touch */
+/* hide cursor on touch */
 @media (hover: none) {
-  #w-cur-dot, #w-cur-ring { display: none; }
+  #w-cur-dot { display: none; }
 }
 
 /* ── SCROLL REVEAL ──────────────────────────────────────────────── */
@@ -278,11 +280,11 @@ body.work .w-title { font-size: clamp(3rem, 8vw, 6rem); }
 .w-card {
   border: 1px solid var(--border);
   padding: 26px 22px;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.12s ease;
 }
 .w-card:hover {
   border-color: var(--accent);
-  box-shadow: 0 0 24px -10px var(--accent);
+  box-shadow: 0 0 32px -6px var(--accent), 0 0 64px -20px var(--accent);
 }
 
 .w-card-icon { font-size: 1.3rem; margin-bottom: 14px; color: var(--accent); }
@@ -301,7 +303,7 @@ body.work .w-title { font-size: clamp(3rem, 8vw, 6rem); }
   border: 1px solid var(--border);
   padding: 28px 22px;
   position: relative;
-  transition: border-color 0.25s, box-shadow 0.25s;
+  transition: border-color 0.25s, box-shadow 0.25s, transform 0.12s ease;
   overflow: hidden;
 }
 .w-pkg::after {
@@ -313,27 +315,15 @@ body.work .w-title { font-size: clamp(3rem, 8vw, 6rem); }
   transition: opacity 0.3s;
   pointer-events: none;
 }
-.w-pkg:hover { border-color: var(--accent); box-shadow: 0 0 36px -14px var(--accent); }
+.w-pkg:hover { border-color: var(--accent); box-shadow: 0 0 48px -8px var(--accent), 0 0 80px -24px var(--accent); }
 .w-pkg:hover::after { opacity: 1; }
 
 .w-pkg-hot {
   border-color: var(--accent);
-  box-shadow: 0 0 28px -14px var(--accent);
+  box-shadow: 0 0 40px -10px var(--accent), 0 0 70px -24px var(--accent);
 }
 .w-pkg-hot::after { opacity: 0.7; }
 
-.w-pkg-badge {
-  position: absolute;
-  top: -1px; right: 18px;
-  background: var(--accent);
-  color: var(--bg);
-  font-size: 0.64rem;
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 700;
-  padding: 2px 8px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
 
 .w-pkg-name {
   font-family: 'Syne', sans-serif;
@@ -392,7 +382,15 @@ body.work .w-title { font-size: clamp(3rem, 8vw, 6rem); }
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--fg);
-  margin-bottom: 12px;
+  margin-bottom: 6px;
+}
+
+.w-maint-price {
+  font-size: 0.72rem;
+  color: var(--accent);
+  font-family: 'JetBrains Mono', monospace;
+  margin-bottom: 14px;
+  opacity: 0.7;
 }
 
 .w-maint-sub {
@@ -475,6 +473,65 @@ body.work .w-title { font-size: clamp(3rem, 8vw, 6rem); }
 .w-final-email { margin-top: 18px; font-size: 0.78rem; color: var(--muted); }
 .w-final-email a { color: var(--muted); }
 .w-final-email a:hover { color: var(--accent); }
+
+/* ── MARQUEE ────────────────────────────────────────────────────── */
+
+.w-ticker {
+  overflow: hidden;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 18px 0;
+  margin: 0;
+  user-select: none;
+}
+
+.w-ticker-inner {
+  display: flex;
+  width: max-content;
+  animation: w-ticker-scroll 32s linear infinite;
+}
+
+.w-ticker-track {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.w-ticker-track span {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  padding: 0 14px;
+}
+
+.w-ticker-track .w-sep {
+  color: var(--accent);
+  opacity: 0.35;
+  padding: 0;
+}
+
+@keyframes w-ticker-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* ── STAGGERED LIST ─────────────────────────────────────────────── */
+
+.w-pkg-list li {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.w-pkg-list li.w-li-hidden {
+  opacity: 0;
+  transform: translateX(-8px);
+}
+
+.w-pkg-list li.w-li-show {
+  opacity: 1 !important;
+  transform: none !important;
+}
 
 /* ── TABLET ─────────────────────────────────────────────────────── */
 
