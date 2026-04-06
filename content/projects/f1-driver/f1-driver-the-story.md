@@ -26,7 +26,7 @@ weight: 1
 
 <p>First, the lap data and secret key are combined and hashed:</p>
 
-<pre style="background:#1a1a1a; color:#00ff88; padding:16px; border-radius:6px; font-size:14px; overflow-x:auto;">"1:32.851,monza" + "f1-driver-secret-key"
+<pre>"1:32.851,monza" + "f1-driver-secret-key"
         |
         v
 SHA256("1:32.851,monza f1-driver-secret-key")
@@ -36,12 +36,12 @@ SHA256("1:32.851,monza f1-driver-secret-key")
 
 <p>This is the certificate the user gets. Their proof to say: hey, this is my laptime!</p>
 
-<pre style="background:#1a1a1a; color:#00ff88; padding:16px; border-radius:6px; font-size:14px; overflow-x:auto;">Final laptime string:
+<pre>Final laptime string:
 "1:32.851,monza a3f9c2...8b4e1d"</pre>
 
 <p>If someone doesn't believe them and wants to verify, all they have to do is pass that string to the verifier. It splits out the data and the hash, recomputes the hash using the secret key, and checks if they match:</p>
 
-<pre style="background:#1a1a1a; color:#00ff88; padding:16px; border-radius:6px; font-size:14px; overflow-x:auto;">Input: "1:32.851,monza a3f9c2...8b4e1d"
+<pre>Input: "1:32.851,monza a3f9c2...8b4e1d"
         |
         v
 Data = "1:32.851,monza"
@@ -65,6 +65,6 @@ else:
 
 <p>I kinda got bored of it and left it around here. You can download it right now via Homebrew or install from source. Checkout the Github for more details.</p>
 
-<pre style="background:#1a1a1a; color:#00ff88; padding:16px; border-radius:6px; font-size:14px;">brew install Ekansh38/f1-driver/f1-driver</pre>
+<pre>brew install Ekansh38/f1-driver/f1-driver</pre>
 
 <p><a href="https://github.com/Ekansh38/f1-driver">github.com/Ekansh38/f1-driver</a></p>
