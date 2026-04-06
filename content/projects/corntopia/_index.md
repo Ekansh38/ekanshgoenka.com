@@ -1,5 +1,6 @@
 ---
 title: "Corntopia"
+weight: 3
 layout: "list"
 summary: "Virtual school economy. crypto exchange, marketplace, got shut down."
 stack: "Django · Python · SQLite"

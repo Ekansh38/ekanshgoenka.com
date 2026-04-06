@@ -1,5 +1,6 @@
 ---
-title: "GENO"
+title: "geno"
+weight: 4
 layout: "list"
 summary: "A genetic evolution simulator. genomes, natural selection, emergent behavior."
 stack: "C"
