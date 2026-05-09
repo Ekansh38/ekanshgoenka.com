@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  {{ $title := cond .IsHome .Site.Title (printf "%s — %s" .Title .Site.Title) }}
-  {{ $desc  := cond .IsHome "developer, builder, learner" (cond (ne .Summary "") .Summary "Ekansh Goenka — developer, builder, learner") }}
+  {{ $title := .Site.Title }}
+  {{ $desc  := cond (ne .Summary "") .Summary "developer, builder, learner" }}
 
   <title>{{ $title }}</title>
   <meta name="description" content="{{ $desc }}">

@@ -1,8 +1,9 @@
 # ekanshgoenka.com
 
-Just a suckless website to show off my work.
+Personal site with a terminal aesthetic. Projects, writing, music, and games. Has a working in-browser terminal emulator, multiple colorschemes, and a particle background. Built to actually be fun to use.
 
-## Tools
+Try pressing `[:]` on the site.
 
-Uses basic HTML, CSS, JavaScript. Used Vercel to deploy and GoDaddy for the domain.
+## Stack
 
+Hugo · vanilla JS · CSS · Vercel
