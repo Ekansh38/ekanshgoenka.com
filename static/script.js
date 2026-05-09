@@ -828,22 +828,20 @@ function toggleTheme() {
   // ── presets ──────────────────────────────────────────────────
   // All speeds (lspeed/bspeed) are 0–100%. Opacity/glow/autofill params also 0–100%.
   var PRESETS = {
-    // life
-    sparse:    { sim:'life',  lspeed:15, bspeed:null, desc:'dim bg',      params:{'life.cell':7,  'life.opacity':9,   'life.glow':0,  'life.autofill':50, 'life.rainbow':0, 'trail.on':0} },
-    bloom:     { sim:'life',  lspeed:25, bspeed:null, desc:'full+glow',   params:{'life.cell':7,  'life.opacity':100, 'life.glow':80, 'life.autofill':50, 'life.rainbow':0, 'trail.on':1, 'trail.glow':25, 'trail.decay':70, 'trail.size':2} },
-    coarse:    { sim:'life',  lspeed:20, bspeed:null, desc:'chunky cells',params:{'life.cell':14, 'life.opacity':50,  'life.glow':0,  'life.autofill':50, 'life.rainbow':0, 'trail.on':0} },
-    overdrive: { sim:'life',  lspeed:75, bspeed:null, desc:'fast dense',  params:{'life.cell':4,  'life.opacity':100, 'life.glow':0,  'life.autofill':50, 'life.rainbow':0, 'trail.on':0} },
-    chromatic: { sim:'life',  lspeed:20, bspeed:null, desc:'rainbow',     params:{'life.cell':7,  'life.opacity':55,  'life.glow':0,  'life.autofill':50, 'life.rainbow':1, 'trail.on':0} },
-    // boids
-    flock:     { sim:'boids', lspeed:null, bspeed:25, desc:'120 boids',   params:{'boids.n':120,  'boids.size':14, 'boids.tick':1.8, 'boids.opacity':14, 'boids.glow':0} },
-    swarm:     { sim:'boids', lspeed:null, bspeed:40, desc:'350 fast',    params:{'boids.n':350,  'boids.size':8,  'boids.tick':2.8, 'boids.opacity':18, 'boids.glow':0} },
-    drift:     { sim:'boids', lspeed:null, bspeed:15, desc:'15 slow+glow',params:{'boids.n':15,   'boids.size':36, 'boids.tick':0.7, 'boids.opacity':45, 'boids.glow':20} },
-    glow:      { sim:'boids', lspeed:null, bspeed:20, desc:'80 bright',   params:{'boids.n':80,   'boids.size':18, 'boids.tick':1.5, 'boids.opacity':90, 'boids.glow':50} },
-    maxflock:  { sim:'boids', lspeed:null, bspeed:35, desc:'1000 full',   params:{'boids.n':1000, 'boids.size':10, 'boids.tick':2.2, 'boids.opacity':100,'boids.glow':0} },
-    // combo
-    layered:   { sim:'combo', lspeed:20, bspeed:25,  desc:'life+flock',   params:{'life.cell':7,  'life.opacity':7,  'life.autofill':50, 'life.rainbow':0, 'boids.n':120, 'boids.opacity':18, 'boids.glow':0,  'trail.on':0} },
-    chaos:     { sim:'combo', lspeed:70, bspeed:40,  desc:'fast chaos',   params:{'life.cell':5,  'life.opacity':9,  'life.autofill':100,'life.rainbow':0, 'boids.n':200, 'boids.opacity':22, 'boids.glow':0,  'trail.on':0} },
-    spectrum:  { sim:'combo', lspeed:30, bspeed:25,  desc:'rainbow+flock',params:{'life.cell':7,  'life.opacity':45, 'life.autofill':50, 'life.rainbow':1, 'boids.n':80,  'boids.opacity':50, 'boids.glow':15, 'trail.on':0} },
+    // life — some themed, some theme-agnostic
+    ghost:     { sim:'life',  lspeed:12, bspeed:null, desc:'barely there',  params:{'life.cell':8,  'life.opacity':7,   'life.glow':0,  'life.autofill':40, 'life.rainbow':0, 'trail.on':0} },
+    bloom:     { sim:'life',  lspeed:22, bspeed:null, desc:'tokyo · glow trail', theme:'tokyo-night', params:{'life.cell':6,  'life.opacity':80, 'life.glow':65, 'life.autofill':50, 'life.rainbow':0, 'trail.on':1, 'trail.glow':30, 'trail.decay':65, 'trail.size':2} },
+    matrix:    { sim:'life',  lspeed:38, bspeed:null, desc:'kanagawa · fast', theme:'kanagawa',    params:{'life.cell':5,  'life.opacity':55,  'life.glow':20, 'life.autofill':60, 'life.rainbow':0, 'trail.on':0} },
+    chromatic: { sim:'life',  lspeed:18, bspeed:null, desc:'rainbow cells',  params:{'life.cell':7,  'life.opacity':45,  'life.glow':0,  'life.autofill':50, 'life.rainbow':1, 'trail.on':0} },
+    // boids — some themed, some theme-agnostic
+    flock:     { sim:'boids', lspeed:null, bspeed:20, desc:'calm flock',     params:{'boids.n':100,  'boids.size':13, 'boids.tick':1.5, 'boids.opacity':12, 'boids.glow':0} },
+    midnight:  { sim:'boids', lspeed:null, bspeed:18, desc:'tokyo · glow',  theme:'tokyo-night', params:{'boids.n':60,   'boids.size':22, 'boids.tick':1.2, 'boids.opacity':80, 'boids.glow':60} },
+    vapor:     { sim:'boids', lspeed:null, bspeed:12, desc:'rose-pine · drift', theme:'rose-pine', params:{'boids.n':25,   'boids.size':42, 'boids.tick':0.6, 'boids.opacity':55, 'boids.glow':35} },
+    swarm:     { sim:'boids', lspeed:null, bspeed:45, desc:'gruvbox · dense', theme:'gruvbox',    params:{'boids.n':350,  'boids.size':7,  'boids.tick':3.0, 'boids.opacity':20, 'boids.glow':0} },
+    // combo — some themed, some theme-agnostic
+    cosmos:    { sim:'combo', lspeed:18, bspeed:20,  desc:'tokyo · rainbow + drift', theme:'tokyo-night', params:{'life.cell':8,  'life.opacity':8,  'life.autofill':45, 'life.rainbow':1, 'boids.n':80,  'boids.opacity':16, 'boids.glow':12, 'trail.on':0} },
+    daylight:  { sim:'combo', lspeed:15, bspeed:18,  desc:'ayu-light · airy',       theme:'ayu-light',   params:{'life.cell':9,  'life.opacity':12, 'life.autofill':40, 'life.rainbow':0, 'boids.n':60,  'boids.opacity':30, 'boids.glow':5,  'trail.on':0} },
+    spectrum:  { sim:'combo', lspeed:25, bspeed:22,  desc:'rainbow + flock',         params:{'life.cell':7,  'life.opacity':40, 'life.autofill':50, 'life.rainbow':1, 'boids.n':90,  'boids.opacity':45, 'boids.glow':15, 'trail.on':0} },
   };
 
   window.getPresetNames = function () { return Object.keys(PRESETS); };
@@ -908,6 +906,7 @@ function toggleTheme() {
   window.applyPreset = function (name) {
     var p = PRESETS[name];
     if (!p) return false;
+    if (p.theme) applyTheme(p.theme);
     if (p.sim) window.setBgMode(p.sim);
     if (p.lspeed != null) window.setLifeSpeed(p.lspeed);
     if (p.bspeed != null) window.setBoidsSpeed(p.bspeed);
@@ -1063,9 +1062,10 @@ function toggleTheme() {
       '  params                       all params + current values',
       '  set <param> <val>            change a param',
       '',
-      'presets (life):   sparse  bloom  coarse  overdrive  chromatic',
-      'presets (boids):  flock  swarm  drift  glow  maxflock',
-      'presets (combo):  layered  chaos  spectrum',
+      'presets (life):   ghost  bloom*  matrix*  chromatic',
+      'presets (boids):  flock  midnight*  vapor*  swarm*',
+      'presets (combo):  cosmos*  daylight*  spectrum',
+      '  * = also changes colorscheme',
       '',
       '  help life    life sim params + commands',
       '  help boids   boids params',

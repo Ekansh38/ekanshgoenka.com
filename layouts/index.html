@@ -55,24 +55,6 @@
 <hr>
 */}}
 
-{{ $writing := .Site.GetPage "/writing" }}
-<h2><a href="/writing" class="now-link">Writing</a></h2>
-{{ if $writing.RegularPages }}
-<ul>
-  {{ range $writing.RegularPages }}
-  <li class="writing-li">
-    <a href="{{ .Permalink }}">{{ .Title }}</a>
-    <span class="yr">{{ .Date.Format "2006" }}</span>
-  </li>
-  {{ end }}
-</ul>
-{{ else }}
-<p style="color: var(--muted)">nothing yet child, keep waiting</p>
-{{ end }}
-
-
-<hr>
-
 {{ $games := .Site.GetPage "/games" }}
 {{ $music := .Site.GetPage "/music" }}
 <h2><a href="/music" class="now-link">Music</a></h2>
@@ -96,6 +78,23 @@
   </li>
   {{ end }}
 </ul>
+
+<hr>
+
+{{ $writing := .Site.GetPage "/writing" }}
+<h2><a href="/writing" class="now-link">Writing</a></h2>
+{{ if $writing.RegularPages }}
+<ul>
+  {{ range $writing.RegularPages }}
+  <li class="writing-li">
+    <a href="{{ .Permalink }}">{{ .Title }}</a>
+    <span class="yr">{{ .Date.Format "2006" }}</span>
+  </li>
+  {{ end }}
+</ul>
+{{ else }}
+<p style="color: var(--muted)">nothing yet child, keep waiting</p>
+{{ end }}
 
 <hr>
 
