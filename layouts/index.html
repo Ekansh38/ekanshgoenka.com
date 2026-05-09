@@ -7,12 +7,12 @@
 {{ $projects := .Site.GetPage "/projects" }}
 <h2><a href="/projects" class="now-link">Projects</a></h2>
 <ul>
-  {{ range $projects.Sections }}
+  {{ range $projects.Sections }}{{ if not .Params.shipped }}
   <li>
     <span class="li-name"><a href="{{ .Permalink }}">{{ .Title }}</a></span>:
     <span class="li-desc">{{ .Params.summary }}</span>
   </li>
-  {{ end }}
+  {{ end }}{{ end }}
 </ul>
 
 <hr>
@@ -28,7 +28,7 @@
     <span class="li-desc">portfolio site for photographer Nate Nan</span>
   </li>
   <li>
-    <span class="li-name"><a href="https://amh-assistant.vercel.app" target="_blank">AMH Assistant</a></span>:
+    <span class="li-name"><a href="/projects/amh-assistant">AMH Assistant</a></span>:
     <span class="li-desc">AI chat assistant for AMH Singapore, used daily by 40+ employees</span>
   </li>
   <li>
