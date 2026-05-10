@@ -3,7 +3,7 @@
 <a href="{{ .Parent.Permalink }}" class="back">← {{ if .Parent.IsHome }}home{{ else }}{{ strings.ToLower .Parent.Title }}{{ end }}</a>
 
 <div class="project-title">{{ .Title }}</div>
-<div class="project-meta">{{ .Date.Format "January 2, 2006" }}{{ with .Params.status }} · {{ . }}{{ end }}{{ if gt .ReadingTime 0 }} · <span class="reading-time">{{ .ReadingTime }} min read</span>{{ end }}</div>
+<div class="project-meta">{{ .Date.Format "January 2, 2006" }}{{ with .Params.status }} · {{ . }}{{ end }}</div>
 
 {{ .Content }}
 

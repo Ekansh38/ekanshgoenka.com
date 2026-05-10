@@ -314,7 +314,6 @@ body.page p  { line-height: 1.85; margin-bottom: 1em; }
 body.page h1 { font-size: 1.4rem; color: var(--fg); margin: 0 0 8px; }
 body.page h2 { font-size: 1rem; color: var(--fg); font-weight: 700; margin: 36px 0 10px; }
 body.page h3 { font-size: 0.9rem; color: var(--fg); font-weight: 700; margin: 28px 0 8px; }
-.reading-time { color: var(--muted); font-size: 0.82rem; }
 .project-meta  { color: var(--muted); font-size: 0.88rem; margin-bottom: 20px; }
 
 .links { display: flex; gap: 16px; margin-top: 24px; flex-wrap: wrap; }
@@ -415,7 +414,10 @@ body { background: transparent; text-shadow: 0 0 18px var(--shadow), 0 0 6px var
   width: 100%; height: 100%;
   pointer-events: none;
   z-index: -1;
+  transition: opacity 0.4s ease;
 }
+
+body.page #bg-canvas { opacity: 0.25; }
 
 
 /* Hide sim and terminal on touch-only devices (phones/tablets) */
