@@ -129,10 +129,10 @@ function toggleTheme() {
   var N          = 120;
   var MAX_SPEED  = 1.8,  MIN_SPEED  = 0.6;
   var PERCEPTION = 70,   SEP_DIST   = 50;
-  var SEP_W      = 0.15, ALI_W      = 0.06, COH_W = 0.005;
-  var MAX_FORCE  = 0.12;
+  var SEP_W      = 0.28, ALI_W      = 0.06, COH_W = 0.005;
+  var MAX_FORCE  = 0.15;
   var MARGIN     = 100,  TURN       = 0.22;
-  var SPREAD_R   = 180,  SPREAD_W   = 0.08;
+  var SPREAD_R   = 180,  SPREAD_W   = 0.03;
   var WANDER     = 0.04;
   var BOID_LEN     = 14;
   var BOID_HALF    = 5.5;
@@ -159,6 +159,7 @@ function toggleTheme() {
 
   function updateBoids() {
     var P2 = PERCEPTION*PERCEPTION, S2 = SEP_DIST*SEP_DIST, SP2 = SPREAD_R*SPREAD_R;
+    var sp = (1 + boidsCurrentSpeed / 100 * 19) / 5;
     var i, j, b, o, dx, dy, d2, d, spd, tmp;
 
     for (i = 0; i < N; i++) {
@@ -208,27 +209,9 @@ function toggleTheme() {
       if (spd > MAX_SPEED) { b.vx = b.vx/spd*MAX_SPEED; b.vy = b.vy/spd*MAX_SPEED; }
       else if (spd < MIN_SPEED && spd > 1e-4) { b.vx = b.vx/spd*MIN_SPEED; b.vy = b.vy/spd*MIN_SPEED; }
 
-      var sp = (1 + boidsCurrentSpeed / 100 * 19) / 5;
       b.x += b.vx * sp; b.y += b.vy * sp;
       if (b.x < -20) b.x = W+20; else if (b.x > W+20) b.x = -20;
       if (b.y < -20) b.y = H+20; else if (b.y > H+20) b.y = -20;
-    }
-
-    // Hard separation: directly push apart any boids still overlapping
-    var MIN_D = BOID_LEN * 1.2;
-    var MIN_D2 = MIN_D * MIN_D;
-    for (i = 0; i < N; i++) {
-      for (j = i + 1; j < N; j++) {
-        dx = boids[j].x - boids[i].x; dy = boids[j].y - boids[i].y;
-        d2 = dx*dx + dy*dy;
-        if (d2 < MIN_D2 && d2 > 0) {
-          d = Math.sqrt(d2);
-          var push = (MIN_D - d) * 0.5;
-          var nx = dx/d, ny = dy/d;
-          boids[i].x -= nx*push; boids[i].y -= ny*push;
-          boids[j].x += nx*push; boids[j].y += ny*push;
-        }
-      }
     }
   }
 
