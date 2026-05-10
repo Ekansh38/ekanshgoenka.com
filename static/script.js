@@ -815,6 +815,14 @@ function toggleTheme() {
     }
   };
 
+  // wrap setParam to persist individual param changes to localStorage
+  var _origSetParam = window.setParam;
+  window.setParam = function (key, val) {
+    var ok = _origSetParam(key, val);
+    if (ok) localStorage.setItem('p:' + key, String(val));
+    return ok;
+  };
+
   // ── presets ──────────────────────────────────────────────────
   // All speeds (lspeed/bspeed) are 0–100%. Opacity/glow/autofill params also 0–100%.
   var PRESETS = {
@@ -897,8 +905,16 @@ function toggleTheme() {
   window._rebuildPresetPicker = rebuildPresetPicker;
 
   document.addEventListener('DOMContentLoaded', function () {
+    // restore individual params (overrides preset defaults with any manually-changed values)
+    var PARAM_KEYS = ['life.cell','life.opacity','life.glow','life.autofill','life.rainbow',
+      'boids.n','boids.size','boids.tick','boids.opacity','boids.glow','boids.perception','boids.separation',
+      'trail.on','trail.size','trail.glow','trail.decay'];
     var savedPreset = localStorage.getItem('preset');
     if (savedPreset && PRESETS[savedPreset]) window.applyPreset(savedPreset);
+    for (var ki = 0; ki < PARAM_KEYS.length; ki++) {
+      var sv = localStorage.getItem('p:' + PARAM_KEYS[ki]);
+      if (sv !== null) _origSetParam(PARAM_KEYS[ki], parseFloat(sv));
+    }
     rebuildPresetPicker();
     var ppBtn  = document.getElementById('preset-picker-btn');
     var ppMenu = document.getElementById('preset-picker-menu');
