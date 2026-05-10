@@ -6,14 +6,63 @@
     <description>Recent content in ekansh goenka on Ekansh Goenka</description>
     <generator>Hugo</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 01 Mar 2026 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 26 Mar 2026 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://ekanshgoenka.com/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>The IPC System</title>
-      <link>https://ekanshgoenka.com/projects/byte-space/ipc/</link>
-      <pubDate>Sun, 01 Mar 2026 00:00:00 +0000</pubDate>
-      <guid>https://ekanshgoenka.com/projects/byte-space/ipc/</guid>
-      <description>&lt;p&gt;How byte-space handles IPC using Unix sockets.&lt;/p&gt;</description>
+      <title>How I am Authenticating Lap-times Locally</title>
+      <link>https://ekanshgoenka.com/projects/rl-driver/local-authenticated-laptimes/</link>
+      <pubDate>Thu, 26 Mar 2026 00:00:00 +0000</pubDate>
+      <guid>https://ekanshgoenka.com/projects/rl-driver/local-authenticated-laptimes/</guid>
+      <description>&lt;p&gt;todo&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>I Built a Racing Game, My Friends Started Cheating, So I Added Cryptography</title>
+      <link>https://ekanshgoenka.com/projects/f1-driver/f1-driver-the-story/</link>
+      <pubDate>Thu, 26 Mar 2026 00:00:00 +0000</pubDate>
+      <guid>https://ekanshgoenka.com/projects/f1-driver/f1-driver-the-story/</guid>
+      <description>&lt;p&gt;I really like F1. One day I was playing F1 25 on my PS5 and I was having a lot of fun. A part of me wondered, are there any local 2D F1 racing games that are actually fun? I couldn&#39;t find any that scratched that itch I had, some had obstacles and unrealistic turning and physics, some where just not fun. So I decided to scratch my own itch. On a Sunday afternoon I set out to build the racing game I always wanted! Custom maps, real F1 physics, laptimes, graphs, telemetry, all that jazz. I started in Pygame and Python because that was the only framework I was familiar with and I was pretty stupid at that time. I had this grand plan to add AI and reinforcement learning to the game, hence the first name, rl-driver.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Why I&#39;m Building Byte-space</title>
+      <link>https://ekanshgoenka.com/projects/byte-space/why-im-building-byte-space/</link>
+      <pubDate>Wed, 11 Mar 2026 00:00:00 +0000</pubDate>
+      <guid>https://ekanshgoenka.com/projects/byte-space/why-im-building-byte-space/</guid>
+      <description>&lt;p&gt;&#xA;I am building byte-space, or have finished by the time you are reading this article. This article explains what byte-space is, why I want to build it, and what sparked the idea. Hope you enjoy the read!&#xA;&lt;/p&gt;&#xA;&lt;p&gt;&#xA;byte-space (all lowercase) is an internet simulator that boasts some pretty cool features. I think the most interesting and fun part about byte-space compared to other network simulators is that you can actually interact with the network like a user. Telnet onto machines, send email and do &#34;userly&#34; activities. ACTUALLY USE IT! That is what I find fun about it. Being able to transport myself into a 1980s academic network that I build, or a military one... &#34;Playing&#34; with others in the same network or geeking around alone (with others is more fun, if you have nerdy friends).&#xA;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>wrkr</title>
+      <link>https://ekanshgoenka.com/tools/wrkr/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>https://ekanshgoenka.com/tools/wrkr/</guid>
+      <description>Terminal calculator that knows units, remembers variables, and copies results to clipboard.</description>
+    </item>
+    <item>
+      <title>blokr</title>
+      <link>https://ekanshgoenka.com/tools/blokr/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>https://ekanshgoenka.com/tools/blokr/</guid>
+      <description>Block distracting sites behind a physical code you keep on paper. macOS only.</description>
+    </item>
+    <item>
+      <title>iris</title>
+      <link>https://ekanshgoenka.com/tools/iris/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>https://ekanshgoenka.com/tools/iris/</guid>
+      <description>macOS menu bar app that enforces the 20-20-20 rule. Countdown in the menu bar, audio cues at break time.</description>
+    </item>
+    <item>
+      <title>cx</title>
+      <link>https://ekanshgoenka.com/tools/cx/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>https://ekanshgoenka.com/tools/cx/</guid>
+      <description>Terminal AI chat. Any model, you own your data.</description>
+    </item>
+    <item>
+      <title>AMH Assistant</title>
+      <link>https://ekanshgoenka.com/experience/amh-singapore/</link>
+      <pubDate>Thu, 01 Jan 2026 00:00:00 +0000</pubDate>
+      <guid>https://ekanshgoenka.com/experience/amh-singapore/</guid>
+      <description>AI chat assistant for AMH Singapore. Connects Trello, Sheets, and Gmail in one place.</description>
     </item>
     <item>
       <title>Cropocalypse</title>
@@ -27,21 +76,21 @@
       <link>https://ekanshgoenka.com/games/starlight-odyssey/</link>
       <pubDate>Sun, 20 Jul 2025 00:00:00 +0000</pubDate>
       <guid>https://ekanshgoenka.com/games/starlight-odyssey/</guid>
-      <description>Explore space. Save your race. Eat yourself to survive.</description>
+      <description>Explore space. Save your race. Eat yourself to survive. Can you reach Earth in time?</description>
     </item>
     <item>
       <title>btop</title>
       <link>https://ekanshgoenka.com/music/btop/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       <guid>https://ekanshgoenka.com/music/btop/</guid>
-      <description>an experimental electronic music album</description>
+      <description>An experimental electronic music album</description>
     </item>
     <item>
-      <title>tetst</title>
-      <link>https://ekanshgoenka.com/projects/geno/test/</link>
+      <title>Pitch Deck</title>
+      <link>https://ekanshgoenka.com/work/pitch-deck/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://ekanshgoenka.com/projects/geno/test/</guid>
-      <description>&lt;p&gt;asdiasidja&lt;/p&gt;</description>
+      <guid>https://ekanshgoenka.com/work/pitch-deck/</guid>
+      <description></description>
     </item>
   </channel>
 </rss>

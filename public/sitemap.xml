@@ -2,17 +2,50 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://ekanshgoenka.com/projects/rl-driver/local-authenticated-laptimes/</loc>
+    <lastmod>2026-03-26T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://ekanshgoenka.com/projects/f1-driver/f1-driver-the-story/</loc>
+    <lastmod>2026-03-26T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>https://ekanshgoenka.com/projects/byte-space/</loc>
-    <lastmod>2026-03-01T00:00:00+00:00</lastmod>
+    <lastmod>2026-03-11T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://ekanshgoenka.com/projects/byte-space/why-im-building-byte-space/</loc>
+    <lastmod>2026-03-11T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://ekanshgoenka.com/tools/wrkr/</loc>
+  </url><url>
+    <loc>https://ekanshgoenka.com/projects/amh-assistant/</loc>
+  </url><url>
+    <loc>https://ekanshgoenka.com/tools/blokr/</loc>
+  </url><url>
+    <loc>https://ekanshgoenka.com/projects/corntopia/</loc>
+    <lastmod>2025-02-17T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://ekanshgoenka.com/tools/iris/</loc>
+  </url><url>
+    <loc>https://ekanshgoenka.com/tools/cx/</loc>
+  </url><url>
+    <loc>https://ekanshgoenka.com/projects/geno/</loc>
+  </url><url>
+    <loc>https://ekanshgoenka.com/projects/f1-driver/</loc>
+    <lastmod>2026-03-26T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://ekanshgoenka.com/projects/rl-driver/</loc>
+    <lastmod>2026-03-26T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://ekanshgoenka.com/</loc>
-    <lastmod>2026-03-01T00:00:00+00:00</lastmod>
+    <lastmod>2026-03-26T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://ekanshgoenka.com/projects/</loc>
-    <lastmod>2026-03-01T00:00:00+00:00</lastmod>
+    <lastmod>2026-03-26T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://ekanshgoenka.com/projects/byte-space/ipc/</loc>
-    <lastmod>2026-03-01T00:00:00+00:00</lastmod>
+    <loc>https://ekanshgoenka.com/experience/amh-singapore/</loc>
+    <lastmod>2026-01-01T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://ekanshgoenka.com/experience/</loc>
+    <lastmod>2026-01-01T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://ekanshgoenka.com/games/cropocalypse/</loc>
     <lastmod>2025-07-27T00:00:00+00:00</lastmod>
@@ -27,15 +60,17 @@
   </url><url>
     <loc>https://ekanshgoenka.com/categories/</loc>
   </url><url>
-    <loc>https://ekanshgoenka.com/projects/geno/</loc>
-  </url><url>
     <loc>https://ekanshgoenka.com/music/</loc>
   </url><url>
-    <loc>https://ekanshgoenka.com/now/</loc>
+    <loc>https://ekanshgoenka.com/pitch/</loc>
+  </url><url>
+    <loc>https://ekanshgoenka.com/work/pitch-deck/</loc>
   </url><url>
     <loc>https://ekanshgoenka.com/tags/</loc>
   </url><url>
-    <loc>https://ekanshgoenka.com/projects/geno/test/</loc>
+    <loc>https://ekanshgoenka.com/tools/</loc>
+  </url><url>
+    <loc>https://ekanshgoenka.com/work/</loc>
   </url><url>
     <loc>https://ekanshgoenka.com/writing/</loc>
   </url>
