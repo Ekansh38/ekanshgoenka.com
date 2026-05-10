@@ -860,10 +860,7 @@ function toggleTheme() {
       var p = PRESETS[name];
       var btn = document.createElement('button');
       btn.className = 'tp-item' + (activePreset === name ? ' active' : '');
-      var variant = p.sim + (p.desc ? ' · ' + p.desc : '');
-      btn.innerHTML =
-        '<span class="tp-arrow">▶</span>' + name +
-        '<span class="tp-variant">' + variant + '</span>';
+      btn.innerHTML = '<span class="tp-arrow">▶</span>' + name;
       btn.addEventListener('click', function () {
         window.applyPreset(name);
         document.getElementById('preset-picker-menu').classList.remove('open');
