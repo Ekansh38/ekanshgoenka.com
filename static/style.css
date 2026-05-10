@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap');
-
 /* ── THEMES ─────────────────────────────────────────────────── */
 
 /* Tokyo Night (dark, default) */
@@ -153,7 +151,7 @@ body {
   padding: 48px 20px 64px;
 }
 
-body.page.writing,
+body.page.writing  { max-width: 680px; }
 body.page.projects { max-width: min(860px, 90vw); }
 
 a { color: var(--accent); text-decoration: none; }
@@ -310,6 +308,13 @@ body.projects li, body.home li { padding: 10px 0; }
 .back:hover { color: var(--accent); text-decoration: none; }
 
 .project-title { font-size: 1.1rem; margin-bottom: 6px; }
+
+/* ── ARTICLE PROSE ─────────────────────────────────────────── */
+body.page p  { line-height: 1.85; margin-bottom: 1em; }
+body.page h1 { font-size: 1.4rem; color: var(--fg); margin: 0 0 8px; }
+body.page h2 { font-size: 1rem; color: var(--fg); font-weight: 700; margin: 36px 0 10px; }
+body.page h3 { font-size: 0.9rem; color: var(--fg); font-weight: 700; margin: 28px 0 8px; }
+.reading-time { color: var(--muted); font-size: 0.82rem; }
 .project-meta  { color: var(--muted); font-size: 0.88rem; margin-bottom: 20px; }
 
 .links { display: flex; gap: 16px; margin-top: 24px; flex-wrap: wrap; }

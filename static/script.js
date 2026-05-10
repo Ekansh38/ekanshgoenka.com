@@ -19,6 +19,7 @@ var LIGHT_THEMES = ['rose-pine', 'github-light', 'papercolor-light'];
 function applyTheme(name) {
   document.documentElement.setAttribute('data-theme', name);
   localStorage.setItem('theme', name);
+  if (window._invalidateAccentCache) window._invalidateAccentCache();
   var isLight = LIGHT_THEMES.indexOf(name) >= 0;
   var t = document.getElementById('t');
   if (t) t.textContent = isLight ? '[light]' : '[dark]';
@@ -217,11 +218,15 @@ function toggleTheme() {
 
   function isHome() { return window.location.pathname === '/'; }
 
+  var _accentRgb = null;
   function accentRgba(alpha) {
-    var hex = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
-    var r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
-    return 'rgba('+r+','+g+','+b+','+alpha+')';
+    if (!_accentRgb) {
+      var hex = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+      _accentRgb = [parseInt(hex.slice(1,3),16), parseInt(hex.slice(3,5),16), parseInt(hex.slice(5,7),16)];
+    }
+    return 'rgba('+_accentRgb[0]+','+_accentRgb[1]+','+_accentRgb[2]+','+alpha+')';
   }
+  window._invalidateAccentCache = function () { _accentRgb = null; };
 
   function drawBoids(noClear) {
     if (!noClear) ctx.clearRect(0, 0, W, H);
@@ -526,6 +531,7 @@ function toggleTheme() {
   }
 
   function loop() {
+    if (document.hidden) { requestAnimationFrame(loop); return; }
     lifeCurrentSpeed  += (lifeSpeedLevel  - lifeCurrentSpeed)  * 0.07;
     boidsCurrentSpeed += (boidsSpeedLevel - boidsCurrentSpeed) * 0.07;
 
