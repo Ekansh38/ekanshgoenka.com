@@ -13,8 +13,8 @@ document.addEventListener('click', function (e) {
   });
 });
 
-var THEMES = ['tokyo-night', 'gruvbox', 'kanagawa', 'flexoki-light', 'rose-pine', 'ayu-light'];
-var LIGHT_THEMES = ['flexoki-light', 'rose-pine', 'ayu-light'];
+var THEMES = ['tokyo-night', 'gruvbox', 'dracula', 'rose-pine', 'github-light', 'papercolor-light'];
+var LIGHT_THEMES = ['rose-pine', 'github-light', 'papercolor-light'];
 
 function applyTheme(name) {
   document.documentElement.setAttribute('data-theme', name);
@@ -37,7 +37,8 @@ function toggleTheme() {
   var saved = localStorage.getItem('theme') || 'tokyo-night';
   if (saved === 'dark') saved = 'tokyo-night';
   if (saved === 'light') saved = 'rose-pine';
-  if (saved === 'solarized-light') saved = 'flexoki-light';
+  if (saved === 'solarized-light' || saved === 'flexoki-light' || saved === 'ayu-light') saved = 'github-light';
+  if (saved === 'kanagawa') saved = 'dracula';
   if (THEMES.indexOf(saved) < 0) saved = 'tokyo-night';
   applyTheme(saved);
 
@@ -828,17 +829,22 @@ function toggleTheme() {
   // ── presets ──────────────────────────────────────────────────
   // All speeds (lspeed/bspeed) are 0–100%. Opacity/glow/autofill params also 0–100%.
   var PRESETS = {
-    ghost:     { sim:'life',  lspeed:12, bspeed:null,                    desc:'barely there',   params:{'life.cell':8,  'life.opacity':7,   'life.glow':0,  'life.autofill':40, 'life.rainbow':0, 'trail.on':0} },
-    bloom:     { sim:'life',  lspeed:22, bspeed:null, theme:'tokyo-night', desc:'glow + trail',   params:{'life.cell':6,  'life.opacity':80,  'life.glow':65, 'life.autofill':50, 'life.rainbow':0, 'trail.on':1, 'trail.glow':30, 'trail.decay':65, 'trail.size':2} },
-    matrix:    { sim:'life',  lspeed:38, bspeed:null, theme:'kanagawa',    desc:'fast + dense',   params:{'life.cell':5,  'life.opacity':55,  'life.glow':20, 'life.autofill':60, 'life.rainbow':0, 'trail.on':0} },
-    chromatic: { sim:'life',  lspeed:18, bspeed:null,                    desc:'rainbow',        params:{'life.cell':7,  'life.opacity':45,  'life.glow':0,  'life.autofill':50, 'life.rainbow':1, 'trail.on':0} },
-    flock:     { sim:'boids', lspeed:null, bspeed:20,                    desc:'calm flock',     params:{'boids.n':100,  'boids.size':13, 'boids.tick':1.5, 'boids.opacity':12, 'boids.glow':0} },
-    midnight:  { sim:'boids', lspeed:null, bspeed:18, theme:'tokyo-night', desc:'dark glow',      params:{'boids.n':60,   'boids.size':22, 'boids.tick':1.2, 'boids.opacity':80, 'boids.glow':60} },
-    vapor:     { sim:'boids', lspeed:null, bspeed:12, theme:'rose-pine',   desc:'slow drift',     params:{'boids.n':25,   'boids.size':42, 'boids.tick':0.6, 'boids.opacity':55, 'boids.glow':35} },
-    swarm:     { sim:'boids', lspeed:null, bspeed:45, theme:'gruvbox',     desc:'fast dense',     params:{'boids.n':350,  'boids.size':7,  'boids.tick':3.0, 'boids.opacity':20, 'boids.glow':0} },
-    cosmos:    { sim:'combo', lspeed:18,  bspeed:20,  theme:'tokyo-night', desc:'rainbow + drift', params:{'life.cell':8,  'life.opacity':8,  'life.autofill':45, 'life.rainbow':1, 'boids.n':80,  'boids.opacity':16, 'boids.glow':12, 'trail.on':0} },
-    daylight:  { sim:'combo', lspeed:15,  bspeed:18,  theme:'ayu-light',   desc:'light + airy',   params:{'life.cell':9,  'life.opacity':12, 'life.autofill':40, 'life.rainbow':0, 'boids.n':60,  'boids.opacity':30, 'boids.glow':5,  'trail.on':0} },
-    spectrum:  { sim:'combo', lspeed:25,  bspeed:22,                    desc:'rainbow + flock', params:{'life.cell':7,  'life.opacity':40, 'life.autofill':50, 'life.rainbow':1, 'boids.n':90,  'boids.opacity':45, 'boids.glow':15, 'trail.on':0} },
+    // life
+    ghost:     { sim:'life',  lspeed:12, bspeed:null,                         desc:'barely there',   params:{'life.cell':8,  'life.opacity':7,   'life.glow':0,  'life.autofill':40, 'life.rainbow':0, 'trail.on':0} },
+    bloom:     { sim:'life',  lspeed:22, bspeed:null, theme:'tokyo-night',     desc:'glow + trail',   params:{'life.cell':6,  'life.opacity':80,  'life.glow':65, 'life.autofill':50, 'life.rainbow':0, 'trail.on':1, 'trail.glow':30, 'trail.decay':65, 'trail.size':2} },
+    ember:     { sim:'life',  lspeed:20, bspeed:null, theme:'gruvbox',         desc:'warm cells',     params:{'life.cell':7,  'life.opacity':40,  'life.glow':10, 'life.autofill':50, 'life.rainbow':0, 'trail.on':0} },
+    chromatic: { sim:'life',  lspeed:18, bspeed:null,                         desc:'rainbow',        params:{'life.cell':7,  'life.opacity':45,  'life.glow':0,  'life.autofill':50, 'life.rainbow':1, 'trail.on':0} },
+    paper:     { sim:'life',  lspeed:14, bspeed:null, theme:'papercolor-light', desc:'soft cells',    params:{'life.cell':9,  'life.opacity':15,  'life.glow':0,  'life.autofill':40, 'life.rainbow':0, 'trail.on':0} },
+    // boids
+    flock:     { sim:'boids', lspeed:null, bspeed:20,                         desc:'calm flock',     params:{'boids.n':100,  'boids.size':13, 'boids.tick':1.5, 'boids.opacity':12, 'boids.glow':0} },
+    midnight:  { sim:'boids', lspeed:null, bspeed:18, theme:'tokyo-night',     desc:'dark glow',      params:{'boids.n':60,   'boids.size':22, 'boids.tick':1.2, 'boids.opacity':80, 'boids.glow':60} },
+    dusk:      { sim:'boids', lspeed:null, bspeed:16, theme:'dracula',         desc:'purple glow',    params:{'boids.n':50,   'boids.size':26, 'boids.tick':1.0, 'boids.opacity':70, 'boids.glow':55} },
+    soft:      { sim:'boids', lspeed:null, bspeed:12, theme:'rose-pine',       desc:'slow drift',     params:{'boids.n':25,   'boids.size':42, 'boids.tick':0.6, 'boids.opacity':55, 'boids.glow':35} },
+    swarm:     { sim:'boids', lspeed:null, bspeed:45, theme:'gruvbox',         desc:'fast dense',     params:{'boids.n':350,  'boids.size':7,  'boids.tick':3.0, 'boids.opacity':20, 'boids.glow':0} },
+    // combo
+    cosmos:    { sim:'combo', lspeed:18,  bspeed:20,  theme:'tokyo-night',     desc:'rainbow + drift', params:{'life.cell':8,  'life.opacity':8,  'life.autofill':45, 'life.rainbow':1, 'boids.n':80,  'boids.opacity':16, 'boids.glow':12, 'trail.on':0} },
+    daylight:  { sim:'combo', lspeed:15,  bspeed:18,  theme:'github-light',    desc:'light + airy',   params:{'life.cell':9,  'life.opacity':12, 'life.autofill':40, 'life.rainbow':0, 'boids.n':60,  'boids.opacity':30, 'boids.glow':5,  'trail.on':0} },
+    spectrum:  { sim:'combo', lspeed:25,  bspeed:22,                          desc:'rainbow + flock', params:{'life.cell':7,  'life.opacity':40, 'life.autofill':50, 'life.rainbow':1, 'boids.n':90,  'boids.opacity':45, 'boids.glow':15, 'trail.on':0} },
   };
 
   window.getPresetNames = function () { return Object.keys(PRESETS); };
@@ -1049,8 +1055,9 @@ function toggleTheme() {
       '  params                       all params + current values',
       '  set <param> <val>            change a param',
       '',
-      'presets:  ghost  bloom  matrix  chromatic  flock',
-      '          midnight  vapor  swarm  cosmos  daylight  spectrum',
+      'presets:  ghost  bloom  ember  chromatic  paper',
+      '          flock  midnight  dusk  soft  swarm',
+      '          cosmos  daylight  spectrum',
       '',
       '  help life    life sim params + commands',
       '  help boids   boids params',
@@ -1218,14 +1225,16 @@ function toggleTheme() {
       '',
       '  ghost      life   · barely there',
       '  bloom      life   · glow + trail            (tokyo-night)',
-      '  matrix     life   · fast + dense             (kanagawa)',
+      '  ember      life   · warm cells              (gruvbox)',
       '  chromatic  life   · rainbow',
+      '  paper      life   · soft cells              (papercolor-light)',
       '  flock      boids  · calm flock',
-      '  midnight   boids  · dark glow                (tokyo-night)',
-      '  vapor      boids  · slow drift               (rose-pine)',
-      '  swarm      boids  · fast dense               (gruvbox)',
-      '  cosmos     combo  · rainbow + drift          (tokyo-night)',
-      '  daylight   combo  · light + airy             (ayu-light)',
+      '  midnight   boids  · dark glow               (tokyo-night)',
+      '  dusk       boids  · purple glow             (dracula)',
+      '  soft       boids  · slow drift              (rose-pine)',
+      '  swarm      boids  · fast dense              (gruvbox)',
+      '  cosmos     combo  · rainbow + drift         (tokyo-night)',
+      '  daylight   combo  · light + airy            (github-light)',
       '  spectrum   combo  · rainbow + flock',
     ].join('\n'),
 
