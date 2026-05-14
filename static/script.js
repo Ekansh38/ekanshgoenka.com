@@ -135,7 +135,7 @@ function toggleTheme() {
   var SEP_FORCE  = 0.10;  // separation gets a higher cap to prevent overlap
   var MARGIN     = 100,  TURN       = 0.10;
   var SPREAD_R   = 140,  SPREAD_W   = 0.04;
-  var WANDER     = 0.003;
+  var WANDER     = 0.018;
   var BOID_LEN     = 14;
   var BOID_HALF    = 5.5;
   var BOID_OPACITY = 0.14;
@@ -156,7 +156,8 @@ function toggleTheme() {
       var s = MIN_SPEED + Math.random() * (MAX_SPEED - MIN_SPEED);
       boids.push({ x: Math.random()*W, y: Math.random()*H,
                    vx: Math.cos(a)*s,  vy: Math.sin(a)*s,
-                   op: 0.13 + Math.random() * 0.18 });  // per-boid opacity 0.13–0.31
+                   op: 0.13 + Math.random() * 0.18,     // per-boid opacity 0.13–0.31
+                   wa: Math.random() * Math.PI * 2 });   // wander angle, drifts slowly
     }
   }
 
@@ -206,8 +207,9 @@ function toggleTheme() {
       if (b.y < MARGIN)   fy += TURN*(1-b.y/MARGIN);
       if (b.y > H-MARGIN) fy -= TURN*(1-(H-b.y)/MARGIN);
 
-      b.vx += fx + (Math.random()-0.5)*WANDER;
-      b.vy += fy + (Math.random()-0.5)*WANDER;
+      b.wa += (Math.random() - 0.5) * 0.22;  // slowly drift wander angle
+      b.vx += fx + Math.cos(b.wa) * WANDER;
+      b.vy += fy + Math.sin(b.wa) * WANDER;
       spd = Math.sqrt(b.vx*b.vx + b.vy*b.vy);
       if (spd > MAX_SPEED) { b.vx = b.vx/spd*MAX_SPEED; b.vy = b.vy/spd*MAX_SPEED; }
       else if (spd < MIN_SPEED && spd > 1e-4) { b.vx = b.vx/spd*MIN_SPEED; b.vy = b.vy/spd*MIN_SPEED; }
