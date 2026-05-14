@@ -969,6 +969,7 @@ function toggleTheme() {
 
   var hist = [], histIdx = -1, isOpen = false;
   var PAGE_START = Date.now();
+  var _gameMode = false, _gameResume = null;
 
   var QUOTES = [
     '"the best code is no code at all."  — jeff atwood',
@@ -1588,6 +1589,111 @@ function toggleTheme() {
   function tooMany(name) { line(name + ': too many arguments', 'term-line-err'); }
   function needArg(name, usage) { line(name + ': missing argument\nusage: ' + usage, 'term-line-err'); }
 
+  // ── Lua arcade ───────────────────────────────────────────────
+  var _fengariReady = false, _fengariLoading = false, _fengariQueue = [];
+
+  function loadFengari(cb) {
+    if (_fengariReady) { cb(); return; }
+    _fengariQueue.push(cb);
+    if (_fengariLoading) return;
+    _fengariLoading = true;
+    line('loading lua runtime...', 'term-line-ok');
+    var s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/fengari-web@0.1.4/dist/fengari-web.js';
+    s.onload = function() {
+      _fengariReady = true; _fengariLoading = false;
+      _fengariQueue.forEach(function(fn) { fn(); }); _fengariQueue = [];
+    };
+    s.onerror = function() {
+      _fengariLoading = false; _fengariQueue = [];
+      line('failed to load lua runtime', 'term-line-err');
+    };
+    document.head.appendChild(s);
+  }
+
+  function runLuaGame(game) {
+    var fx = window.fengari;
+    if (!fx) { line('lua runtime not available', 'term-line-err'); return; }
+    var lua = fx.lua, lauxlib = fx.lauxlib, lualib = fx.lualib;
+    var toLua = fx.to_luastring, toJS = fx.to_jsstring;
+
+    _gameMode = true;
+    line('─────────────────────────────────────────', 'term-line-pre');
+    line(game.title + '  ·  by ' + game.author, 'term-line-ok');
+    line('type quit at any time to exit', 'term-line-pre');
+    line('─────────────────────────────────────────', 'term-line-pre');
+
+    var L = lauxlib.luaL_newstate();
+    lualib.luaL_openlibs(L);
+
+    // override print → terminal output
+    lua.lua_pushcfunction(L, function(Ls) {
+      var n = lua.lua_gettop(Ls), parts = [];
+      for (var i = 1; i <= n; i++) {
+        var t = lua.lua_type(Ls, i);
+        var s;
+        if (t === lua.LUA_TSTRING) {
+          var raw = lua.lua_tostring(Ls, i); s = raw ? toJS(raw) : '';
+        } else if (t === lua.LUA_TNUMBER) {
+          s = String(lua.lua_tonumber(Ls, i));
+        } else if (t === lua.LUA_TBOOLEAN) {
+          s = lua.lua_toboolean(Ls, i) ? 'true' : 'false';
+        } else if (t === lua.LUA_TNIL) {
+          s = 'nil';
+        } else {
+          var tn = lua.lua_typename(Ls, t); s = tn ? toJS(tn) : '?';
+        }
+        parts.push(s);
+      }
+      line(parts.join('\t'), 'term-line-pre');
+      return 0;
+    });
+    lua.lua_setglobal(L, toLua('print'));
+
+    var co = lua.lua_newthread(L);
+
+    var sandbox = [
+      'os.execute=nil; os.exit=nil; os.getenv=nil; os.remove=nil; os.rename=nil; os.tmpname=nil',
+      'io.open=nil; io.lines=nil; io.popen=nil',
+      'require=nil; load=nil; dofile=nil; loadfile=nil; collectgarbage=nil',
+      'io.read=function() return coroutine.yield() end',
+      'io.write=function(...)',
+      '  local s="" for i=1,select("#",...)do s=s..tostring(select(i,...))end',
+      '  print(s)',
+      'end',
+    ].join('\n');
+
+    var status = lauxlib.luaL_loadstring(co, toLua(sandbox + '\n\n' + game.code));
+    if (status !== lua.LUA_OK) {
+      var errStr = lua.lua_tostring(co, -1);
+      line('syntax error: ' + (errStr ? toJS(errStr) : 'unknown'), 'term-line-err');
+      _gameMode = false; return;
+    }
+
+    function exitGame() {
+      _gameMode = false; _gameResume = null;
+      line('─────────────────────────────────────────', 'term-line-pre');
+      line('game over.  type games to see more.', 'term-line-ok');
+    }
+
+    function step(inputStr) {
+      var nargs = 0;
+      if (inputStr !== undefined) { lua.lua_pushstring(co, toLua(String(inputStr))); nargs = 1; }
+      var st = lua.lua_resume(co, null, nargs);
+      if (st === lua.LUA_YIELD) {
+        _gameResume = step;
+      } else {
+        if (st !== lua.LUA_OK) {
+          var e = lua.lua_tostring(co, -1);
+          line('runtime error: ' + (e ? toJS(e) : 'unknown error'), 'term-line-err');
+        }
+        exitGame();
+      }
+    }
+
+    step();
+  }
+
   // ── commands ────────────────────────────────────────────────
   var CMDS = {
     help: function (args) {
@@ -2123,6 +2229,35 @@ function toggleTheme() {
     true:   function ()  { /* exits 0, outputs nothing, as god intended */ },
     false:  function ()  { line('false: exited with status 1', 'term-line-err'); },
     ':':    function ()  { /* the shell builtin : always succeeds */ },
+
+    // ── arcade ──────────────────────────────────────────────────
+    games: function(args) {
+      if (args.length) { tooMany('games'); return; }
+      line('fetching games...', 'term-line-ok');
+      fetch('/api/games').then(function(r) { return r.json(); }).then(function(gs) {
+        if (!gs.length) { line('no games yet. visit /arcade to submit one.', 'term-line-ok'); return; }
+        var W = 22;
+        var rows = gs.map(function(g) {
+          var t = g.title.length > W ? g.title.slice(0, W - 1) + '…' : g.title;
+          while (t.length < W) t += ' ';
+          var a = 'by ' + g.author;
+          if (a.length > 18) a = a.slice(0, 17) + '…';
+          while (a.length < 18) a += ' ';
+          return '  ' + t + '  ' + a + '  →  play ' + g.id;
+        });
+        line(['', 'community arcade'].concat(rows).concat(['', "play <id> to start  ·  /arcade to submit"]).join('\n'), 'term-line-pre');
+      }).catch(function() { line('could not fetch games', 'term-line-err'); });
+    },
+
+    play: function(args) {
+      if (!args[0]) { needArg('play', 'play <game-id>  (see: games)'); return; }
+      var id = args[0];
+      line('fetching ' + id + '...', 'term-line-ok');
+      fetch('/api/games?id=' + encodeURIComponent(id)).then(function(r) { return r.json(); }).then(function(game) {
+        if (game.error) { line('game not found: ' + id + '  (see: games)', 'term-line-err'); return; }
+        loadFengari(function() { runLuaGame(game); });
+      }).catch(function() { line('could not load game', 'term-line-err'); });
+    },
   };
 
   // ── tab completion ──────────────────────────────────────────
@@ -2240,6 +2375,10 @@ function toggleTheme() {
     isOpen = false;
   }
 
+  // expose for arcade page buttons
+  window.termOpen = open;
+  window.termRun  = function(cmd) { open(); setTimeout(function() { run(cmd); }, 80); };
+
   // ── run a command ───────────────────────────────────────────
   function run(raw) {
     var cmd = raw.trim();
@@ -2272,7 +2411,15 @@ function toggleTheme() {
 
   inp.addEventListener('keydown', function (e) {
     if (e.key === 'Enter') {
-      var v = inp.value; inp.value = ''; run(v);
+      var v = inp.value; inp.value = '';
+      if (_gameMode) {
+        line('> ' + v, 'term-line-cmd');
+        if (v.trim() === 'quit' || v.trim() === 'exit' || v.trim() === 'q') {
+          _gameMode = false; _gameResume = null;
+          line('─────────────────────────────────────────', 'term-line-pre');
+          line('game exited.', 'term-line-ok');
+        } else if (_gameResume) { _gameResume(v); }
+      } else { run(v); }
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       if (histIdx < hist.length - 1) inp.value = hist[++histIdx] || '';

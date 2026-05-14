@@ -1,0 +1,4 @@
+---
+title: "arcade"
+layout: "arcade"
+---

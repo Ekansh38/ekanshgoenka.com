@@ -22,6 +22,7 @@
       "dest": "/api/index.js"
     },
     { "src": "/api/guestbook", "dest": "/api/guestbook.js" },
+    { "src": "/api/games", "dest": "/api/games.js" },
     { "handle": "filesystem" }
   ]
 }

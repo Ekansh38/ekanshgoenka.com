@@ -1,0 +1,133 @@
+{{ define "main" }}
+<h1 style="margin-bottom:6px;">arcade</h1>
+<p style="color:var(--muted);margin-bottom:6px;">lua games made by visitors. open the terminal (<kbd>[:]</kbd>) and type <code>games</code> to play, or click a card.</p>
+<p style="color:var(--muted);margin-bottom:32px;font-size:0.88rem;">
+  you can use: <code>print()</code> · <code>io.read()</code> · <code>math</code> · <code>string</code> · <code>table</code> · <code>if/else</code> · <code>while</code> · <code>for</code> · <code>functions</code>
+</p>
+
+<div id="arc-games">
+  <p style="color:var(--muted)">loading games...</p>
+</div>
+
+<hr style="margin:32px 0;">
+
+<details id="arc-details">
+  <summary style="cursor:pointer;color:var(--accent);list-style:none;margin-bottom:20px;">+ submit a game</summary>
+
+  <div class="arc-form">
+    <div class="arc-row">
+      <input id="arc-title"  type="text" placeholder="game title"  maxlength="50" autocomplete="off" spellcheck="false">
+      <input id="arc-author" type="text" placeholder="your name"   maxlength="50" autocomplete="off" spellcheck="false">
+    </div>
+    <textarea id="arc-code" placeholder="-- paste your lua code here
+-- use print() for output, io.read() for input
+
+print('hello! what is your name?')
+local name = io.read()
+print('nice to meet you, ' .. name .. '!')" rows="14" spellcheck="false" autocomplete="off"></textarea>
+    <input id="arc-hp" type="text" tabindex="-1" autocomplete="off" style="display:none">
+    <div class="arc-submit-row">
+      <button id="arc-submit">submit game →</button>
+      <span id="arc-status"></span>
+    </div>
+  </div>
+</details>
+
+<script>
+(function() {
+  var API       = '/api/games';
+  var CACHE_TTL = 60000;
+  var _games    = null;
+  var _cacheAt  = 0;
+
+  function fmt(iso) {
+    var d = new Date(iso);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function playGame(id) {
+    if (window.termRun) {
+      window.termRun('play ' + id);
+    } else {
+      var msg = document.getElementById('arc-term-hint');
+      if (msg) { msg.style.display = 'block'; msg.textContent = 'open the terminal with [:], then type: play ' + id; }
+    }
+  }
+
+  function render(games) {
+    var el = document.getElementById('arc-games');
+    if (!games.length) {
+      el.innerHTML = '<p style="color:var(--muted)">no games yet. be the first to submit one.</p>';
+      return;
+    }
+    el.innerHTML = '<div id="arc-term-hint" style="display:none;color:var(--muted);margin-bottom:16px;font-size:0.88rem;"></div>'
+      + games.map(function(g) {
+      return '<div class="arc-card">'
+        + '<div class="arc-card-meta">'
+        + '<span class="arc-card-title">' + esc(g.title) + '</span>'
+        + '<span class="arc-card-author">by ' + esc(g.author) + '</span>'
+        + '<span class="arc-card-date">' + fmt(g.date) + '</span>'
+        + '</div>'
+        + '<button class="arc-play-btn" data-id="' + esc(g.id) + '">play in terminal →</button>'
+        + '</div>';
+    }).join('');
+
+    el.querySelectorAll('.arc-play-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() { playGame(btn.getAttribute('data-id')); });
+    });
+  }
+
+  function load(force) {
+    if (!force && _games && Date.now() - _cacheAt < CACHE_TTL) { render(_games); return; }
+    fetch(API).then(function(r) { return r.json(); }).then(function(data) {
+      _games = data; _cacheAt = Date.now(); render(data);
+    }).catch(function() {
+      document.getElementById('arc-games').innerHTML = '<p style="color:var(--muted)">couldn\'t load games.</p>';
+    });
+  }
+
+  load();
+
+  // ── submission form ────────────────────────────────────────────────────────
+  document.getElementById('arc-submit').addEventListener('click', function() {
+    var title  = document.getElementById('arc-title').value.trim();
+    var author = document.getElementById('arc-author').value.trim();
+    var code   = document.getElementById('arc-code').value.trim();
+    var hp     = document.getElementById('arc-hp').value;
+    var status = document.getElementById('arc-status');
+
+    if (!title || !author || !code) { status.textContent = 'title, name, and code are all required.'; status.style.color = 'var(--muted)'; return; }
+
+    var btn = document.getElementById('arc-submit');
+    btn.disabled = true; btn.textContent = 'submitting...'; status.textContent = '';
+
+    fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: title, author: author, code: code, hp: hp })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.ok) {
+        document.getElementById('arc-title').value  = '';
+        document.getElementById('arc-author').value = '';
+        document.getElementById('arc-code').value   = '';
+        status.textContent = 'submitted! id: ' + data.id + '  →  type: play ' + data.id;
+        status.style.color = 'var(--accent)';
+        document.getElementById('arc-details').open = false;
+        _games = null; load(true); // bust cache, reload list
+      } else {
+        status.textContent = data.error || 'something went wrong.';
+        status.style.color = 'var(--muted)';
+      }
+    })
+    .catch(function() { status.textContent = 'network error. try again.'; status.style.color = 'var(--muted)'; })
+    .finally(function() { btn.disabled = false; btn.textContent = 'submit game →'; });
+  });
+})();
+</script>
+{{ end }}
