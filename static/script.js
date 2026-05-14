@@ -151,7 +151,7 @@ function toggleTheme() {
 
   // click on background → blast boids outward with glow + sound
   function _scatterBoids(cx, cy) {
-    _blast = 42;
+    _blast = 28;
     for (var i = 0; i < boids.length; i++) {
       var b = boids[i];
       var dx = b.x - cx, dy = b.y - cy;
@@ -168,10 +168,10 @@ function toggleTheme() {
     var hex = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#7aa2f7';
     var r = parseInt(hex.slice(1,3),16)||122, g = parseInt(hex.slice(3,5),16)||162, bv = parseInt(hex.slice(5,7),16)||247;
     var el = document.createElement('div');
-    el.style.cssText = 'position:fixed;left:'+cx+'px;top:'+cy+'px;width:0;height:0;border-radius:50%;pointer-events:none;z-index:999;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba('+r+','+g+','+bv+',0.55) 0%,transparent 70%);opacity:1;transition:width 0.55s ease-out,height 0.55s ease-out,opacity 0.55s ease-out;';
+    el.style.cssText = 'position:fixed;left:'+cx+'px;top:'+cy+'px;width:0;height:0;border-radius:50%;pointer-events:none;z-index:999;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba('+r+','+g+','+bv+',0.28) 0%,transparent 70%);opacity:1;transition:width 0.5s ease-out,height 0.5s ease-out,opacity 0.5s ease-out;';
     document.body.appendChild(el);
-    requestAnimationFrame(function() { el.style.width='900px'; el.style.height='900px'; el.style.opacity='0'; });
-    setTimeout(function() { el.parentNode && el.parentNode.removeChild(el); }, 650);
+    requestAnimationFrame(function() { el.style.width='450px'; el.style.height='450px'; el.style.opacity='0'; });
+    setTimeout(function() { el.parentNode && el.parentNode.removeChild(el); }, 600);
   }
 
   function _blastSound() {
@@ -186,14 +186,14 @@ function toggleTheme() {
       for (var i = 0; i < bufLen; i++) data[i] = (Math.random()*2-1) * Math.pow(1 - i/bufLen, 2);
       var noise = actx.createBufferSource(); noise.buffer = buf;
       var filt = actx.createBiquadFilter(); filt.type = 'bandpass'; filt.frequency.value = 700; filt.Q.value = 0.7;
-      var ng = actx.createGain(); ng.gain.setValueAtTime(0.1, actx.currentTime); ng.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.22);
+      var ng = actx.createGain(); ng.gain.setValueAtTime(0.05, actx.currentTime); ng.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.22);
       noise.connect(filt); filt.connect(ng); ng.connect(actx.destination); noise.start();
       // low thud
       var osc = actx.createOscillator(); var og = actx.createGain();
       osc.connect(og); og.connect(actx.destination);
       osc.frequency.setValueAtTime(160, actx.currentTime);
       osc.frequency.exponentialRampToValueAtTime(28, actx.currentTime + 0.28);
-      og.gain.setValueAtTime(0.16, actx.currentTime);
+      og.gain.setValueAtTime(0.08, actx.currentTime);
       og.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.28);
       osc.start(); osc.stop(actx.currentTime + 0.28);
       setTimeout(function() { try { actx.close(); } catch(_) {} }, 450);
@@ -201,9 +201,11 @@ function toggleTheme() {
   }
 
   document.addEventListener('click', function(e) {
+    // only fire on true empty background (body or html element)
     var t = e.target;
-    if (t.tagName === 'A' || t.tagName === 'BUTTON' || t.tagName === 'INPUT') return;
-    if (t.closest && (t.closest('a') || t.closest('button') || t.closest('#theme-picker') || t.closest('#preset-picker') || t.closest('#term-box'))) return;
+    if (t !== document.body && t !== document.documentElement) return;
+    // don't fire if user just selected text
+    if (window.getSelection && window.getSelection().toString().length > 0) return;
     _scatterBoids(e.clientX, e.clientY);
   });
 

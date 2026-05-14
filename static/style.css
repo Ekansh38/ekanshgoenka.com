@@ -280,9 +280,10 @@ h2 { color: var(--muted); margin: 32px 0 10px; font-size: 0.88rem; }
 .ascii-sep a:hover { color: var(--accent); }
 
 body.home ul { list-style: none; padding-left: 0; }
-body.home li::before { content: '│ '; color: var(--muted); }
+body.home li::before { content: '| '; color: var(--muted); display: inline; }
 
 .ascii-close {
+  display: block;
   color: var(--muted);
   font-size: 0.88rem;
   white-space: nowrap;
@@ -290,7 +291,8 @@ body.home li::before { content: '│ '; color: var(--muted); }
   margin-bottom: 4px;
 }
 .ascii-close::before {
-  content: '+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────';
+  display: block;
+  content: '+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+';
 }
 
 .now-link { color: var(--muted); }
