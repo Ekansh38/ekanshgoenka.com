@@ -1,9 +1,9 @@
 // ── Vercel KV via Upstash REST API ────────────────────────────────────────────
 async function kv(commands) {
-  const res = await fetch(`${process.env.KV_REST_API_URL}/pipeline`, {
+  const res = await fetch(`${process.env.STORAGE_KV_REST_API_URL}/pipeline`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${process.env.KV_REST_API_TOKEN}`,
+      'Authorization': `Bearer ${process.env.STORAGE_KV_REST_API_TOKEN}`,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify(commands)
