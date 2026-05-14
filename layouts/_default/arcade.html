@@ -1,8 +1,8 @@
 {{ define "main" }}
 <h1 style="margin-bottom:6px;">arcade</h1>
-<p style="color:var(--muted);margin-bottom:6px;">lua games made by visitors. open the terminal (<kbd>[:]</kbd>) and type <code>games</code> to play, or click a card.</p>
+<p style="color:var(--muted);margin-bottom:6px;">lua games made by visitors. click a card to play, or open the terminal (<kbd>[:]</kbd>) and type <code>games</code>.</p>
 <p style="color:var(--muted);margin-bottom:32px;font-size:0.88rem;">
-  you can use: <code>print()</code> · <code>io.read()</code> · <code>math</code> · <code>string</code> · <code>table</code> · <code>if/else</code> · <code>while</code> · <code>for</code> · <code>functions</code>
+  available: <code>print()</code> · <code>io.read("prompt")</code> · <code>math</code> · <code>string</code> · <code>table</code> · <code>if/else</code> · <code>while</code> · <code>for</code> · functions
 </p>
 
 <div id="arc-games">
@@ -16,19 +16,23 @@
 
   <div class="arc-form">
     <div class="arc-row">
-      <input id="arc-title"  type="text" placeholder="game title"  maxlength="50" autocomplete="off" spellcheck="false">
-      <input id="arc-author" type="text" placeholder="your name"   maxlength="50" autocomplete="off" spellcheck="false">
+      <input id="arc-title"  type="text" placeholder="game title (becomes the id, must be unique)" maxlength="50" autocomplete="off" spellcheck="false">
+      <input id="arc-author" type="text" placeholder="your name" maxlength="50" autocomplete="off" spellcheck="false">
     </div>
-    <textarea id="arc-code" placeholder="-- paste your lua code here
--- use print() for output, io.read() for input
+    <textarea id="arc-code" placeholder="-- lua code here. use print() for output, io.read() for input.
 
-print('hello! what is your name?')
+print('what is your name?')
 local name = io.read()
 print('nice to meet you, ' .. name .. '!')" rows="14" spellcheck="false" autocomplete="off"></textarea>
     <input id="arc-hp" type="text" tabindex="-1" autocomplete="off" style="display:none">
     <div class="arc-submit-row">
       <button id="arc-submit">submit game →</button>
       <span id="arc-status"></span>
+    </div>
+    <div id="arc-editcode-box" style="display:none;margin-top:16px;padding:12px;border:1px solid var(--accent);font-size:0.88rem;">
+      <div style="color:var(--accent);font-weight:700;margin-bottom:4px;">your edit code — save this now, it won't be shown again</div>
+      <code id="arc-editcode" style="font-size:1rem;letter-spacing:0.05em;"></code>
+      <div style="color:var(--muted);margin-top:6px;font-size:0.82rem;">use this to delete or update your game. to delete: terminal → <code>delete &lt;id&gt; &lt;code&gt;</code></div>
     </div>
   </div>
 </details>
@@ -37,14 +41,13 @@ print('nice to meet you, ' .. name .. '!')" rows="14" spellcheck="false" autocom
 (function() {
   var API       = '/api/games';
   var CACHE_TTL = 60000;
-  var _games    = null;
-  var _cacheAt  = 0;
+  var _games    = null, _cacheAt = 0;
+  var _codeCache = {}; // id → code string
 
   function fmt(iso) {
     var d = new Date(iso);
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   }
-
   function esc(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
@@ -53,31 +56,126 @@ print('nice to meet you, ' .. name .. '!')" rows="14" spellcheck="false" autocom
     if (window.termRun) {
       window.termRun('play ' + id);
     } else {
-      var msg = document.getElementById('arc-term-hint');
-      if (msg) { msg.style.display = 'block'; msg.textContent = 'open the terminal with [:], then type: play ' + id; }
+      var hint = document.getElementById('arc-hint');
+      if (hint) { hint.style.display = 'block'; hint.textContent = 'open terminal with [:], then type: play ' + id; }
     }
   }
 
   function render(games) {
     var el = document.getElementById('arc-games');
     if (!games.length) {
-      el.innerHTML = '<p style="color:var(--muted)">no games yet. be the first to submit one.</p>';
+      el.innerHTML = '<p style="color:var(--muted)">no games yet — be the first to submit one below.</p>';
       return;
     }
-    el.innerHTML = '<div id="arc-term-hint" style="display:none;color:var(--muted);margin-bottom:16px;font-size:0.88rem;"></div>'
+    el.innerHTML = '<p id="arc-hint" style="display:none;color:var(--muted);margin-bottom:12px;font-size:0.88rem;"></p>'
       + games.map(function(g) {
-      return '<div class="arc-card">'
-        + '<div class="arc-card-meta">'
-        + '<span class="arc-card-title">' + esc(g.title) + '</span>'
-        + '<span class="arc-card-author">by ' + esc(g.author) + '</span>'
-        + '<span class="arc-card-date">' + fmt(g.date) + '</span>'
-        + '</div>'
-        + '<button class="arc-play-btn" data-id="' + esc(g.id) + '">play in terminal →</button>'
-        + '</div>';
-    }).join('');
+        return '<div class="arc-card" id="card-' + esc(g.id) + '">'
+          + '<div class="arc-card-top">'
+          + '<div class="arc-card-meta">'
+          + '<span class="arc-card-title">' + esc(g.title) + '</span>'
+          + '<span class="arc-card-author">by ' + esc(g.author) + '</span>'
+          + '<span class="arc-card-date">' + fmt(g.date) + '</span>'
+          + '</div>'
+          + '</div>'
+          + '<div class="arc-card-actions">'
+          + '<button class="arc-play-btn"   data-id="' + esc(g.id) + '">play →</button>'
+          + '<button class="arc-src-btn"    data-id="' + esc(g.id) + '">source</button>'
+          + '<button class="arc-remix-btn"  data-id="' + esc(g.id) + '" data-title="' + esc(g.title) + '">remix</button>'
+          + '<button class="arc-del-btn"    data-id="' + esc(g.id) + '">delete</button>'
+          + '</div>'
+          + '<pre class="arc-source-block" id="src-' + esc(g.id) + '" style="display:none"></pre>'
+          + '<div class="arc-del-form" id="del-' + esc(g.id) + '" style="display:none">'
+          + '<input type="text" class="arc-code-inp" placeholder="edit code  (xxxxx-xxxxx)">'
+          + '<button class="arc-del-confirm" data-id="' + esc(g.id) + '">confirm delete</button>'
+          + '<span class="arc-del-status"></span>'
+          + '</div>'
+          + '</div>';
+      }).join('');
 
+    // play
     el.querySelectorAll('.arc-play-btn').forEach(function(btn) {
       btn.addEventListener('click', function() { playGame(btn.getAttribute('data-id')); });
+    });
+
+    // source toggle
+    el.querySelectorAll('.arc-src-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var gid   = btn.getAttribute('data-id');
+        var block = document.getElementById('src-' + gid);
+        if (block.style.display !== 'none') { block.style.display = 'none'; btn.textContent = 'source'; return; }
+        if (_codeCache[gid]) { block.textContent = _codeCache[gid]; block.style.display = 'block'; btn.textContent = 'source ▲'; return; }
+        btn.textContent = 'loading...';
+        fetch(API + '?id=' + encodeURIComponent(gid))
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            _codeCache[gid] = data.code || '(no code)';
+            block.textContent = _codeCache[gid];
+            block.style.display = 'block';
+            btn.textContent = 'source ▲';
+          }).catch(function() { btn.textContent = 'source'; });
+      });
+    });
+
+    // remix
+    el.querySelectorAll('.arc-remix-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var gid   = btn.getAttribute('data-id');
+        var gtitle = btn.getAttribute('data-title');
+        var details = document.getElementById('arc-details');
+        details.open = true;
+        document.getElementById('arc-title').value = 'remix-' + gid.slice(0, 20);
+        details.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (_codeCache[gid]) {
+          document.getElementById('arc-code').value = _codeCache[gid];
+        } else {
+          fetch(API + '?id=' + encodeURIComponent(gid))
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+              _codeCache[gid] = data.code || '';
+              document.getElementById('arc-code').value = _codeCache[gid];
+            });
+        }
+      });
+    });
+
+    // delete toggle
+    el.querySelectorAll('.arc-del-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var gid = btn.getAttribute('data-id');
+        var form = document.getElementById('del-' + gid);
+        form.style.display = form.style.display === 'none' ? 'flex' : 'none';
+        btn.textContent = form.style.display === 'none' ? 'delete' : 'cancel';
+      });
+    });
+
+    // delete confirm
+    el.querySelectorAll('.arc-del-confirm').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var gid    = btn.getAttribute('data-id');
+        var form   = document.getElementById('del-' + gid);
+        var inp    = form.querySelector('.arc-code-inp');
+        var status = form.querySelector('.arc-del-status');
+        var code   = inp.value.trim();
+        if (!code) { status.textContent = 'enter your edit code'; return; }
+        btn.disabled = true; btn.textContent = 'deleting...'; status.textContent = '';
+        fetch(API + '?id=' + encodeURIComponent(gid), {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: code })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.ok) {
+            var card = document.getElementById('card-' + gid);
+            if (card) card.remove();
+            _games = (_games || []).filter(function(g) { return g.id !== gid; });
+          } else {
+            status.textContent = data.error || 'error';
+            btn.disabled = false; btn.textContent = 'confirm delete';
+          }
+        })
+        .catch(function() { status.textContent = 'network error'; btn.disabled = false; btn.textContent = 'confirm delete'; });
+      });
     });
   }
 
@@ -92,17 +190,17 @@ print('nice to meet you, ' .. name .. '!')" rows="14" spellcheck="false" autocom
 
   load();
 
-  // ── submission form ────────────────────────────────────────────────────────
+  // ── submit ─────────────────────────────────────────────────────────────────
   document.getElementById('arc-submit').addEventListener('click', function() {
     var title  = document.getElementById('arc-title').value.trim();
     var author = document.getElementById('arc-author').value.trim();
     var code   = document.getElementById('arc-code').value.trim();
     var hp     = document.getElementById('arc-hp').value;
     var status = document.getElementById('arc-status');
+    var btn    = document.getElementById('arc-submit');
 
     if (!title || !author || !code) { status.textContent = 'title, name, and code are all required.'; status.style.color = 'var(--muted)'; return; }
 
-    var btn = document.getElementById('arc-submit');
     btn.disabled = true; btn.textContent = 'submitting...'; status.textContent = '';
 
     fetch(API, {
@@ -116,10 +214,14 @@ print('nice to meet you, ' .. name .. '!')" rows="14" spellcheck="false" autocom
         document.getElementById('arc-title').value  = '';
         document.getElementById('arc-author').value = '';
         document.getElementById('arc-code').value   = '';
-        status.textContent = 'submitted! id: ' + data.id + '  →  type: play ' + data.id;
+        status.textContent = 'submitted!  play it: play ' + data.id;
         status.style.color = 'var(--accent)';
-        document.getElementById('arc-details').open = false;
-        _games = null; load(true); // bust cache, reload list
+        // show edit code
+        var box  = document.getElementById('arc-editcode-box');
+        var code = document.getElementById('arc-editcode');
+        code.textContent = data.editCode;
+        box.style.display = 'block';
+        _games = null; load(true);
       } else {
         status.textContent = data.error || 'something went wrong.';
         status.style.color = 'var(--muted)';

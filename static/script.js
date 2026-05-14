@@ -1618,6 +1618,7 @@ function toggleTheme() {
     var toLua = fx.to_luastring, toJS = fx.to_jsstring;
 
     _gameMode = true;
+    output.innerHTML = ''; // clear terminal before game starts
     line('─────────────────────────────────────────', 'term-line-pre');
     line(game.title + '  ·  by ' + game.author, 'term-line-ok');
     line('type quit at any time to exit', 'term-line-pre');
@@ -1655,7 +1656,7 @@ function toggleTheme() {
     var sandbox = [
       'os=nil; require=nil; load=nil; dofile=nil; loadfile=nil; collectgarbage=nil',
       'io={',
-      '  read=function() return coroutine.yield() end,',
+      '  read=function(prompt) if type(prompt)=="string" then print(prompt) end return coroutine.yield() end,',
       '  write=function(...)',
       '    local s="" for i=1,select("#",...)do s=s..tostring(select(i,...))end',
       '    print(s)',
@@ -2247,6 +2248,29 @@ function toggleTheme() {
         });
         line(['', 'community arcade'].concat(rows).concat(['', "play <id> to start  ·  /arcade to submit"]).join('\n'), 'term-line-pre');
       }).catch(function() { line('could not fetch games', 'term-line-err'); });
+    },
+
+    source: function(args) {
+      if (!args[0]) { needArg('source', 'source <game-id>'); return; }
+      var id = args[0];
+      fetch('/api/games?id=' + encodeURIComponent(id)).then(function(r) { return r.json(); }).then(function(g) {
+        if (g.error) { line('game not found: ' + id, 'term-line-err'); return; }
+        line('── ' + g.title + ' by ' + g.author + ' ──\n\n' + g.code, 'term-line-pre');
+      }).catch(function() { line('could not fetch source', 'term-line-err'); });
+    },
+
+    delete: function(args) {
+      if (!args[0]) { needArg('delete', 'delete <game-id> <edit-code>'); return; }
+      if (!args[1]) { needArg('delete', 'delete <game-id> <edit-code>'); return; }
+      var id = args[0], code = args[1];
+      fetch('/api/games?id=' + encodeURIComponent(id), {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: code })
+      }).then(function(r) { return r.json(); }).then(function(data) {
+        if (data.ok) line('deleted: ' + id, 'term-line-ok');
+        else line(data.error || 'delete failed', 'term-line-err');
+      }).catch(function() { line('network error', 'term-line-err'); });
     },
 
     play: function(args) {

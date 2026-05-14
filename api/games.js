@@ -1,3 +1,5 @@
+const crypto = require('crypto');
+
 // ── Vercel KV via Upstash REST API ────────────────────────────────────────────
 async function kv(commands) {
   const url   = process.env.KV_REST_API_URL;
@@ -15,16 +17,37 @@ async function kv(commands) {
 function slugify(str) {
   return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 28) || 'game';
 }
+function hashCode(s) {
+  return crypto.createHash('sha256').update(s).digest('hex');
+}
+function genCode() {
+  const h = crypto.randomBytes(5).toString('hex'); // 10 hex chars
+  return h.slice(0, 5) + '-' + h.slice(5);         // e.g. a3f9b-2c81d
+}
+function checkAuth(submitted, game) {
+  const master = process.env.ARCADE_MASTER_CODE;
+  if (master && submitted === master) return true;
+  return game.codeHash && hashCode(submitted) === game.codeHash;
+}
 
-const MAX_TITLE  = 50;
-const MAX_AUTHOR = 50;
-const MAX_CODE   = 8000;
-const RATE_TTL   = 3600; // 1 hour
-const MAX_KEEP   = 50;
+const MAX_TITLE = 50, MAX_AUTHOR = 50, MAX_CODE = 8000;
+const RATE_TTL = 3600, MAX_KEEP = 50;
+
+async function fetchAll() {
+  const result = await kv([['lrange', 'arcade', '0', String(MAX_KEEP - 1)]]);
+  return (result[0]?.result || []).map(s => { try { return JSON.parse(s); } catch { return null; } }).filter(Boolean);
+}
+
+async function rebuildList(all) {
+  const serialized = all.map(g => JSON.stringify(g));
+  const commands = [['del', 'arcade']];
+  if (serialized.length) commands.push(['rpush', 'arcade', ...serialized]);
+  await kv(commands);
+}
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, PATCH, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
@@ -32,29 +55,25 @@ module.exports = async (req, res) => {
   const id = reqUrl.searchParams.get('id');
 
   try {
-    // ── GET list (no code) ────────────────────────────────────────────────────
+    // ── GET list ──────────────────────────────────────────────────────────────
     if (req.method === 'GET' && !id) {
-      const result = await kv([['lrange', 'arcade', '0', String(MAX_KEEP - 1)]]);
-      const games = (result[0]?.result || []).map(s => {
-        try { const g = JSON.parse(s); return { id: g.id, title: g.title, author: g.author, date: g.date }; }
-        catch { return null; }
-      }).filter(Boolean);
-      return res.status(200).json(games);
+      const all = await fetchAll();
+      return res.status(200).json(all.map(g => ({ id: g.id, title: g.title, author: g.author, date: g.date })));
     }
 
-    // ── GET single game by id (includes code) ────────────────────────────────
+    // ── GET single game by id ─────────────────────────────────────────────────
     if (req.method === 'GET' && id) {
-      const result = await kv([['lrange', 'arcade', '0', String(MAX_KEEP - 1)]]);
-      const all = (result[0]?.result || []).map(s => { try { return JSON.parse(s); } catch { return null; } }).filter(Boolean);
+      const all = await fetchAll();
       const game = all.find(g => g.id === id);
       if (!game) return res.status(404).json({ error: 'game not found' });
-      return res.status(200).json(game);
+      const { codeHash, ...safe } = game; // don't expose hash
+      return res.status(200).json(safe);
     }
 
     // ── POST: submit a game ───────────────────────────────────────────────────
     if (req.method === 'POST') {
       const { title, author, code, hp } = req.body || {};
-      if (hp) return res.status(200).json({ ok: true }); // honeypot
+      if (hp) return res.status(200).json({ ok: true });
 
       const t = (title  || '').trim().slice(0, MAX_TITLE);
       const a = (author || '').trim().slice(0, MAX_AUTHOR);
@@ -67,13 +86,12 @@ module.exports = async (req, res) => {
       if (rateCheck?.result) return res.status(429).json({ error: 'one submission per hour please' });
 
       const newId = slugify(t);
+      const all = await fetchAll();
+      if (all.some(g => g.id === newId))
+        return res.status(409).json({ error: `a game called "${newId}" already exists — pick a different title` });
 
-      // enforce unique ID (unique title slug)
-      const existing = await kv([['lrange', 'arcade', '0', String(MAX_KEEP - 1)]]);
-      const allIds = (existing[0]?.result || []).map(s => { try { return JSON.parse(s).id; } catch { return null; } }).filter(Boolean);
-      if (allIds.includes(newId)) return res.status(409).json({ error: 'a game called "' + newId + '" already exists — pick a different title' });
-
-      const entry = { id: newId, title: t, author: a, code: c, date: new Date().toISOString() };
+      const editCode = genCode();
+      const entry = { id: newId, title: t, author: a, code: c, date: new Date().toISOString(), codeHash: hashCode(editCode) };
 
       await kv([
         ['lpush', 'arcade', JSON.stringify(entry)],
@@ -81,7 +99,39 @@ module.exports = async (req, res) => {
         ['set', rateKey, '1', 'ex', String(RATE_TTL)]
       ]);
 
-      return res.status(200).json({ ok: true, id: newId });
+      return res.status(200).json({ ok: true, id: newId, editCode });
+    }
+
+    // ── DELETE: remove a game ─────────────────────────────────────────────────
+    if (req.method === 'DELETE') {
+      if (!id) return res.status(400).json({ error: 'id required' });
+      const { code } = req.body || {};
+      if (!code) return res.status(400).json({ error: 'edit code required' });
+
+      const all = await fetchAll();
+      const game = all.find(g => g.id === id);
+      if (!game) return res.status(404).json({ error: 'game not found' });
+      if (!checkAuth(code, game)) return res.status(403).json({ error: 'invalid edit code' });
+
+      await rebuildList(all.filter(g => g.id !== id));
+      return res.status(200).json({ ok: true });
+    }
+
+    // ── PATCH: update a game's code ───────────────────────────────────────────
+    if (req.method === 'PATCH') {
+      if (!id) return res.status(400).json({ error: 'id required' });
+      const { code, newCode } = req.body || {};
+      if (!code) return res.status(400).json({ error: 'edit code required' });
+      if (!newCode) return res.status(400).json({ error: 'newCode required' });
+
+      const all = await fetchAll();
+      const game = all.find(g => g.id === id);
+      if (!game) return res.status(404).json({ error: 'game not found' });
+      if (!checkAuth(code, game)) return res.status(403).json({ error: 'invalid edit code' });
+
+      const updated = all.map(g => g.id === id ? { ...g, code: newCode.trim().slice(0, MAX_CODE) } : g);
+      await rebuildList(updated);
+      return res.status(200).json({ ok: true });
     }
 
     res.status(405).json({ error: 'method not allowed' });
