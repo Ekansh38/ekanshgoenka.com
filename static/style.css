@@ -552,6 +552,13 @@ body.page #bg-canvas { opacity: 0.25; }
 #term-output::-webkit-scrollbar { width: 3px; }
 #term-output::-webkit-scrollbar-thumb { background: var(--border); }
 
+/* global styled scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+* { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+
 #term-input-row {
   display: flex;
   align-items: center;
