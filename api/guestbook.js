@@ -1,7 +1,7 @@
 // ── Vercel KV via Upstash REST API ────────────────────────────────────────────
 async function kv(commands) {
-  const url   = process.env.STORAGE_KV_REST_API_URL;
-  const token = process.env.STORAGE_KV_REST_API_TOKEN;
+  const url   = process.env.KV_REST_API_URL;
+  const token = process.env.KV_REST_API_TOKEN;
   if (!url || !token) throw new Error('KV env vars missing');
 
   const res = await fetch(`${url}/pipeline`, {
