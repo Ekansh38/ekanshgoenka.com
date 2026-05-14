@@ -287,7 +287,7 @@ header { margin-bottom: 28px; }
 .nav a:hover::after { width: 100%; }
 .tagline, .yr, footer { color: var(--muted); }
 .tagline { font-style: italic; }
-.li-name, .project-title { font-weight: 700; }
+.li-name, .project-title { font-weight: 700; font-size: 1.15rem; }
 .li-name-plain { font-weight: 700; color: var(--fg); }
 .li-meta { color: var(--muted); margin-top: 3px; }
 body.projects li, body.home li { padding: 10px 0; }
@@ -325,7 +325,7 @@ body.projects li, body.home li { padding: 10px 0; }
 .back { display: inline-block; color: var(--muted); margin-bottom: 28px; }
 .back:hover { color: var(--accent); text-decoration: none; }
 
-.project-title { font-size: 1.1rem; margin-bottom: 6px; }
+.project-title { font-size: 1.4rem; margin-bottom: 6px; }
 
 /* ── ARTICLE PROSE ─────────────────────────────────────────── */
 body.page p  { line-height: 1.85; margin-bottom: 1em; }
