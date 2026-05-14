@@ -21,7 +21,10 @@
 
 <script>
 (function() {
-  var API = '/api/guestbook';
+  var API      = '/api/guestbook';
+  var CACHE_TTL = 60000; // 60 seconds
+  var _entries  = null;
+  var _cacheAt  = 0;
 
   function fmt(iso) {
     var d = new Date(iso);
@@ -55,9 +58,21 @@
     el.style.color = color || 'var(--muted)';
   }
 
-  fetch(API).then(function(r){ return r.json(); }).then(render).catch(function() {
-    document.getElementById('gb-entries').innerHTML = '<p style="color:var(--muted)">couldn\'t load entries.</p>';
-  });
+  function loadEntries(force) {
+    if (!force && _entries && Date.now() - _cacheAt < CACHE_TTL) {
+      render(_entries);
+      return;
+    }
+    fetch(API).then(function(r){ return r.json(); }).then(function(data) {
+      _entries = data;
+      _cacheAt = Date.now();
+      render(data);
+    }).catch(function() {
+      document.getElementById('gb-entries').innerHTML = '<p style="color:var(--muted)">couldn\'t load entries.</p>';
+    });
+  }
+
+  loadEntries();
 
   document.getElementById('gb-submit').addEventListener('click', function() {
     var name    = document.getElementById('gb-name').value.trim();
@@ -82,7 +97,11 @@
         document.getElementById('gb-name').value = '';
         document.getElementById('gb-msg').value = '';
         setStatus('note left. thanks.', 'var(--accent)');
-        fetch(API).then(function(r){ return r.json(); }).then(render);
+        // optimistically prepend new entry, update cache
+        var newEntry = { name: name, message: message, date: new Date().toISOString() };
+        _entries = [newEntry].concat(_entries || []);
+        _cacheAt = Date.now();
+        render(_entries);
       } else {
         setStatus(data.error || 'something went wrong.');
       }
