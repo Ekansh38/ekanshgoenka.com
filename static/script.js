@@ -156,7 +156,7 @@ function toggleTheme() {
       var s = MIN_SPEED + Math.random() * (MAX_SPEED - MIN_SPEED);
       boids.push({ x: Math.random()*W, y: Math.random()*H,
                    vx: Math.cos(a)*s,  vy: Math.sin(a)*s,
-                   op: 0.07 + Math.random() * 0.14 });  // per-boid opacity 0.07–0.21
+                   op: 0.10 + Math.random() * 0.18 });  // per-boid opacity 0.10–0.28
     }
   }
 

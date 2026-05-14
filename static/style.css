@@ -289,9 +289,8 @@ header { margin-bottom: 28px; }
 .tagline { font-style: italic; }
 .li-name, .project-title { font-weight: 700; }
 .li-name-plain { font-weight: 700; color: var(--fg); }
-.li-meta { color: var(--muted); font-size: 0.85rem; margin-top: 3px; }
-body.projects li, body.home li { padding: 10px 0; transition: padding-left 0.15s; }
-body.home li:hover { padding-left: 6px; border-left: 2px solid var(--accent); }
+.li-meta { color: var(--muted); margin-top: 3px; }
+body.projects li, body.home li { padding: 10px 0; }
 .bio { margin-bottom: 12px; }
 .toggle { background: none; border: none; padding: 0; font: inherit; cursor: pointer; color: var(--muted); }
 .toggle:hover { color: var(--accent); }
@@ -323,7 +322,7 @@ body.home li:hover { padding-left: 6px; border-left: 2px solid var(--accent); }
 }
 .contact-email:hover .email-expand { text-decoration: none; }
 
-.back { display: inline-block; color: var(--muted); margin-bottom: 28px; font-size: 0.88rem; }
+.back { display: inline-block; color: var(--muted); margin-bottom: 28px; }
 .back:hover { color: var(--accent); text-decoration: none; }
 
 .project-title { font-size: 1.1rem; margin-bottom: 6px; }
@@ -333,10 +332,10 @@ body.page p  { line-height: 1.85; margin-bottom: 1em; }
 body.page h1 { font-size: 1.4rem; color: var(--fg); margin: 0 0 8px; }
 body.page h2 { font-size: 1rem; color: var(--fg); font-weight: 700; margin: 36px 0 10px; }
 body.page h3 { font-size: 0.9rem; color: var(--fg); font-weight: 700; margin: 28px 0 8px; }
-.project-meta  { color: var(--muted); font-size: 0.88rem; margin-bottom: 20px; }
+.project-meta  { color: var(--muted); margin-bottom: 20px; }
 
 .links { display: flex; gap: 16px; margin-top: 24px; flex-wrap: wrap; }
-.links a { color: var(--accent); font-size: 0.88rem; }
+.links a { color: var(--accent); }
 
 #copy-toast {
   position: fixed;
@@ -549,7 +548,7 @@ body.page #bg-canvas { opacity: 0.25; }
     display: block;
     position: fixed;
     bottom: 22px;
-    right: 122px;
+    right: 175px;
     z-index: 200;
     font-size: 0.72rem;
     font-family: 'JetBrains Mono', monospace;
