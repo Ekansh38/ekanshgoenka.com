@@ -141,19 +141,17 @@ function toggleTheme() {
   var BOID_GLOW    = 0;
 
   var boids = [];
-  var _blast = 0;      // decays each frame; multiplies position step for scatter effect
-  var _glowPulse = 0;  // decays each frame; drives BOID_GLOW during click scatter
+  var _blast = 0;  // decays each frame; multiplies position step for scatter effect
 
   var mouseX = -9999, mouseY = -9999;
-  var MOUSE_R    = 280;   // px radius of mouse influence
-  var MOUSE_PULL = 0.05;  // force toward cursor per frame
+  var MOUSE_R    = 200;   // px radius of mouse influence
+  var MOUSE_PULL = 0.22;  // force toward cursor per frame
   document.addEventListener('mousemove', function(e) { mouseX = e.clientX; mouseY = e.clientY; });
   document.addEventListener('mouseleave', function()  { mouseX = -9999;    mouseY = -9999; });
 
-  // click on background → blast boids outward + spike their glow
+  // click on background → blast boids outward
   function _scatterBoids(cx, cy) {
     _blast = 28;
-    _glowPulse = 55;
     for (var i = 0; i < boids.length; i++) {
       var b = boids[i];
       var dx = b.x - cx, dy = b.y - cy;
@@ -271,8 +269,6 @@ function toggleTheme() {
   window._invalidateAccentCache = function () { _accentRgb = null; };
 
   function drawBoids(noClear) {
-    if (_glowPulse > 0) { _glowPulse--; BOID_GLOW = Math.ceil(_glowPulse * 2.2); }
-    else if (BOID_GLOW > 0 && _glowPulse === 0) { BOID_GLOW = 0; }
     if (!noClear) ctx.clearRect(0, 0, W, H);
     if (BOID_GLOW > 0) {
       ctx.shadowColor = accentRgba(1);
