@@ -134,7 +134,7 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 html {
-  font-size: 22px;
+  font-size: 16px;
   background: var(--bg);
   scrollbar-width: none;       /* Firefox */
   -ms-overflow-style: none;    /* IE/Edge */
@@ -145,7 +145,7 @@ body {
   background: var(--bg);
   color: var(--fg);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 14px;
+  font-size: 17px;
   line-height: 1.7;
   max-width: 680px;
   margin: 0 auto;
