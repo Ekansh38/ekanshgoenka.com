@@ -141,6 +141,7 @@ function toggleTheme() {
   var BOID_GLOW    = 0;
 
   var boids = [];
+  var _blast = 0;  // decays each frame; multiplies position step for scatter effect
 
   var mouseX = -9999, mouseY = -9999;
   var MOUSE_R    = 280;   // px radius of mouse influence
@@ -148,12 +149,62 @@ function toggleTheme() {
   document.addEventListener('mousemove', function(e) { mouseX = e.clientX; mouseY = e.clientY; });
   document.addEventListener('mouseleave', function()  { mouseX = -9999;    mouseY = -9999; });
 
-  // click on background → fully reinit all boids (random positions + velocities)
+  // click on background → blast boids outward with glow + sound
+  function _scatterBoids(cx, cy) {
+    _blast = 42;
+    for (var i = 0; i < boids.length; i++) {
+      var b = boids[i];
+      var dx = b.x - cx, dy = b.y - cy;
+      var d = Math.sqrt(dx*dx + dy*dy) || 1;
+      var angle = Math.atan2(dy, dx) + (Math.random() - 0.5) * 0.9;
+      b.vx = Math.cos(angle) * MAX_SPEED;
+      b.vy = Math.sin(angle) * MAX_SPEED;
+    }
+    _blastGlow(cx, cy);
+    _blastSound();
+  }
+
+  function _blastGlow(cx, cy) {
+    var hex = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#7aa2f7';
+    var r = parseInt(hex.slice(1,3),16)||122, g = parseInt(hex.slice(3,5),16)||162, bv = parseInt(hex.slice(5,7),16)||247;
+    var el = document.createElement('div');
+    el.style.cssText = 'position:fixed;left:'+cx+'px;top:'+cy+'px;width:0;height:0;border-radius:50%;pointer-events:none;z-index:999;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba('+r+','+g+','+bv+',0.55) 0%,transparent 70%);opacity:1;transition:width 0.55s ease-out,height 0.55s ease-out,opacity 0.55s ease-out;';
+    document.body.appendChild(el);
+    requestAnimationFrame(function() { el.style.width='900px'; el.style.height='900px'; el.style.opacity='0'; });
+    setTimeout(function() { el.parentNode && el.parentNode.removeChild(el); }, 650);
+  }
+
+  function _blastSound() {
+    try {
+      var A = window.AudioContext || window.webkitAudioContext;
+      if (!A) return;
+      var actx = new A();
+      // noise whoosh
+      var bufLen = Math.floor(actx.sampleRate * 0.22);
+      var buf = actx.createBuffer(1, bufLen, actx.sampleRate);
+      var data = buf.getChannelData(0);
+      for (var i = 0; i < bufLen; i++) data[i] = (Math.random()*2-1) * Math.pow(1 - i/bufLen, 2);
+      var noise = actx.createBufferSource(); noise.buffer = buf;
+      var filt = actx.createBiquadFilter(); filt.type = 'bandpass'; filt.frequency.value = 700; filt.Q.value = 0.7;
+      var ng = actx.createGain(); ng.gain.setValueAtTime(0.1, actx.currentTime); ng.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.22);
+      noise.connect(filt); filt.connect(ng); ng.connect(actx.destination); noise.start();
+      // low thud
+      var osc = actx.createOscillator(); var og = actx.createGain();
+      osc.connect(og); og.connect(actx.destination);
+      osc.frequency.setValueAtTime(160, actx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(28, actx.currentTime + 0.28);
+      og.gain.setValueAtTime(0.16, actx.currentTime);
+      og.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.28);
+      osc.start(); osc.stop(actx.currentTime + 0.28);
+      setTimeout(function() { try { actx.close(); } catch(_) {} }, 450);
+    } catch(_) {}
+  }
+
   document.addEventListener('click', function(e) {
     var t = e.target;
     if (t.tagName === 'A' || t.tagName === 'BUTTON' || t.tagName === 'INPUT') return;
     if (t.closest && (t.closest('a') || t.closest('button') || t.closest('#theme-picker') || t.closest('#preset-picker') || t.closest('#term-box'))) return;
-    initBoids();
+    _scatterBoids(e.clientX, e.clientY);
   });
 
   function clamp2(vx, vy, max) {
@@ -173,6 +224,8 @@ function toggleTheme() {
   }
 
   function updateBoids() {
+    if (_blast > 0) _blast--;
+    var _blastMult = _blast > 0 ? (1 + _blast) : 1;
     var P2 = PERCEPTION*PERCEPTION, S2 = SEP_DIST*SEP_DIST, SP2 = SPREAD_R*SPREAD_R;
     var sp = (1 + boidsCurrentSpeed / 100 * 19) / 5;
     var i, j, b, o, dx, dy, d2, d, spd, tmp;
@@ -233,7 +286,7 @@ function toggleTheme() {
       if (spd > MAX_SPEED) { b.vx = b.vx/spd*MAX_SPEED; b.vy = b.vy/spd*MAX_SPEED; }
       else if (spd < MIN_SPEED && spd > 1e-4) { b.vx = b.vx/spd*MIN_SPEED; b.vy = b.vy/spd*MIN_SPEED; }
 
-      b.x += b.vx * sp; b.y += b.vy * sp;
+      b.x += b.vx * sp * _blastMult; b.y += b.vy * sp * _blastMult;
       if (b.x < -20) b.x = W+20; else if (b.x > W+20) b.x = -20;
       if (b.y < -20) b.y = H+20; else if (b.y > H+20) b.y = -20;
     }

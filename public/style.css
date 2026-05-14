@@ -268,14 +268,30 @@ h2 { color: var(--muted); margin: 32px 0 10px; font-size: 0.88rem; }
   font-weight: 700;
 }
 .ascii-sep::after {
-  content: '';
+  content: '──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────';
   flex: 1;
-  height: 1px;
-  background: var(--muted);
-  margin-left: 8px;
+  overflow: hidden;
+  white-space: nowrap;
+  color: var(--muted);
+  margin-left: 4px;
+  line-height: 1.4;
 }
 .ascii-sep a { color: var(--muted); text-decoration: none; }
 .ascii-sep a:hover { color: var(--accent); }
+
+body.home ul { list-style: none; padding-left: 0; }
+body.home li::before { content: '│ '; color: var(--muted); }
+
+.ascii-close {
+  color: var(--muted);
+  font-size: 0.88rem;
+  white-space: nowrap;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+.ascii-close::before {
+  content: '+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────';
+}
 
 .now-link { color: var(--muted); }
 .now-link:hover { color: var(--accent); text-decoration: none; }
