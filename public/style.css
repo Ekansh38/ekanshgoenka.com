@@ -271,7 +271,8 @@ h2 { color: var(--muted); margin: 32px 0 10px; font-size: 0.88rem; }
   content: '';
   flex: 1;
   height: 1px;
-  background: var(--border);
+  background: var(--muted);
+  opacity: 0.35;
   margin-left: 8px;
 }
 .ascii-sep a { color: var(--muted); text-decoration: none; }

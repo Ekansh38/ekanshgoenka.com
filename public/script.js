@@ -148,6 +148,22 @@ function toggleTheme() {
   document.addEventListener('mousemove', function(e) { mouseX = e.clientX; mouseY = e.clientY; });
   document.addEventListener('mouseleave', function()  { mouseX = -9999;    mouseY = -9999; });
 
+  // click on background → scatter all boids outward from click point
+  document.addEventListener('click', function(e) {
+    var t = e.target;
+    if (t.tagName === 'A' || t.tagName === 'BUTTON' || t.tagName === 'INPUT') return;
+    if (t.closest && (t.closest('a') || t.closest('button') || t.closest('#theme-picker') || t.closest('#preset-picker') || t.closest('#term-box'))) return;
+    var cx = e.clientX, cy = e.clientY;
+    for (var i = 0; i < boids.length; i++) {
+      var b = boids[i];
+      var dx = b.x - cx, dy = b.y - cy;
+      var d = Math.sqrt(dx * dx + dy * dy) || 1;
+      var strength = Math.min(MAX_SPEED * 3, 1000 / d);
+      b.vx += (dx / d) * strength;
+      b.vy += (dy / d) * strength;
+    }
+  });
+
   function clamp2(vx, vy, max) {
     var m2 = vx*vx + vy*vy;
     if (m2 > max*max) { var sc = max/Math.sqrt(m2); return [vx*sc, vy*sc]; }
