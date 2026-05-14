@@ -155,7 +155,8 @@ function toggleTheme() {
       var a = Math.random() * Math.PI * 2;
       var s = MIN_SPEED + Math.random() * (MAX_SPEED - MIN_SPEED);
       boids.push({ x: Math.random()*W, y: Math.random()*H,
-                   vx: Math.cos(a)*s,  vy: Math.sin(a)*s });
+                   vx: Math.cos(a)*s,  vy: Math.sin(a)*s,
+                   op: 0.07 + Math.random() * 0.14 });  // per-boid opacity 0.07–0.21
     }
   }
 
@@ -237,13 +238,13 @@ function toggleTheme() {
     } else {
       ctx.shadowBlur = 0;
     }
-    ctx.fillStyle = accentRgba(BOID_OPACITY);
     for (var i = 0; i < N; i++) {
       var b   = boids[i];
       var spd = Math.sqrt(b.vx*b.vx + b.vy*b.vy);
       if (spd < 1e-4) continue;
       var nx = b.vx/spd, ny = b.vy/spd;  // forward unit vector
       var px = -ny,      py = nx;          // perpendicular unit vector
+      ctx.fillStyle = accentRgba(b.op !== undefined ? b.op : BOID_OPACITY);
       // Concave arrow shape (tip → left wing → notch → right wing)
       ctx.beginPath();
       ctx.moveTo(b.x + nx*BOID_LEN*0.65,                  b.y + ny*BOID_LEN*0.65);
