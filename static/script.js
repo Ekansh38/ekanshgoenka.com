@@ -129,12 +129,12 @@ function toggleTheme() {
 
   var N          = 120;
   var MAX_SPEED  = 1.0,  MIN_SPEED  = 0.3;
-  var PERCEPTION = 90,   SEP_DIST   = 40;
-  var SEP_W      = 0.16, ALI_W      = 0.06, COH_W = 0.008;
+  var PERCEPTION = 52,   SEP_DIST   = 38;
+  var SEP_W      = 0.16, ALI_W      = 0.05, COH_W = 0.003;
   var MAX_FORCE  = 0.03;
   var SEP_FORCE  = 0.10;  // separation gets a higher cap to prevent overlap
   var MARGIN     = 100,  TURN       = 0.10;
-  var SPREAD_R   = 120,  SPREAD_W   = 0.02;
+  var SPREAD_R   = 140,  SPREAD_W   = 0.04;
   var WANDER     = 0.003;
   var BOID_LEN     = 14;
   var BOID_HALF    = 5.5;
