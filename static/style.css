@@ -503,7 +503,7 @@ body.page h3 { font-size: 1rem; color: var(--fg); font-weight: 700; margin: 28px
   margin: 28px 0 44px;
   transition: border-color 0.15s;
 }
-.arc-editor-cta:hover { border-color: var(--accent); }
+.arc-editor-cta:hover { border-color: var(--accent); text-decoration: none; }
 .arc-editor-cta-label { font-weight: 700; font-size: 1rem; color: var(--accent); }
 .arc-editor-cta-sub { font-size: 0.8rem; color: var(--muted); }
 
@@ -664,15 +664,16 @@ body.page h3 { font-size: 1rem; color: var(--fg); font-weight: 700; margin: 28px
 .arc-slug-preview { font-size: 0.72rem; color: var(--accent); opacity: 0.7; letter-spacing: 0.04em; }
 
 /* ── Snippets ── */
-.arc-snippets { display: flex; flex-direction: column; gap: 16px; margin-top: 4px; }
+.arc-snippets { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
 .arc-snippet { border: 1px solid var(--border); }
 .arc-snippet-header {
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
   padding: 8px 12px;
   border-bottom: 1px solid var(--border);
   background: var(--code-bg);
 }
-.arc-snippet-title { font-size: 0.78rem; color: var(--muted); letter-spacing: 0.06em; }
+.arc-snippet-title { font-size: 0.82rem; color: var(--fg); font-weight: 600; display: block; }
+.arc-snippet-desc  { font-size: 0.75rem; color: var(--muted); display: block; margin-top: 1px; }
 
 /* ── Misc ── */
 .arc-source-block {
