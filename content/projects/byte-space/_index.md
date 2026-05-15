@@ -9,10 +9,15 @@ github: "https://github.com/Ekansh38/byte-space"
 devlog: "https://www.youtube.com/playlist?list=PL0VzTA7jLj1SHQWzZwZ8IUoeMu9LrmBKd"
 ---
 
-"byte-space" is a terminal-based internet simulator, simulating the early internet era. Features include: building networks, browsing text-based websites, sending email, and seeing packets travel between machines in real-time.
+"byte-space" is a terminal-based internet simulator set in the early internet era. Features include:
 
-It is a pretty cool project and you should definitely star it on Github. The link is somewhere bellow this text. If you can't find it here it is:
+- building networks
+- browsing text-based websites
+- sending email
+- seeing packets travel between machines in real-time
+- a custom hand-rolled filesystem with inodes, permissions, and directories
+- a virtual kernel — implements real Unix-like syscalls (open, read, socket) and a full TCP/IP stack; programs interact with it exactly like they would a real OS
 
-<a href="https://github.com/ekansh38/byte-space" target="_blank">github.com/ekansh38/byte-space</a>
+It is a pretty cool project and you should definitely star it on Github.
 
 
