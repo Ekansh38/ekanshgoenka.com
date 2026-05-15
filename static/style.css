@@ -434,16 +434,7 @@ body.page h3 { font-size: 1rem; color: var(--fg); font-weight: 700; margin: 28px
 }
 .arc-card:hover::before { left: 0; }
 .arc-card:hover { background: var(--code-bg); padding-left: 8px; }
-.arc-card::after {
-  content: '→';
-  position: absolute;
-  right: 6px; top: 50%;
-  transform: translateY(-50%);
-  color: var(--accent);
-  opacity: 0;
-  transition: opacity 0.18s, right 0.18s;
-}
-.arc-card:hover::after { opacity: 1; right: 2px; }
+.arc-card::after { display: none; }
 .arc-card:hover .arc-card-title { color: var(--accent); }
 .arc-card-num {
   font-size: 0.72rem;
