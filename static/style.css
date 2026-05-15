@@ -811,10 +811,33 @@ body.page h3 { font-size: 1rem; color: var(--fg); font-weight: 700; margin: 28px
 
 
 /* lua syntax highlight */
-.lh-kw  { color: var(--accent); }
-.lh-str { color: #7ec08a; }
-.lh-num { color: #d4956a; }
-.lh-cmt { color: var(--muted); font-style: italic; }
+/* lua syntax highlight — rich multi-class scheme */
+.lh-kw      { color: var(--code-kw); }              /* if then else end while do for return break */
+.lh-kw2     { color: var(--code-fn); }              /* local function */
+.lh-val     { color: var(--code-num); }             /* true false nil */
+.lh-op      { color: var(--code-op); }              /* and or not + - == .. etc */
+.lh-builtin { color: var(--code-type); }            /* print tonumber type pairs … */
+.lh-std     { color: var(--code-attr); }            /* math string table io */
+.lh-arcade  { color: var(--accent); }               /* sleep clear colored color sound */
+.lh-fn      { color: var(--code-fn); }              /* user function calls */
+.lh-str     { color: var(--code-str); }
+.lh-num     { color: var(--code-num); }
+.lh-cmt     { color: var(--code-cmt); font-style: italic; }
+
+/* terminal game header */
+.term-game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.72rem;
+  color: var(--accent);
+  letter-spacing: 0.06em;
+  padding-bottom: 8px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+  opacity: 0.8;
+}
+.term-game-header-id { color: var(--muted); }
 
 footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 0.77rem; }
 .footer-meta { color: var(--muted); }

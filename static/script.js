@@ -1712,6 +1712,13 @@ function toggleTheme() {
     _gameMode = true;
     output.innerHTML = '';
 
+    // game header bar
+    var ghdr = document.createElement('div');
+    ghdr.className = 'term-game-header';
+    ghdr.innerHTML = '<span>▶ ' + (game.title || 'game') + '</span>'
+      + '<span class="term-game-header-id">' + (game.id || '') + '</span>';
+    output.appendChild(ghdr);
+
     var L = lauxlib.luaL_newstate();
     lualib.luaL_openlibs(L);
 
