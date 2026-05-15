@@ -121,6 +121,116 @@
   #ae-editor { height: 100%; }
   #ae-editor .CodeMirror { height: 100%; }
 
+  /* ── tutorial overlay ── */
+  #ae-tutorial {
+    flex: 1; display: flex; flex-direction: column;
+    background: var(--code-bg); overflow: hidden;
+  }
+  .ae-tut-slide {
+    display: none; flex: 1; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 32px 28px; overflow-y: auto;
+  }
+  .ae-tut-slide.ae-tut-active { display: flex; }
+
+  /* step 0: experience check */
+  .ae-tut-question {
+    font-size: 1.1rem; color: var(--fg); margin-bottom: 32px;
+    text-align: center; font-weight: 600;
+  }
+  .ae-tut-question small {
+    display: block; font-size: 0.8rem; color: var(--muted);
+    font-weight: 400; margin-top: 6px;
+  }
+  .ae-tut-choice-grid {
+    display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;
+    max-width: 560px; width: 100%;
+  }
+  .ae-tut-choice {
+    flex: 1; min-width: 200px; max-width: 250px;
+    border: 1px solid var(--border); padding: 20px 18px;
+    cursor: pointer; background: transparent;
+    font-family: inherit; text-align: left;
+    transition: border-color 0.15s, background 0.15s;
+    color: var(--fg);
+  }
+  .ae-tut-choice:hover { border-color: var(--accent); background: rgba(122,162,247,0.04); }
+  .ae-tut-choice-title { display: block; font-size: 0.92rem; font-weight: 600; margin-bottom: 6px; color: var(--accent); }
+  .ae-tut-choice-desc  { display: block; font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+
+  /* tutorial step layout */
+  .ae-tut-body { max-width: 560px; width: 100%; }
+  .ae-tut-dots {
+    display: flex; gap: 6px; justify-content: center; margin-bottom: 24px;
+  }
+  .ae-tut-dot {
+    width: 6px; height: 6px; border-radius: 0;
+    background: var(--border); transition: background 0.2s;
+  }
+  .ae-tut-dot.ae-tut-dot-on { background: var(--accent); }
+  .ae-tut-label {
+    font-size: 0.68rem; color: var(--accent); letter-spacing: 0.1em;
+    text-transform: uppercase; margin-bottom: 8px;
+  }
+  .ae-tut-title {
+    font-size: 1.1rem; font-weight: 700; color: var(--fg);
+    margin-bottom: 12px;
+  }
+  .ae-tut-text {
+    font-size: 0.85rem; color: var(--muted); line-height: 1.7;
+    margin-bottom: 18px;
+  }
+  .ae-tut-text strong { color: var(--fg); font-weight: 600; }
+  .ae-tut-code {
+    background: var(--bg); border: 1px solid var(--border);
+    padding: 12px 16px; font-size: 0.82rem; line-height: 1.7;
+    margin-bottom: 14px; overflow-x: auto; white-space: pre;
+    tab-size: 2;
+  }
+  .ae-tut-note {
+    font-size: 0.78rem; color: var(--muted); line-height: 1.6;
+    border-left: 2px solid var(--border); padding-left: 10px;
+    margin-bottom: 18px;
+  }
+  .ae-tut-note strong { color: var(--accent); }
+  .ae-tut-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 10px;
+  }
+  .ae-tut-nav-btn {
+    font-family: inherit; font-size: 0.82rem; cursor: pointer;
+    background: transparent; border: 1px solid var(--border);
+    color: var(--muted); padding: 5px 14px;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .ae-tut-nav-btn:hover { border-color: var(--fg); color: var(--fg); }
+  .ae-tut-nav-btn.ae-tut-next {
+    border-color: var(--accent); color: var(--accent);
+    font-weight: 600;
+  }
+  .ae-tut-nav-btn.ae-tut-next:hover { background: var(--accent); color: var(--bg); }
+  .ae-tut-skip {
+    font-size: 0.75rem; color: var(--muted); cursor: pointer;
+    background: none; border: none; font-family: inherit;
+    text-decoration: underline; padding: 0; opacity: 0.6;
+  }
+  .ae-tut-skip:hover { opacity: 1; color: var(--fg); }
+
+  /* starter picker grid */
+  .ae-tut-pick-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 10px; width: 100%;
+  }
+  .ae-tut-pick-card {
+    border: 1px solid var(--border); padding: 14px 16px;
+    cursor: pointer; background: transparent; font-family: inherit;
+    text-align: left; color: var(--fg);
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .ae-tut-pick-card:hover { border-color: var(--accent); background: rgba(122,162,247,0.04); }
+  .ae-tut-pick-title { display: block; font-size: 0.88rem; font-weight: 600; color: var(--accent); margin-bottom: 4px; }
+  .ae-tut-pick-desc  { display: block; font-size: 0.75rem; color: var(--muted); line-height: 1.5; }
+
   /* actions bar */
   .ae-actions {
     display: flex; align-items: center; gap: 8px;
@@ -554,6 +664,18 @@
   });
 
   updateCharCount();
+
+  // if tutorial not done and not expert, redirect (only for new game mode, not edit/remix)
+  if (!editId && !remixId) {
+    var pref = localStorage.getItem('arcade_intro');
+    if (!pref) {
+      var prefill = sessionStorage.getItem('arcade_prefill_code');
+      if (!prefill) {
+        window.location.replace('/arcade/tutorial/');
+      }
+    }
+  }
+
   editor.focus();
 })();
 </script>

@@ -1,0 +1,1294 @@
+{{ define "main" }}
+<style>
+  /* hide all site chrome */
+  header, .nav, footer, #term-btn, #theme-picker, #preset-picker,
+  .social, .footer-meta, .footer-links, #bg-canvas, .arc-bg-dots,
+  #copy-toast { display: none !important; }
+  body { padding: 0 !important; overflow: hidden; max-width: 100% !important; }
+  main { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
+
+  /* ── tutorial root ── */
+  #tut-root {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    font-family: inherit;
+    overflow: hidden;
+    z-index: 1;
+  }
+
+  /* canvas behind everything */
+  #tut-canvas {
+    position: absolute; inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* progress bar */
+  #tut-progress {
+    position: absolute; top: 0; left: 0;
+    height: 2px; background: var(--accent);
+    width: 0%; transition: width 0.4s ease;
+    z-index: 10;
+  }
+
+  /* skip button */
+  #tut-skip {
+    position: absolute; top: 18px; right: 20px;
+    background: none; border: none;
+    color: var(--muted); font-family: inherit; font-size: 0.75rem;
+    cursor: pointer; opacity: 0.6; z-index: 10;
+    padding: 4px 8px;
+    transition: opacity 0.15s, color 0.15s;
+  }
+  #tut-skip:hover { opacity: 1; color: var(--fg); }
+
+  /* step dots */
+  #tut-dots {
+    position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 8px; z-index: 10;
+  }
+  .tut-dot {
+    width: 6px; height: 6px;
+    border-radius: 0;
+    background: var(--border);
+    transition: background 0.25s, transform 0.25s;
+  }
+  .tut-dot.tut-dot-active {
+    background: var(--accent);
+    transform: scaleX(2.2);
+  }
+
+  /* screens */
+  .tut-screen {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 60px 24px 80px;
+    overflow-y: auto;
+    z-index: 5;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(20px);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .tut-screen.tut-active {
+    opacity: 1;
+    pointer-events: all;
+    transform: translateY(0);
+  }
+  .tut-screen.tut-exit {
+    opacity: 0;
+    transform: translateY(-20px);
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+
+  /* ── SCREEN 0: experience check ── */
+  #tut-s0 .tut-exp-heading {
+    font-size: clamp(1.2rem, 3vw, 1.7rem);
+    color: var(--fg); font-weight: 700;
+    text-align: center; margin-bottom: 8px;
+  }
+  #tut-s0 .tut-exp-sub {
+    font-size: 0.85rem; color: var(--muted);
+    text-align: center; margin-bottom: 40px;
+  }
+  .tut-choice-grid {
+    display: flex; gap: 16px; flex-wrap: wrap;
+    justify-content: center; max-width: 520px; width: 100%;
+  }
+  .tut-choice-card {
+    flex: 1; min-width: 200px; max-width: 240px;
+    border: 1px solid var(--border);
+    padding: 24px 20px;
+    cursor: pointer; background: var(--bg);
+    font-family: inherit; text-align: left;
+    color: var(--fg); position: relative;
+    overflow: hidden;
+    animation: tut-pulse-border 3s ease-in-out infinite;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .tut-choice-card:nth-child(2) { animation-delay: 1.5s; }
+  @keyframes tut-pulse-border {
+    0%, 100% { border-color: var(--border); box-shadow: none; }
+    50% { border-color: var(--accent); box-shadow: 0 0 12px rgba(0,0,0,0.08); }
+  }
+  .tut-choice-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    animation: none;
+    border-color: var(--accent);
+  }
+  .tut-choice-title {
+    display: block; font-size: 0.95rem; font-weight: 700;
+    color: var(--accent); margin-bottom: 8px;
+  }
+  .tut-choice-desc {
+    display: block; font-size: 0.78rem;
+    color: var(--muted); line-height: 1.55;
+  }
+  /* floating symbols in cards */
+  .tut-card-symbol {
+    position: absolute; font-size: 1.1rem;
+    color: var(--accent); opacity: 0.08;
+    pointer-events: none; user-select: none;
+    animation: tut-float-sym 4s ease-in-out infinite;
+  }
+  @keyframes tut-float-sym {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-8px) rotate(10deg); }
+  }
+
+  /* ── shared step layout ── */
+  .tut-step-wrap {
+    max-width: 580px; width: 100%;
+  }
+  .tut-step-tag {
+    font-size: 0.65rem; color: var(--accent);
+    letter-spacing: 0.12em; text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .tut-heading {
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    color: var(--fg); font-weight: 700;
+    margin-bottom: 14px; line-height: 1.15;
+  }
+  .tut-body {
+    font-size: 0.88rem; color: var(--muted);
+    line-height: 1.75; margin-bottom: 20px;
+    white-space: pre-line;
+  }
+  .tut-body strong { color: var(--fg); font-weight: 600; }
+
+  /* code block */
+  .tut-code {
+    background: var(--code-bg, var(--bg));
+    border: 1px solid var(--border);
+    padding: 14px 18px; font-size: 0.82rem;
+    line-height: 1.75; margin-bottom: 20px;
+    overflow-x: auto; white-space: pre;
+    tab-size: 2;
+  }
+
+  /* next button */
+  .tut-btn {
+    display: inline-block;
+    background: transparent; border: 1px solid var(--accent);
+    color: var(--accent); font-family: inherit; font-size: 0.85rem;
+    padding: 7px 20px; cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    font-weight: 600;
+  }
+  .tut-btn:hover { background: var(--accent); color: var(--bg); }
+  .tut-btn:disabled { opacity: 0.3; cursor: default; }
+  .tut-btn-muted {
+    display: inline-block;
+    background: transparent; border: 1px solid var(--border);
+    color: var(--muted); font-family: inherit; font-size: 0.85rem;
+    padding: 7px 20px; cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .tut-btn-muted:hover { border-color: var(--fg); color: var(--fg); }
+
+  /* ── SCREEN 2: mini terminal ── */
+  .tut-mini-term {
+    border: 1px solid var(--border); margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .tut-term-bar {
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 12px; border-bottom: 1px solid var(--border);
+    background: var(--code-bg, var(--bg));
+  }
+  .tut-term-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--border);
+  }
+  .tut-term-title {
+    font-size: 0.72rem; color: var(--muted);
+    margin-left: 4px;
+  }
+  .tut-term-out {
+    min-height: 48px; padding: 10px 14px;
+    font-size: 0.85rem; color: var(--muted);
+    font-style: italic; background: var(--bg);
+    border: none; outline: none;
+    transition: border-color 0.3s;
+  }
+  .tut-term-out.tut-term-active {
+    color: var(--fg); font-style: normal;
+    border: 1px solid var(--accent);
+  }
+  .tut-term-actions {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px; border-top: 1px solid var(--border);
+    background: var(--code-bg, var(--bg));
+  }
+  .tut-success-msg {
+    font-size: 0.82rem; color: var(--accent);
+    margin-top: 10px; opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .tut-success-msg.tut-visible { opacity: 1; }
+
+  /* ── SCREEN 3: quiz ── */
+  .tut-quiz-prompt {
+    font-size: 0.85rem; color: var(--fg);
+    margin-bottom: 10px;
+  }
+  .tut-quiz-code {
+    background: var(--code-bg, var(--bg));
+    border: 1px solid var(--border);
+    padding: 10px 16px; font-size: 0.85rem;
+    margin-bottom: 12px; white-space: pre;
+  }
+  .tut-quiz-blank {
+    display: inline-block;
+    border-bottom: 2px solid var(--accent);
+    min-width: 40px; text-align: center;
+    animation: tut-blink-under 1.2s ease-in-out infinite;
+    color: var(--muted);
+  }
+  @keyframes tut-blink-under {
+    0%, 100% { border-bottom-color: var(--accent); }
+    50% { border-bottom-color: transparent; }
+  }
+  .tut-options {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .tut-opt {
+    background: transparent; border: 1px solid var(--border);
+    color: var(--fg); font-family: inherit; font-size: 0.85rem;
+    padding: 5px 14px; cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+  }
+  .tut-opt:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .tut-opt.tut-opt-wrong {
+    border-color: var(--code-err, #f7768e);
+    color: var(--code-err, #f7768e);
+    animation: tut-shake 0.35s ease;
+  }
+  .tut-opt.tut-opt-correct {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--bg);
+  }
+  @keyframes tut-shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    50% { transform: translateX(6px); }
+    70% { transform: translateX(-4px); }
+  }
+  .tut-quiz-feedback {
+    font-size: 0.8rem; min-height: 1.2em;
+    margin-bottom: 10px; transition: color 0.2s;
+  }
+  .tut-quiz-feedback.tut-fb-wrong { color: var(--code-err, #f7768e); }
+  .tut-quiz-feedback.tut-fb-ok { color: var(--accent); }
+
+  /* ── SCREEN 4: slider / if-else ── */
+  .tut-if-code {
+    background: var(--code-bg, var(--bg));
+    border: 1px solid var(--border);
+    padding: 14px 18px; font-size: 0.82rem;
+    line-height: 1.75; margin-bottom: 18px;
+    white-space: pre;
+  }
+  .tut-slider-wrap {
+    margin-bottom: 18px;
+  }
+  .tut-slider-label {
+    font-size: 0.78rem; color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .tut-slider-label span { color: var(--accent); font-weight: 700; }
+  input[type=range].tut-slider {
+    width: 100%; appearance: none; -webkit-appearance: none;
+    height: 4px; background: var(--border); outline: none;
+    cursor: pointer; border-radius: 0;
+  }
+  input[type=range].tut-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 14px; height: 14px; border-radius: 0;
+    background: var(--accent); cursor: pointer;
+  }
+  .tut-branches {
+    display: flex; gap: 16px; margin-bottom: 18px;
+  }
+  .tut-branch {
+    flex: 1; border: 1px solid var(--border);
+    padding: 14px 16px; text-align: center;
+    font-size: 0.85rem; transition: all 0.3s ease;
+    color: var(--muted);
+  }
+  .tut-branch.tut-branch-active {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+    color: var(--fg);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 20%, transparent);
+  }
+  .tut-branch.tut-branch-inactive { opacity: 0.3; }
+  .tut-branch-label {
+    display: block; font-size: 0.72rem;
+    color: var(--muted); margin-bottom: 6px;
+    letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .tut-branch.tut-branch-active .tut-branch-label { color: var(--accent); }
+  .tut-branch-code {
+    font-size: 0.9rem; font-weight: 700;
+  }
+
+  /* ── SCREEN 5: powers ── */
+  .tut-power-demo {
+    border: 1px solid var(--border);
+    padding: 14px 18px; margin-bottom: 18px;
+    min-height: 48px; font-size: 0.88rem;
+    background: var(--code-bg, var(--bg));
+    transition: all 0.3s;
+    position: relative;
+  }
+  .tut-power-demo .tut-demo-input {
+    background: transparent; border: none; border-bottom: 1px solid var(--accent);
+    color: var(--fg); font-family: inherit; font-size: 0.88rem;
+    outline: none; width: 140px; margin-left: 4px;
+  }
+  .tut-powers-grid {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .tut-power-card {
+    flex: 1; min-width: 90px;
+    border: 1px solid var(--border);
+    padding: 12px 10px; text-align: center;
+    cursor: pointer; background: transparent;
+    font-family: inherit; transition: all 0.2s;
+    position: relative;
+  }
+  .tut-power-card:hover { border-color: var(--accent); }
+  .tut-power-card.tut-power-used {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 6%, transparent);
+  }
+  .tut-power-name {
+    display: block; font-size: 0.78rem;
+    color: var(--accent); font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .tut-power-desc {
+    display: block; font-size: 0.7rem;
+    color: var(--muted); line-height: 1.4;
+  }
+  .tut-power-check {
+    position: absolute; top: 5px; right: 7px;
+    font-size: 0.65rem; color: var(--accent);
+    opacity: 0; transition: opacity 0.25s;
+  }
+  .tut-power-card.tut-power-used .tut-power-check { opacity: 1; }
+  .tut-power-note {
+    font-size: 0.78rem; color: var(--muted);
+    margin-bottom: 12px;
+  }
+  .tut-power-note span { color: var(--accent); }
+
+  /* ── SCREEN 6: starter cards ── */
+  #tut-s6 .tut-step-wrap { max-width: 700px; }
+  .tut-starters-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 12px; margin-bottom: 12px;
+  }
+  .tut-starter-card {
+    border: 1px solid var(--border);
+    padding: 0; cursor: pointer; background: var(--bg);
+    font-family: inherit; text-align: left; color: var(--fg);
+    transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+    overflow: hidden;
+  }
+  .tut-starter-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  }
+  .tut-starter-card.tut-starter-blank {
+    grid-column: 1 / -1;
+  }
+  .tut-preview {
+    height: 70px; overflow: hidden;
+    background: var(--code-bg, var(--bg));
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    padding: 8px 14px; font-size: 0.82rem;
+    color: var(--muted); text-align: center;
+    position: relative;
+  }
+  .tut-starter-info {
+    padding: 12px 14px;
+  }
+  .tut-starter-name {
+    display: block; font-size: 0.88rem;
+    color: var(--accent); font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .tut-starter-hint {
+    font-size: 0.74rem; color: var(--muted);
+    line-height: 1.45;
+  }
+  .tut-launching {
+    position: fixed; inset: 0;
+    background: var(--bg); display: none;
+    align-items: center; justify-content: center;
+    z-index: 100; font-size: 0.9rem; color: var(--accent);
+  }
+
+  /* particles */
+  .tut-particle {
+    position: fixed; pointer-events: none;
+    width: 6px; height: 6px;
+    border-radius: 0;
+    background: var(--accent);
+    z-index: 50;
+    animation: tut-burst 0.8s ease-out forwards;
+  }
+  @keyframes tut-burst {
+    0%   { opacity: 1; transform: translate(0,0) scale(1); }
+    100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0.3); }
+  }
+
+  /* typewriter cursor */
+  .tut-cursor {
+    display: inline-block; width: 2px; height: 1em;
+    background: var(--accent); vertical-align: text-bottom;
+    animation: tut-blink 0.9s step-end infinite;
+    margin-left: 1px;
+  }
+  @keyframes tut-blink {
+    50% { opacity: 0; }
+  }
+
+  @media (max-width: 540px) {
+    .tut-starters-grid { grid-template-columns: 1fr; }
+    .tut-starter-card.tut-starter-blank { grid-column: 1; }
+    .tut-branches { flex-direction: column; }
+    .tut-powers-grid { gap: 6px; }
+  }
+</style>
+
+<div id="tut-root">
+  <canvas id="tut-canvas"></canvas>
+  <div id="tut-progress"></div>
+  <button id="tut-skip">skip tutorial</button>
+
+  <div id="tut-dots">
+    <div class="tut-dot" data-i="0"></div>
+    <div class="tut-dot" data-i="1"></div>
+    <div class="tut-dot" data-i="2"></div>
+    <div class="tut-dot" data-i="3"></div>
+    <div class="tut-dot" data-i="4"></div>
+  </div>
+
+  <!-- SCREEN 0: experience check -->
+  <div class="tut-screen" id="tut-s0">
+    <p class="tut-exp-heading">have you written code before?</p>
+    <p class="tut-exp-sub">this determines where we start</p>
+    <div class="tut-choice-grid">
+      <button class="tut-choice-card" id="tut-expert-btn">
+        <span class="tut-card-symbol" style="top:10px;right:14px;animation-delay:0s">{}</span>
+        <span class="tut-card-symbol" style="bottom:12px;left:10px;animation-delay:2s">;</span>
+        <span class="tut-choice-title">i've coded before</span>
+        <span class="tut-choice-desc">skip the intro, go straight to the editor</span>
+      </button>
+      <button class="tut-choice-card" id="tut-newbie-btn">
+        <span class="tut-card-symbol" style="top:10px;right:14px;animation-delay:0.8s">?</span>
+        <span class="tut-card-symbol" style="bottom:12px;left:10px;animation-delay:2.5s">?</span>
+        <span class="tut-choice-title">new to this</span>
+        <span class="tut-choice-desc">walk me through it — takes about 2 minutes</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- SCREEN 1: welcome -->
+  <div class="tut-screen" id="tut-s1">
+    <div class="tut-step-wrap">
+      <div class="tut-step-tag">01 / 05</div>
+      <div class="tut-heading" id="tut-s1-heading"></div>
+      <div class="tut-body" id="tut-s1-body" style="opacity:0;transition:opacity 0.5s"></div>
+      <div class="tut-code" id="tut-s1-code" style="opacity:0;transition:opacity 0.4s"><span class="lh-cmt">-- this is what a game looks like</span>
+<span class="lh-kw2">local</span> name <span class="lh-op">=</span> <span class="lh-arcade">io</span>.read(<span class="lh-str">"your name: "</span>)
+<span class="lh-builtin">print</span>(<span class="lh-str">"hi "</span> <span class="lh-op">..</span> name <span class="lh-op">..</span> <span class="lh-str">"!"</span>)
+<span class="lh-arcade">sound</span>.win()</div>
+      <button class="tut-btn" id="tut-s1-next">next →</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 2: first line -->
+  <div class="tut-screen" id="tut-s2">
+    <div class="tut-step-wrap">
+      <div class="tut-step-tag">02 / 05</div>
+      <div class="tut-heading">your first program</div>
+      <div class="tut-body">Lua reads almost like English. this is all you need to say hello:</div>
+      <div class="tut-code"><span class="lh-builtin">print</span>(<span class="lh-str">"hello!"</span>)</div>
+      <div class="tut-mini-term">
+        <div class="tut-term-bar">
+          <div class="tut-term-dot"></div>
+          <div class="tut-term-dot"></div>
+          <div class="tut-term-dot"></div>
+          <span class="tut-term-title">terminal</span>
+        </div>
+        <div class="tut-term-out" id="tut-term-out">click run to see what happens</div>
+        <div class="tut-term-actions">
+          <button class="tut-btn-muted" id="tut-run-btn">&#9654; run it</button>
+        </div>
+      </div>
+      <div class="tut-success-msg" id="tut-s2-success">that's your first program.</div>
+      <button class="tut-btn" id="tut-s2-next" style="display:none;margin-top:12px">continue →</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: variables -->
+  <div class="tut-screen" id="tut-s3">
+    <div class="tut-step-wrap">
+      <div class="tut-step-tag">03 / 05</div>
+      <div class="tut-heading">storing things</div>
+      <div class="tut-body">variables hold values — like labeled boxes. pick the right answer:</div>
+
+      <div id="tut-q1">
+        <div class="tut-quiz-prompt">a player's score is a number:</div>
+        <div class="tut-quiz-code"><span class="lh-kw2">local</span> score <span class="lh-op">=</span> <span class="tut-quiz-blank">&nbsp;?&nbsp;</span></div>
+        <div class="tut-options">
+          <button class="tut-opt" data-q="1" data-val="str">"10"</button>
+          <button class="tut-opt" data-q="1" data-val="num">10</button>
+          <button class="tut-opt" data-q="1" data-val="word">ten</button>
+        </div>
+        <div class="tut-quiz-feedback" id="tut-q1-fb"></div>
+      </div>
+
+      <div id="tut-q2" style="display:none">
+        <div class="tut-quiz-prompt">a player's name is text:</div>
+        <div class="tut-quiz-code"><span class="lh-kw2">local</span> name <span class="lh-op">=</span> <span class="tut-quiz-blank">&nbsp;?&nbsp;</span></div>
+        <div class="tut-options">
+          <button class="tut-opt" data-q="2" data-val="str">"Alice"</button>
+          <button class="tut-opt" data-q="2" data-val="bare">Alice</button>
+          <button class="tut-opt" data-q="2" data-val="num">123</button>
+        </div>
+        <div class="tut-quiz-feedback" id="tut-q2-fb"></div>
+      </div>
+
+      <button class="tut-btn" id="tut-s3-next" style="display:none;margin-top:8px">continue →</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 4: if/else -->
+  <div class="tut-screen" id="tut-s4">
+    <div class="tut-step-wrap">
+      <div class="tut-step-tag">04 / 05</div>
+      <div class="tut-heading">making decisions</div>
+      <div class="tut-body">your game can take different paths based on what's happening. drag the slider and watch:</div>
+      <div class="tut-if-code" id="tut-if-code"><span class="lh-kw2">local</span> score <span class="lh-op">=</span> <span class="lh-num" id="tut-score-val">7</span>
+<span class="lh-kw">if</span> score <span class="lh-op">&gt;</span> <span class="lh-num">5</span> <span class="lh-kw">then</span>
+  <span class="lh-builtin">print</span>(<span class="lh-str">"you win!"</span>)
+<span class="lh-kw">else</span>
+  <span class="lh-builtin">print</span>(<span class="lh-str">"try again"</span>)
+<span class="lh-kw">end</span></div>
+      <div class="tut-slider-wrap">
+        <div class="tut-slider-label">score = <span id="tut-slider-disp">7</span></div>
+        <input type="range" class="tut-slider" id="tut-slider" min="0" max="10" value="7">
+      </div>
+      <div class="tut-branches">
+        <div class="tut-branch" id="tut-branch-win">
+          <span class="tut-branch-label">score &gt; 5</span>
+          <span class="tut-branch-code">"you win!"</span>
+        </div>
+        <div class="tut-branch" id="tut-branch-lose">
+          <span class="tut-branch-label">score &lt;= 5</span>
+          <span class="tut-branch-code">"try again"</span>
+        </div>
+      </div>
+      <button class="tut-btn" id="tut-s4-next">continue →</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 5: powers -->
+  <div class="tut-screen" id="tut-s5">
+    <div class="tut-step-wrap">
+      <div class="tut-step-tag">05 / 05</div>
+      <div class="tut-heading">special powers</div>
+      <div class="tut-body">the arcade gives you functions that normal Lua doesn't have. click each one:</div>
+      <div class="tut-power-demo" id="tut-power-demo">the quick brown fox</div>
+      <div class="tut-powers-grid">
+        <button class="tut-power-card" data-power="sleep">
+          <span class="tut-power-check">✓</span>
+          <span class="tut-power-name">sleep()</span>
+          <span class="tut-power-desc">pause for ms</span>
+        </button>
+        <button class="tut-power-card" data-power="clear">
+          <span class="tut-power-check">✓</span>
+          <span class="tut-power-name">clear()</span>
+          <span class="tut-power-desc">wipe terminal</span>
+        </button>
+        <button class="tut-power-card" data-power="colored">
+          <span class="tut-power-check">✓</span>
+          <span class="tut-power-name">colored()</span>
+          <span class="tut-power-desc">add color to text</span>
+        </button>
+        <button class="tut-power-card" data-power="sound">
+          <span class="tut-power-check">✓</span>
+          <span class="tut-power-name">sound.win()</span>
+          <span class="tut-power-desc">play sounds</span>
+        </button>
+        <button class="tut-power-card" data-power="io">
+          <span class="tut-power-check">✓</span>
+          <span class="tut-power-name">io.read()</span>
+          <span class="tut-power-desc">ask for input</span>
+        </button>
+      </div>
+      <div class="tut-power-note" id="tut-power-note">activate <span id="tut-power-count">0</span> / 5 powers to continue</div>
+      <button class="tut-btn" id="tut-s5-next" disabled>finish tutorial →</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 6: starter picker -->
+  <div class="tut-screen" id="tut-s6">
+    <div class="tut-step-wrap">
+      <div class="tut-heading">you're ready.</div>
+      <div class="tut-body">pick a starting point — you can change everything once you're in the editor.</div>
+      <div class="tut-starters-grid">
+        <button class="tut-starter-card" data-starter="dice">
+          <div class="tut-preview" id="tut-prev-dice"><span style="font-size:1.4rem;color:var(--accent)">?</span></div>
+          <div class="tut-starter-info">
+            <span class="tut-starter-name">dice roller</span>
+            <span class="tut-starter-hint">random numbers + conditions</span>
+          </div>
+        </button>
+        <button class="tut-starter-card" data-starter="guesser">
+          <div class="tut-preview" id="tut-prev-guesser">guess: <span style="color:var(--accent)">?</span></div>
+          <div class="tut-starter-info">
+            <span class="tut-starter-name">number guesser</span>
+            <span class="tut-starter-hint">loops + player input</span>
+          </div>
+        </button>
+        <button class="tut-starter-card" data-starter="story">
+          <div class="tut-preview" id="tut-prev-story">you stand at a crossroads...</div>
+          <div class="tut-starter-info">
+            <span class="tut-starter-name">story game</span>
+            <span class="tut-starter-hint">branching choices</span>
+          </div>
+        </button>
+        <button class="tut-starter-card" data-starter="countdown">
+          <div class="tut-preview" id="tut-prev-countdown"><span style="font-size:2rem;font-weight:700;color:var(--accent)">5</span></div>
+          <div class="tut-starter-info">
+            <span class="tut-starter-name">countdown</span>
+            <span class="tut-starter-hint">animation with clear + sleep</span>
+          </div>
+        </button>
+        <button class="tut-starter-card tut-starter-blank" data-starter="blank">
+          <div class="tut-preview" id="tut-prev-blank" style="height:40px"><span class="tut-cursor"></span></div>
+          <div class="tut-starter-info">
+            <span class="tut-starter-name">blank slate</span>
+            <span class="tut-starter-hint">start from scratch — just a comment to get you going</span>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tut-launching" id="tut-launching">launching editor...</div>
+</div>
+
+<script>
+(function() {
+  // ── redirect if already seen ──
+  try {
+    var seen = localStorage.getItem('arcade_intro');
+    if (seen === 'expert' || seen === 'done') {
+      window.location.replace('/arcade/editor/');
+      return;
+    }
+  } catch(e) {}
+
+  // ── canvas background: floating Lua fragments ──
+  var canvas = document.getElementById('tut-canvas');
+  var ctx = canvas.getContext('2d');
+  var FRAGS = [
+    'print("hi!")', 'local x = 0', 'sleep(500)', 'clear()',
+    'for i = 1, 10 do', 'if score > 0 then', 'sound.win()',
+    'math.random(1, 6)', 'io.read("name: ")', 'colored("go!", color.green)',
+    '-- game start', 'net.rank(name, 99)', 'table.insert(t, x)',
+    'while true do', 'end'
+  ];
+  var frags = [];
+
+  function initFrags() {
+    frags = FRAGS.map(function(txt) {
+      return {
+        txt: txt,
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: (Math.random() - 0.5) * 0.24,
+        size: 10 + Math.random() * 4,
+        op: 0.04 + Math.random() * 0.055,
+      };
+    });
+  }
+
+  function resizeCanvas() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+    initFrags();
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  function getAccent() {
+    return getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#7aa2f7';
+  }
+
+  function drawCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    var accent = getAccent();
+    frags.forEach(function(f) {
+      ctx.save();
+      ctx.globalAlpha = f.op;
+      ctx.fillStyle = accent;
+      ctx.font = f.size + 'px "JetBrains Mono", monospace';
+      ctx.fillText(f.txt, f.x, f.y);
+      ctx.restore();
+      f.x += f.vx;
+      f.y += f.vy;
+      if (f.x > canvas.width + 200)  f.x = -200;
+      if (f.x < -200) f.x = canvas.width + 200;
+      if (f.y > canvas.height + 30)  f.y = -30;
+      if (f.y < -30)  f.y = canvas.height + 30;
+    });
+    requestAnimationFrame(drawCanvas);
+  }
+  drawCanvas();
+
+  // ── particle burst ──
+  function burst(x, y, count) {
+    count = count || 16;
+    var accent = getAccent();
+    for (var i = 0; i < count; i++) {
+      var p = document.createElement('div');
+      p.className = 'tut-particle';
+      var angle = (i / count) * Math.PI * 2;
+      var dist  = 40 + Math.random() * 60;
+      p.style.left = x + 'px';
+      p.style.top  = y + 'px';
+      p.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
+      p.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
+      p.style.background = accent;
+      p.style.opacity = '1';
+      p.style.width  = (3 + Math.random() * 5) + 'px';
+      p.style.height = (3 + Math.random() * 5) + 'px';
+      document.body.appendChild(p);
+      setTimeout(function(el) { el.parentNode && el.parentNode.removeChild(el); }, 850, p);
+    }
+  }
+
+  // ── screen management ──
+  var currentScreen = 0;
+  var allScreens = [
+    document.getElementById('tut-s0'),
+    document.getElementById('tut-s1'),
+    document.getElementById('tut-s2'),
+    document.getElementById('tut-s3'),
+    document.getElementById('tut-s4'),
+    document.getElementById('tut-s5'),
+    document.getElementById('tut-s6'),
+  ];
+
+  var progressBar = document.getElementById('tut-progress');
+  var skipBtn     = document.getElementById('tut-skip');
+  var dotsEl      = document.getElementById('tut-dots');
+  var dots        = dotsEl.querySelectorAll('.tut-dot');
+
+  // progress = 0% at s0, then 20-100% for s1-s5, hidden at s6
+  function updateUI(idx) {
+    // skip & dots: only on steps 1-5
+    skipBtn.style.display  = (idx >= 1 && idx <= 5) ? '' : 'none';
+    dotsEl.style.display   = (idx >= 1 && idx <= 5) ? '' : 'none';
+    // progress bar: steps 1-5 → 20%..100%
+    if (idx >= 1 && idx <= 5) {
+      progressBar.style.width = ((idx / 5) * 100) + '%';
+    } else if (idx === 6) {
+      progressBar.style.width = '100%';
+    } else {
+      progressBar.style.width = '0%';
+    }
+    // dots
+    dots.forEach(function(d) {
+      var i = parseInt(d.getAttribute('data-i'));
+      d.classList.toggle('tut-dot-active', i === idx - 1);
+    });
+  }
+
+  function goTo(idx, fromClick) {
+    var old = allScreens[currentScreen];
+    var next = allScreens[idx];
+    if (!next) return;
+
+    old.classList.add('tut-exit');
+    old.classList.remove('tut-active');
+
+    setTimeout(function() {
+      old.classList.remove('tut-exit');
+      currentScreen = idx;
+      next.classList.add('tut-active');
+      updateUI(idx);
+      if (idx === 1) startScreen1();
+      if (idx === 6) startScreen6();
+    }, 260);
+  }
+
+  // show first screen
+  allScreens[0].classList.add('tut-active');
+  updateUI(0);
+
+  // ── SCREEN 0 ──
+  document.getElementById('tut-expert-btn').addEventListener('click', function(e) {
+    try { localStorage.setItem('arcade_intro', 'expert'); } catch(ex) {}
+    window.location.href = '/arcade/editor/';
+  });
+
+  document.getElementById('tut-newbie-btn').addEventListener('click', function(e) {
+    var r = this.getBoundingClientRect();
+    burst(r.left + r.width / 2, r.top + r.height / 2, 20);
+    goTo(1);
+  });
+
+  // ── SCREEN 1: typewriter ──
+  function startScreen1() {
+    var headEl = document.getElementById('tut-s1-heading');
+    var bodyEl = document.getElementById('tut-s1-body');
+    var codeEl = document.getElementById('tut-s1-code');
+    headEl.innerHTML = '';
+    bodyEl.style.opacity = '0';
+    codeEl.style.opacity = '0';
+
+    var text = 'welcome.';
+    var i = 0;
+    var cursor = document.createElement('span');
+    cursor.className = 'tut-cursor';
+    headEl.appendChild(cursor);
+
+    var tw = setInterval(function() {
+      cursor.before(document.createTextNode(text[i]));
+      i++;
+      if (i >= text.length) {
+        clearInterval(tw);
+        setTimeout(function() {
+          cursor.remove();
+          bodyEl.textContent = 'the arcade is a collection of tiny games that run in the browser terminal. you\'re about to make one.\n\nit\'s going to be fine.';
+          bodyEl.style.opacity = '1';
+          setTimeout(function() { codeEl.style.opacity = '1'; }, 400);
+        }, 200);
+      }
+    }, 80);
+  }
+
+  document.getElementById('tut-s1-next').addEventListener('click', function() {
+    goTo(2);
+  });
+
+  // ── SCREEN 2: run demo ──
+  var s2ran = false;
+  document.getElementById('tut-run-btn').addEventListener('click', function() {
+    if (s2ran) return;
+    s2ran = true;
+    var btn = this;
+    var out = document.getElementById('tut-term-out');
+    btn.textContent = 'running...';
+    btn.disabled = true;
+    out.style.fontStyle = 'italic';
+    out.textContent = '';
+    setTimeout(function() {
+      out.classList.add('tut-term-active');
+      out.style.fontStyle = 'normal';
+      var msg = 'hello!';
+      var j = 0;
+      var tw = setInterval(function() {
+        out.textContent += msg[j];
+        j++;
+        if (j >= msg.length) {
+          clearInterval(tw);
+          var r = out.getBoundingClientRect();
+          burst(r.left + r.width / 2, r.top + r.height / 2, 14);
+          setTimeout(function() {
+            out.classList.remove('tut-term-active');
+            var suc = document.getElementById('tut-s2-success');
+            suc.classList.add('tut-visible');
+            var nextBtn = document.getElementById('tut-s2-next');
+            nextBtn.style.display = 'inline-block';
+          }, 400);
+        }
+      }, 60);
+      btn.textContent = '▶ run it';
+    }, 400);
+  });
+
+  document.getElementById('tut-s2-next').addEventListener('click', function() { goTo(3); });
+
+  // ── SCREEN 3: quiz ──
+  var q1done = false, q2done = false;
+
+  document.querySelectorAll('.tut-opt').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var q = this.getAttribute('data-q');
+      var val = this.getAttribute('data-val');
+      var fb = document.getElementById('tut-q' + q + '-fb');
+      var opts = document.querySelectorAll('[data-q="' + q + '"]');
+
+      if (q === '1') {
+        if (q1done) return;
+        if (val === 'num') {
+          q1done = true;
+          this.classList.add('tut-opt-correct');
+          fb.textContent = 'exactly! numbers go without quotes';
+          fb.className = 'tut-quiz-feedback tut-fb-ok';
+          opts.forEach(function(o) { o.disabled = true; });
+          var r = this.getBoundingClientRect();
+          burst(r.left + r.width / 2, r.top + r.height / 2, 12);
+          setTimeout(function() {
+            document.getElementById('tut-q2').style.display = 'block';
+          }, 500);
+        } else {
+          fb.textContent = 'not quite — numbers don\'t use quotes';
+          fb.className = 'tut-quiz-feedback tut-fb-wrong';
+          var self = this;
+          this.classList.add('tut-opt-wrong');
+          setTimeout(function() { self.classList.remove('tut-opt-wrong'); }, 400);
+        }
+      } else {
+        if (q2done) return;
+        if (val === 'str') {
+          q2done = true;
+          this.classList.add('tut-opt-correct');
+          fb.textContent = 'text always lives inside quotes';
+          fb.className = 'tut-quiz-feedback tut-fb-ok';
+          opts.forEach(function(o) { o.disabled = true; });
+          var r = this.getBoundingClientRect();
+          burst(r.left + r.width / 2, r.top + r.height / 2, 12);
+          document.getElementById('tut-s3-next').style.display = 'inline-block';
+        } else {
+          fb.textContent = 'text always needs to be inside quotes';
+          fb.className = 'tut-quiz-feedback tut-fb-wrong';
+          var self = this;
+          this.classList.add('tut-opt-wrong');
+          setTimeout(function() { self.classList.remove('tut-opt-wrong'); }, 400);
+        }
+      }
+    });
+  });
+
+  document.getElementById('tut-s3-next').addEventListener('click', function() { goTo(4); });
+
+  // ── SCREEN 4: slider ──
+  var slider = document.getElementById('tut-slider');
+  var scoreValEl = document.getElementById('tut-score-val');
+  var sliderDisp = document.getElementById('tut-slider-disp');
+  var branchWin  = document.getElementById('tut-branch-win');
+  var branchLose = document.getElementById('tut-branch-lose');
+
+  function updateBranches(val) {
+    scoreValEl.textContent = val;
+    sliderDisp.textContent = val;
+    if (val > 5) {
+      branchWin.classList.add('tut-branch-active');
+      branchWin.classList.remove('tut-branch-inactive');
+      branchLose.classList.remove('tut-branch-active');
+      branchLose.classList.add('tut-branch-inactive');
+    } else {
+      branchLose.classList.add('tut-branch-active');
+      branchLose.classList.remove('tut-branch-inactive');
+      branchWin.classList.remove('tut-branch-active');
+      branchWin.classList.add('tut-branch-inactive');
+    }
+  }
+
+  updateBranches(7);
+  slider.addEventListener('input', function() { updateBranches(parseInt(this.value)); });
+  document.getElementById('tut-s4-next').addEventListener('click', function() { goTo(5); });
+
+  // ── SCREEN 5: powers ──
+  var powersUsed = {};
+  var demoEl = document.getElementById('tut-power-demo');
+  var powerCountEl = document.getElementById('tut-power-count');
+  var powerNote = document.getElementById('tut-power-note');
+  var s5nextBtn = document.getElementById('tut-s5-next');
+  var demoLocked = false;
+
+  function updatePowerCount() {
+    var n = Object.keys(powersUsed).length;
+    powerCountEl.textContent = n;
+    if (n >= 3) {
+      s5nextBtn.disabled = false;
+    }
+    if (n >= 5) {
+      s5nextBtn.style.borderColor = 'var(--accent)';
+      s5nextBtn.style.fontWeight = '700';
+      powerNote.innerHTML = 'all powers unlocked! <span>ready to go</span>';
+    } else {
+      powerNote.innerHTML = 'activate <span id="tut-power-count">' + n + '</span> / 5 powers to continue';
+    }
+  }
+
+  function playWinSound() {
+    try {
+      var ctx2 = new (window.AudioContext || window.webkitAudioContext)();
+      var notes = [220, 330, 440, 660];
+      notes.forEach(function(freq, i) {
+        var osc  = ctx2.createOscillator();
+        var gain = ctx2.createGain();
+        osc.connect(gain);
+        gain.connect(ctx2.destination);
+        osc.frequency.value = freq;
+        osc.type = 'sine';
+        gain.gain.setValueAtTime(0.15, ctx2.currentTime + i * 0.1);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx2.currentTime + i * 0.1 + 0.15);
+        osc.start(ctx2.currentTime + i * 0.1);
+        osc.stop(ctx2.currentTime + i * 0.1 + 0.2);
+      });
+    } catch(e) {}
+  }
+
+  document.querySelectorAll('.tut-power-card').forEach(function(card) {
+    card.addEventListener('click', function() {
+      if (demoLocked) return;
+      var power = this.getAttribute('data-power');
+      if (powersUsed[power]) return;
+      powersUsed[power] = true;
+      this.classList.add('tut-power-used');
+      updatePowerCount();
+
+      demoLocked = true;
+      var orig = demoEl.innerHTML;
+      var accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+
+      if (power === 'sleep') {
+        demoEl.textContent = 'paused...';
+        demoEl.style.filter = 'saturate(0)';
+        demoEl.style.opacity = '0.5';
+        setTimeout(function() {
+          demoEl.style.filter = '';
+          demoEl.style.opacity = '';
+          demoEl.innerHTML = orig;
+          demoEl.style.background = accent;
+          setTimeout(function() { demoEl.style.background = ''; demoLocked = false; }, 200);
+        }, 700);
+      } else if (power === 'clear') {
+        demoEl.style.background = accent;
+        demoEl.style.color = 'var(--bg)';
+        setTimeout(function() {
+          demoEl.textContent = '';
+          demoEl.style.background = '';
+          demoEl.style.color = '';
+          var msg = 'the quick brown fox';
+          var j = 0;
+          var tw = setInterval(function() {
+            demoEl.textContent += msg[j]; j++;
+            if (j >= msg.length) { clearInterval(tw); demoLocked = false; }
+          }, 55);
+        }, 250);
+      } else if (power === 'colored') {
+        demoEl.style.color = accent;
+        demoEl.style.textShadow = '0 0 8px ' + accent;
+        setTimeout(function() {
+          demoEl.style.color = '';
+          demoEl.style.textShadow = '';
+          demoLocked = false;
+        }, 900);
+      } else if (power === 'sound') {
+        playWinSound();
+        var origText = demoEl.innerHTML;
+        demoEl.innerHTML = origText + ' <span style="color:var(--accent)">&#9834;</span>';
+        card.style.boxShadow = '0 0 14px ' + accent;
+        setTimeout(function() {
+          demoEl.innerHTML = orig;
+          card.style.boxShadow = '';
+          demoLocked = false;
+        }, 700);
+      } else if (power === 'io') {
+        demoEl.innerHTML = 'your name: <input class="tut-demo-input" id="tut-demo-inp" placeholder="type here..." autofocus>';
+        var inp = document.getElementById('tut-demo-inp');
+        if (inp) inp.focus();
+        setTimeout(function() {
+          demoEl.innerHTML = orig;
+          demoLocked = false;
+        }, 3000);
+      }
+    });
+  });
+
+  document.getElementById('tut-s5-next').addEventListener('click', function() {
+    if (!this.disabled) goTo(6);
+  });
+
+  // ── skip button ──
+  skipBtn.addEventListener('click', function(e) {
+    var r = this.getBoundingClientRect();
+    burst(r.left + r.width / 2, r.top + r.height / 2, 8);
+    goTo(6);
+  });
+
+  // ── SCREEN 6: starter cards + animated previews ──
+  var previewIntervals = [];
+
+  var STARTER_CODES = {
+    dice: [
+      'local roll = math.random(1, 6)',
+      'print(colored("you rolled: " .. roll, color.cyan))',
+      'if roll == 6 then',
+      '  print(colored("lucky! max roll!", color.green))',
+      '  sound.win()',
+      'else',
+      '  print("roll again?")',
+      '  sound.click()',
+      'end',
+    ].join('\n'),
+
+    guesser: [
+      'local secret = math.random(1, 10)',
+      'local tries = 0',
+      'print(colored("guess a number 1-10", color.cyan))',
+      'while true do',
+      '  local guess = tonumber(io.read("guess: "))',
+      '  tries = tries + 1',
+      '  if guess == secret then',
+      '    print(colored("got it in " .. tries .. " tries!", color.green))',
+      '    sound.win()',
+      '    break',
+      '  elseif guess < secret then',
+      '    print("too low")',
+      '  else',
+      '    print("too high")',
+      '  end',
+      'end',
+    ].join('\n'),
+
+    story: [
+      'print(colored("THE CAVE", color.yellow))',
+      'print("you stand at the entrance of a dark cave.")',
+      'print("")',
+      'local choice = io.read("go [i]nside or [l]eave? ")',
+      'if choice == "i" then',
+      '  print(colored("you venture inside...", color.cyan))',
+      '  sleep(1000)',
+      '  if math.random(1, 2) == 1 then',
+      '    print(colored("you find treasure!", color.yellow))',
+      '    sound.win()',
+      '  else',
+      '    print(colored("a bat swoops past! you flee.", color.red))',
+      '    sound.lose()',
+      '  end',
+      'else',
+      '  print("smart choice. you go home safely.")',
+      '  sound.click()',
+      'end',
+    ].join('\n'),
+
+    countdown: [
+      'print(colored("get ready...", color.yellow))',
+      'sleep(800)',
+      'for i = 5, 1, -1 do',
+      '  clear()',
+      '  print(colored("  " .. i, color.yellow))',
+      '  sound.click()',
+      '  sleep(700)',
+      'end',
+      'clear()',
+      'print(colored("  GO!", color.green))',
+      'sound.win()',
+    ].join('\n'),
+
+    blank: '-- your game starts here\n',
+  };
+
+  function startScreen6() {
+    // stop any running intervals
+    previewIntervals.forEach(clearInterval);
+    previewIntervals = [];
+
+    var accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+
+    // dice preview
+    var diceEl = document.getElementById('tut-prev-dice');
+    var diceFaces = ['1', '2', '3', '4', '5', '6'];
+    var diceIdx = 0;
+    previewIntervals.push(setInterval(function() {
+      diceEl.innerHTML = '<span style="color:var(--muted);font-size:0.75rem">rolling...</span>';
+      setTimeout(function() {
+        var face = diceFaces[Math.floor(Math.random() * 6)];
+        diceEl.innerHTML = '<span style="font-size:1.8rem;font-weight:700;color:var(--accent)">' + face + '</span>';
+      }, 400);
+    }, 1400));
+
+    // guesser preview
+    var guessEl = document.getElementById('tut-prev-guesser');
+    var guesserState = 0;
+    var guesserNum = Math.floor(Math.random() * 10) + 1;
+    previewIntervals.push(setInterval(function() {
+      if (guesserState === 0) {
+        guessEl.innerHTML = 'guess: <span style="color:var(--accent);font-weight:700">' + guesserNum + '</span>';
+      } else if (guesserState === 1) {
+        var dir = Math.random() > 0.5 ? 'too high ↑' : 'too low ↓';
+        var col = dir.indexOf('high') >= 0 ? 'var(--code-num,#e0af68)' : '#7dcfff';
+        guessEl.innerHTML = '<span style="color:' + col + '">' + dir + '</span>';
+        guesserNum = Math.floor(Math.random() * 10) + 1;
+      }
+      guesserState = (guesserState + 1) % 2;
+    }, 1200));
+
+    // story preview
+    var storyEl = document.getElementById('tut-prev-story');
+    var storyState = 0;
+    var storyTexts = [
+      'you stand at a crossroads...',
+      '<span style="color:var(--muted);font-size:0.78rem">[i]nside&nbsp;&nbsp;[l]eave</span>',
+      '<span style="color:var(--accent)">you venture inside...</span>',
+      '<span style="color:var(--code-num,#e0af68)">you found treasure!</span>',
+    ];
+    storyEl.innerHTML = storyTexts[0];
+    previewIntervals.push(setInterval(function() {
+      storyState = (storyState + 1) % storyTexts.length;
+      storyEl.innerHTML = storyTexts[storyState];
+    }, 1600));
+
+    // countdown preview
+    var cdEl = document.getElementById('tut-prev-countdown');
+    var cdNum = 5;
+    var cdColors = ['var(--code-err,#f7768e)', 'var(--code-num,#e0af68)', 'var(--code-num,#e0af68)', 'var(--accent)', 'var(--accent)'];
+    previewIntervals.push(setInterval(function() {
+      if (cdNum > 0) {
+        var col = cdColors[cdNum - 1] || 'var(--accent)';
+        cdEl.innerHTML = '<span style="font-size:2rem;font-weight:700;color:' + col + '">' + cdNum + '</span>';
+        cdNum--;
+      } else {
+        cdEl.innerHTML = '<span style="font-size:1.4rem;font-weight:700;color:var(--accent)">GO!</span>';
+        cdNum = 5;
+      }
+    }, 700));
+  }
+
+  // starter card clicks
+  document.querySelectorAll('.tut-starter-card').forEach(function(card) {
+    card.addEventListener('click', function(e) {
+      var starter = this.getAttribute('data-starter');
+      var code = STARTER_CODES[starter] || '';
+      var r = this.getBoundingClientRect();
+      burst(r.left + r.width / 2, r.top + r.height / 2, 20);
+      this.style.transform = 'scale(1.02)';
+      var launching = document.getElementById('tut-launching');
+      launching.style.display = 'flex';
+      setTimeout(function() {
+        previewIntervals.forEach(clearInterval);
+        try { localStorage.setItem('arcade_intro', 'done'); } catch(ex) {}
+        try { sessionStorage.setItem('arcade_prefill_code', code); } catch(ex) {}
+        window.location.href = '/arcade/editor/';
+      }, 450);
+    });
+  });
+
+})();
+</script>
+{{ end }}

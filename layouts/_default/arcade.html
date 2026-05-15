@@ -23,7 +23,7 @@
   </div>
   <div class="arc-intro-row">
     <span class="arc-intro-key">make</span>
-    <span class="arc-intro-val">click a snippet below → edit it → hit run to test → submit when ready</span>
+    <span class="arc-intro-val">click "write a game" below — beginners get a guided intro, zero knowledge required</span>
   </div>
   <div class="arc-intro-row">
     <span class="arc-intro-key">language</span>
@@ -33,10 +33,16 @@
 
 <div id="arc-games"><div class="arc-loading-state">fetching games...</div></div>
 
-<a href="/arcade/editor/" class="arc-editor-cta">
+<button id="arc-write-btn" class="arc-editor-cta" style="width:100%;text-align:left;cursor:pointer;background:transparent;font-family:inherit;border:1px solid var(--border);">
   <span class="arc-editor-cta-label">write a game →</span>
-  <span class="arc-editor-cta-sub">syntax highlighting · run &amp; submit in one place · no setup needed</span>
-</a>
+  <span class="arc-editor-cta-sub">syntax highlighting · run &amp; submit in one place · guided intro for beginners</span>
+</button>
+<script>
+document.getElementById('arc-write-btn').addEventListener('click', function() {
+  var pref = localStorage.getItem('arcade_intro');
+  window.location.href = (pref === 'expert' || pref === 'done') ? '/arcade/editor/' : '/arcade/tutorial/';
+});
+</script>
 
 <details class="arc-docs-details">
   <summary class="arc-section-header arc-docs-summary">snippets</summary>
