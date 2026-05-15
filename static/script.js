@@ -2485,6 +2485,25 @@ function toggleTheme() {
       }).catch(function() { line('could not fetch source', 'term-line-err'); });
     },
 
+    scores: function(args) {
+      if (!args[0]) { needArg('scores', 'scores <game-id> [n]'); return; }
+      var id = args[0], n = Math.min(parseInt(args[1]) || 10, 50);
+      line('fetching scores for ' + id + '...', 'term-line-ok');
+      fetch('/api/net?op=top&game=' + encodeURIComponent(id) + '&n=' + n)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var entries = data.entries || [];
+          if (!entries.length) { line('no scores for ' + id, 'term-line-ok'); return; }
+          line('\x1b[36m── ' + id + ' leaderboard ──\x1b[0m', 'term-line-pre');
+          entries.forEach(function(e, i) {
+            var rank = ('  ' + (i + 1) + '.').slice(-4);
+            var nm   = (e.name + '                ').slice(0, 16);
+            line(rank + ' ' + nm + '\x1b[33m' + e.score + '\x1b[0m', 'term-line-pre');
+          });
+        })
+        .catch(function() { line('network error', 'term-line-err'); });
+    },
+
     delete: function(args) {
       if (!args[0] || !args[1]) { needArg('delete', 'delete <game-id> <edit-code>'); return; }
       var id = args[0], code = args[1];

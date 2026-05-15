@@ -642,6 +642,7 @@ body.page h3 { font-size: 1rem; color: var(--fg); font-weight: 700; margin: 28px
 #arc-submit:disabled, #arc-test:disabled { opacity: 0.5; cursor: default; }
 #arc-status { font-size: 0.85rem; }
 .arc-hint { font-size: 0.75rem; color: var(--muted); opacity: 0.5; margin-left: auto; white-space: nowrap; }
+.arc-slug-preview { font-size: 0.72rem; color: var(--accent); opacity: 0.7; letter-spacing: 0.04em; }
 
 /* ── Snippets ── */
 .arc-snippets { display: flex; flex-direction: column; gap: 16px; margin-top: 4px; }

@@ -128,16 +128,21 @@ module.exports = async (req, res) => {
     // ── PATCH: update a game's code ───────────────────────────────────────────
     if (req.method === 'PATCH') {
       if (!id) return res.status(400).json({ error: 'id required' });
-      const { code, newCode } = await getBody(req);
+      const { code, newCode, newTitle, newDesc } = await getBody(req);
       if (!code) return res.status(400).json({ error: 'edit code required' });
-      if (!newCode) return res.status(400).json({ error: 'newCode required' });
+      if (!newCode && !newTitle && newDesc === undefined) return res.status(400).json({ error: 'nothing to update' });
 
       const all = await fetchAll();
       const game = all.find(g => g.id === id);
       if (!game) return res.status(404).json({ error: 'game not found' });
       if (!checkAuth(code, game)) return res.status(403).json({ error: 'invalid edit code' });
 
-      const updated = all.map(g => g.id === id ? { ...g, code: newCode.trim().slice(0, MAX_CODE) } : g);
+      const patch = {};
+      if (newCode)              patch.code  = newCode.trim().slice(0, MAX_CODE);
+      if (newTitle)             patch.title = newTitle.trim().slice(0, MAX_TITLE);
+      if (newDesc !== undefined) patch.desc  = newDesc.trim().slice(0, MAX_DESC);
+
+      const updated = all.map(g => g.id === id ? { ...g, ...patch } : g);
       await rebuildList(updated);
       return res.status(200).json({ ok: true });
     }

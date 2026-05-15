@@ -18,7 +18,10 @@
 <div class="arc-form-box">
   <div class="arc-form">
     <div class="arc-row">
-      <input id="arc-title"  type="text" placeholder="title (unique, becomes the id)" maxlength="50" autocomplete="off" spellcheck="false">
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;">
+        <input id="arc-title" type="text" placeholder="title (unique, becomes the id)" maxlength="50" autocomplete="off" spellcheck="false">
+        <span id="arc-slug-preview" class="arc-slug-preview" style="display:none"></span>
+      </div>
       <input id="arc-author" type="text" placeholder="author" maxlength="50" autocomplete="off" spellcheck="false">
     </div>
     <input id="arc-desc" type="text" placeholder="short description (optional)" maxlength="200" autocomplete="off" spellcheck="false" style="margin-bottom:10px;">
@@ -43,9 +46,12 @@
       <span class="arc-hint">ctrl+enter to submit</span>
     </div>
     <div id="arc-editcode-box" style="display:none;margin-top:20px;padding:14px;border:1px solid var(--accent);font-size:0.88rem;">
-      <div style="color:var(--muted);margin-bottom:6px;font-size:0.75rem;letter-spacing:0.08em;">EDIT CODE — save this somewhere</div>
-      <code id="arc-editcode" style="font-size:1.05rem;letter-spacing:0.08em;color:var(--accent);"></code>
-      <div style="color:var(--muted);margin-top:10px;font-size:0.8rem;">to delete: open the game page → delete section, or terminal: <code>delete &lt;id&gt; &lt;code&gt;</code></div>
+      <div style="color:var(--muted);margin-bottom:8px;font-size:0.75rem;letter-spacing:0.08em;">EDIT CODE — save this somewhere</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+        <code id="arc-editcode" style="font-size:1.05rem;letter-spacing:0.08em;color:var(--accent);"></code>
+        <button id="arc-editcode-copy" class="ag-copy-btn">copy</button>
+      </div>
+      <div style="color:var(--muted);font-size:0.8rem;">to update or delete: open the game page → update / delete sections</div>
     </div>
   </div>
 </div>
@@ -397,6 +403,25 @@
       ta.selectionStart = ta.selectionEnd = start + 1;
       updateHl();
     }
+  });
+
+  // slug preview
+  function slugify(s) { return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,28)||''; }
+  var slugPreview = document.getElementById('arc-slug-preview');
+  document.getElementById('arc-title').addEventListener('input', function() {
+    var slug = slugify(this.value);
+    if (slug) { slugPreview.textContent = 'id: ' + slug; slugPreview.style.display = 'block'; }
+    else { slugPreview.style.display = 'none'; }
+  });
+
+  // edit code copy button
+  document.getElementById('arc-editcode-copy').addEventListener('click', function() {
+    var btn = this;
+    var code = document.getElementById('arc-editcode').textContent;
+    navigator.clipboard.writeText(code).then(function() {
+      btn.textContent = 'copied!'; btn.classList.add('copied');
+      setTimeout(function() { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 1800);
+    });
   });
 
   // remix prefill
