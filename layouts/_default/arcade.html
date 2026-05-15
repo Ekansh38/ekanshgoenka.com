@@ -539,10 +539,32 @@
     }).join('');
   }
 
+  function fetchFresh(onDone) {
+    fetch(API, { cache: 'no-store' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) { lsSet(data); if (onDone) onDone(data); })
+      .catch(function() { if (onDone) onDone(null); });
+  }
+
   function load(force) {
-    if (!force) { var c = lsGet(); if (c) { render(c); return; } }
-    fetch(API).then(function(r){return r.json();}).then(function(data){ lsSet(data); render(data); })
-      .catch(function(){ document.getElementById('arc-games').innerHTML = '<p style="color:var(--muted)">couldn\'t load games.</p>'; });
+    var forceByParam = new URLSearchParams(window.location.search).get('r') === '1';
+    if (!force && !forceByParam) {
+      var c = lsGet();
+      if (c) {
+        render(c);
+        // background refresh — silently update cache and re-render if data changed
+        fetchFresh(function(fresh) {
+          if (!fresh) return;
+          if (JSON.stringify(fresh) !== JSON.stringify(c)) render(fresh);
+        });
+        return;
+      }
+    }
+    // no cache or forced: show loading, fetch, render
+    fetchFresh(function(data) {
+      if (data) { render(data); }
+      else { document.getElementById('arc-games').innerHTML = '<p style="color:var(--muted)">couldn\'t load games.</p>'; }
+    });
   }
   load();
 

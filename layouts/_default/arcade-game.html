@@ -165,7 +165,7 @@
           method: 'DELETE', headers: {'Content-Type':'application/json'},
           body: JSON.stringify({code: code})
         }).then(function(r){return r.json();}).then(function(d){
-          if (d.ok) { try { localStorage.removeItem('arcade_v1'); } catch(e){} window.location.href = '/arcade/'; }
+          if (d.ok) { try { localStorage.removeItem('arcade_v1'); } catch(e){} window.location.href = '/arcade/?r=1'; }
           else {
             status.textContent = d.error || 'error';
             document.getElementById('ag-del-confirm').disabled = false;
