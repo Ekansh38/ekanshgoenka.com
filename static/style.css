@@ -472,23 +472,14 @@ body.page h3 { font-size: 1rem; color: var(--fg); font-weight: 700; margin: 28px
 #arc-submit:disabled, #arc-test:disabled { opacity: 0.5; cursor: default; }
 #arc-status { font-size: 0.88rem; color: var(--muted); }
 
-.arc-section-btn {
-  background: none; border: none; color: var(--accent);
-  font-family: inherit; font-size: inherit; cursor: pointer;
-  padding: 0; transition: color 0.15s;
-}
-.arc-section-btn:hover { color: var(--fg); }
-
 .arc-card {
   display: block;
   padding: 16px 0;
   border-bottom: 1px solid var(--border);
-  text-decoration: none;
+  text-decoration: none !important;
   color: var(--fg);
-  transition: padding-left 0.18s;
 }
 .arc-card:first-child { border-top: 1px solid var(--border); }
-.arc-card:hover { padding-left: 8px; }
 .arc-card:hover .arc-card-title { color: var(--accent); }
 .arc-card-header { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 5px; }
 .arc-card-title { font-weight: 700; font-size: 1rem; transition: color 0.15s; }

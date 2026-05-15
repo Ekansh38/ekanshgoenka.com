@@ -42,7 +42,7 @@ function checkAuth(submitted, game) {
 }
 
 const MAX_TITLE = 50, MAX_AUTHOR = 50, MAX_DESC = 200, MAX_CODE = 8000;
-const RATE_TTL = 3600, MAX_KEEP = 50;
+const MAX_KEEP = 50;
 
 async function fetchAll() {
   const result = await kv([['lrange', 'arcade', '0', String(MAX_KEEP - 1)]]);
@@ -94,23 +94,17 @@ module.exports = async (req, res) => {
       const c = (code   || '').trim().slice(0, MAX_CODE);
       if (!t || !a || !c) return res.status(400).json({ error: 'title, author, and code are all required' });
 
-      const ip = req.headers['x-forwarded-for']?.split(',')[0] || 'unknown';
-      const rateKey = `arcade_rate:${ip}`;
-      const [rateCheck] = await kv([['get', rateKey]]);
-      if (rateCheck?.result) return res.status(429).json({ error: 'one submission per hour please' });
-
       const newId = slugify(t);
       const all = await fetchAll();
       if (all.some(g => g.id === newId))
-        return res.status(409).json({ error: `a game called "${newId}" already exists — pick a different title` });
+        return res.status(409).json({ error: `a game called "${newId}" already exists, pick a different title` });
 
       const editCode = genCode();
       const entry = { id: newId, title: t, author: a, desc: d, code: c, date: new Date().toISOString(), codeHash: hashCode(editCode) };
 
       await kv([
         ['lpush', 'arcade', JSON.stringify(entry)],
-        ['ltrim', 'arcade', '0', String(MAX_KEEP - 1)],
-        ['set', rateKey, '1', 'ex', String(RATE_TTL)]
+        ['ltrim', 'arcade', '0', String(MAX_KEEP - 1)]
       ]);
 
       return res.status(200).json({ ok: true, id: newId, editCode });
