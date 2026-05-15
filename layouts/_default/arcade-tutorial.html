@@ -7,7 +7,7 @@
   body { padding: 0 !important; overflow: hidden; max-width: 100% !important; }
   main { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
 
-  /* ── tutorial root ── */
+  /* tutorial root */
   #tut-root {
     position: fixed; inset: 0;
     background: var(--bg);
@@ -83,7 +83,7 @@
     transition: opacity 0.25s ease, transform 0.25s ease;
   }
 
-  /* ── SCREEN 0: experience check ── */
+  /* SCREEN 0: experience check */
   #tut-s0 .tut-exp-heading {
     font-size: clamp(1.2rem, 3vw, 1.7rem);
     color: var(--fg); font-weight: 700;
@@ -139,7 +139,7 @@
     50% { transform: translateY(-8px) rotate(10deg); }
   }
 
-  /* ── shared step layout ── */
+  /* shared step layout */
   .tut-step-wrap {
     max-width: 580px; width: 100%;
   }
@@ -190,7 +190,7 @@
   }
   .tut-btn-muted:hover { border-color: var(--fg); color: var(--fg); }
 
-  /* ── SCREEN 2: mini terminal ── */
+  /* SCREEN 2: mini terminal */
   .tut-mini-term {
     border: 1px solid var(--border); margin-bottom: 16px;
     overflow: hidden;
@@ -231,63 +231,63 @@
   }
   .tut-success-msg.tut-visible { opacity: 1; }
 
-  /* ── SCREEN 3: quiz ── */
-  .tut-quiz-prompt {
-    font-size: 0.85rem; color: var(--fg);
-    margin-bottom: 10px;
-  }
-  .tut-quiz-code {
-    background: var(--code-bg, var(--bg));
+  /* SCREEN 3: story builder */
+  .tut-story-scene {
     border: 1px solid var(--border);
-    padding: 10px 16px; font-size: 0.85rem;
-    margin-bottom: 12px; white-space: pre;
+    background: var(--code-bg, var(--bg));
+    padding: 20px 22px; margin-bottom: 16px;
+    min-height: 90px; position: relative;
   }
-  .tut-quiz-blank {
-    display: inline-block;
-    border-bottom: 2px solid var(--accent);
-    min-width: 40px; text-align: center;
-    animation: tut-blink-under 1.2s ease-in-out infinite;
-    color: var(--muted);
+  .tut-story-text {
+    font-size: 0.88rem; color: var(--fg);
+    line-height: 1.7; margin-bottom: 14px;
+    min-height: 2.5em;
   }
-  @keyframes tut-blink-under {
-    0%, 100% { border-bottom-color: var(--accent); }
-    50% { border-bottom-color: transparent; }
-  }
-  .tut-options {
+  .tut-story-choices {
     display: flex; gap: 8px; flex-wrap: wrap;
-    margin-bottom: 12px;
   }
-  .tut-opt {
+  .tut-story-btn {
     background: transparent; border: 1px solid var(--border);
-    color: var(--fg); font-family: inherit; font-size: 0.85rem;
-    padding: 5px 14px; cursor: pointer;
-    transition: border-color 0.15s, color 0.15s, background 0.15s;
+    color: var(--muted); font-family: inherit; font-size: 0.8rem;
+    padding: 5px 12px; cursor: pointer;
+    transition: all 0.18s; position: relative;
   }
-  .tut-opt:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
-  .tut-opt.tut-opt-wrong {
-    border-color: var(--code-err, #f7768e);
-    color: var(--code-err, #f7768e);
-    animation: tut-shake 0.35s ease;
+  .tut-story-btn:hover:not(:disabled) {
+    border-color: var(--accent); color: var(--accent);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 25%, transparent);
   }
-  .tut-opt.tut-opt-correct {
-    border-color: var(--accent);
+  .tut-story-btn:disabled { opacity: 0.35; cursor: default; }
+  .tut-story-btn.tut-story-chosen {
+    border-color: var(--accent); color: var(--bg);
     background: var(--accent);
-    color: var(--bg);
   }
-  @keyframes tut-shake {
-    0%, 100% { transform: translateX(0); }
-    20% { transform: translateX(-6px); }
-    50% { transform: translateX(6px); }
-    70% { transform: translateX(-4px); }
+  .tut-story-path-label {
+    font-size: 0.7rem; color: var(--accent);
+    letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 6px; opacity: 0;
+    transition: opacity 0.3s;
   }
-  .tut-quiz-feedback {
-    font-size: 0.8rem; min-height: 1.2em;
-    margin-bottom: 10px; transition: color 0.2s;
+  .tut-story-path-label.visible { opacity: 1; }
+  .tut-story-outcome {
+    font-size: 0.85rem; line-height: 1.6;
+    padding: 12px 14px; margin-top: 12px;
+    border-left: 2px solid var(--accent);
+    opacity: 0; transform: translateY(6px);
+    transition: opacity 0.35s, transform 0.35s;
+    color: var(--fg);
   }
-  .tut-quiz-feedback.tut-fb-wrong { color: var(--code-err, #f7768e); }
-  .tut-quiz-feedback.tut-fb-ok { color: var(--accent); }
+  .tut-story-outcome.visible { opacity: 1; transform: translateY(0); }
+  .tut-story-outcome.outcome-good { border-color: var(--accent); }
+  .tut-story-outcome.outcome-bad { border-color: var(--code-err, #f7768e); color: var(--code-err, #f7768e); }
+  .tut-story-reset {
+    font-size: 0.75rem; color: var(--muted);
+    background: none; border: none; cursor: pointer;
+    font-family: inherit; padding: 0; margin-top: 10px;
+    opacity: 0.6; transition: opacity 0.15s;
+  }
+  .tut-story-reset:hover { opacity: 1; }
 
-  /* ── SCREEN 4: slider / if-else ── */
+  /* SCREEN 4: slider / if-else */
   .tut-if-code {
     background: var(--code-bg, var(--bg));
     border: 1px solid var(--border);
@@ -313,33 +313,32 @@
     width: 14px; height: 14px; border-radius: 0;
     background: var(--accent); cursor: pointer;
   }
-  .tut-branches {
-    display: flex; gap: 16px; margin-bottom: 18px;
+  /* story output for screen 4 */
+  .tut-story-output {
+    border: 1px solid var(--border);
+    padding: 16px 20px; margin-bottom: 18px;
+    min-height: 60px; position: relative;
+    background: var(--code-bg, var(--bg));
+    transition: border-color 0.3s;
   }
-  .tut-branch {
-    flex: 1; border: 1px solid var(--border);
-    padding: 14px 16px; text-align: center;
-    font-size: 0.85rem; transition: all 0.3s ease;
-    color: var(--muted);
-  }
-  .tut-branch.tut-branch-active {
+  .tut-story-output.active-win {
     border-color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 8%, transparent);
-    color: var(--fg);
-    box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 20%, transparent);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 18%, transparent);
   }
-  .tut-branch.tut-branch-inactive { opacity: 0.3; }
-  .tut-branch-label {
-    display: block; font-size: 0.72rem;
-    color: var(--muted); margin-bottom: 6px;
-    letter-spacing: 0.08em; text-transform: uppercase;
+  .tut-story-output.active-lose {
+    border-color: var(--code-err, #f7768e);
   }
-  .tut-branch.tut-branch-active .tut-branch-label { color: var(--accent); }
-  .tut-branch-code {
-    font-size: 0.9rem; font-weight: 700;
+  .tut-story-line {
+    font-size: 0.9rem; color: var(--fg);
+    opacity: 0; transform: translateY(4px);
+    transition: opacity 0.3s, transform 0.3s;
+    line-height: 1.6;
   }
+  .tut-story-line.visible { opacity: 1; transform: translateY(0); }
+  .tut-story-tag-win { color: var(--accent); font-weight: 700; }
+  .tut-story-tag-lose { color: var(--code-err, #f7768e); font-weight: 700; }
 
-  /* ── SCREEN 5: powers ── */
+  /* SCREEN 5: powers */
   .tut-power-demo {
     border: 1px solid var(--border);
     padding: 14px 18px; margin-bottom: 18px;
@@ -391,8 +390,34 @@
   }
   .tut-power-note span { color: var(--accent); }
 
-  /* ── SCREEN 6: starter cards ── */
-  #tut-s6 .tut-step-wrap { max-width: 700px; }
+  /* SCREEN 6 (new): edit code */
+  .tut-editcode-box {
+    border: 1px solid var(--accent);
+    padding: 18px 22px; margin-bottom: 18px;
+    background: color-mix(in srgb, var(--accent) 5%, transparent);
+    display: flex; align-items: center; gap: 14px;
+    box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 14%, transparent);
+  }
+  .tut-editcode-val {
+    font-size: 1.15rem; font-weight: 700;
+    color: var(--accent); letter-spacing: 0.06em;
+    flex: 1;
+  }
+  .tut-editcode-copy {
+    background: transparent; border: 1px solid var(--accent);
+    color: var(--accent); font-family: inherit; font-size: 0.75rem;
+    padding: 4px 10px; cursor: pointer;
+    transition: background 0.15s, color 0.15s; flex-shrink: 0;
+  }
+  .tut-editcode-copy:hover { background: var(--accent); color: var(--bg); }
+  .tut-editcode-note {
+    font-size: 0.8rem; color: var(--muted);
+    margin-bottom: 8px; line-height: 1.5;
+  }
+  .tut-editcode-note strong { color: var(--fg); }
+
+  /* SCREEN 7: starter cards */
+  #tut-s7 .tut-step-wrap { max-width: 700px; }
   .tut-starters-grid {
     display: grid; grid-template-columns: 1fr 1fr;
     gap: 12px; margin-bottom: 12px;
@@ -468,7 +493,7 @@
   @media (max-width: 540px) {
     .tut-starters-grid { grid-template-columns: 1fr; }
     .tut-starter-card.tut-starter-blank { grid-column: 1; }
-    .tut-branches { flex-direction: column; }
+    .tut-story-choices { flex-direction: column; }
     .tut-powers-grid { gap: 6px; }
   }
 </style>
@@ -484,6 +509,7 @@
     <div class="tut-dot" data-i="2"></div>
     <div class="tut-dot" data-i="3"></div>
     <div class="tut-dot" data-i="4"></div>
+    <div class="tut-dot" data-i="5"></div>
   </div>
 
   <!-- SCREEN 0: experience check -->
@@ -501,7 +527,7 @@
         <span class="tut-card-symbol" style="top:10px;right:14px;animation-delay:0.8s">?</span>
         <span class="tut-card-symbol" style="bottom:12px;left:10px;animation-delay:2.5s">?</span>
         <span class="tut-choice-title">new to this</span>
-        <span class="tut-choice-desc">walk me through it — takes about 2 minutes</span>
+        <span class="tut-choice-desc">walk me through it - takes about 2 minutes</span>
       </button>
     </div>
   </div>
@@ -509,21 +535,25 @@
   <!-- SCREEN 1: welcome -->
   <div class="tut-screen" id="tut-s1">
     <div class="tut-step-wrap">
-      <div class="tut-step-tag">01 / 05</div>
+      <div class="tut-step-tag">01 / 06</div>
       <div class="tut-heading" id="tut-s1-heading"></div>
       <div class="tut-body" id="tut-s1-body" style="opacity:0;transition:opacity 0.5s"></div>
-      <div class="tut-code" id="tut-s1-code" style="opacity:0;transition:opacity 0.4s"><span class="lh-cmt">-- this is what a game looks like</span>
-<span class="lh-kw2">local</span> name <span class="lh-op">=</span> <span class="lh-arcade">io</span>.read(<span class="lh-str">"your name: "</span>)
-<span class="lh-builtin">print</span>(<span class="lh-str">"hi "</span> <span class="lh-op">..</span> name <span class="lh-op">..</span> <span class="lh-str">"!"</span>)
-<span class="lh-arcade">sound</span>.win()</div>
-      <button class="tut-btn" id="tut-s1-next">next →</button>
+      <div id="tut-s1-game-preview" style="opacity:0;transition:opacity 0.4s;margin-bottom:20px">
+        <div style="border:1px solid var(--border);background:var(--code-bg,var(--bg));padding:12px 16px;font-size:0.82rem;color:var(--muted);margin-bottom:8px">
+          <span style="color:var(--accent)">THE CAVE</span><br>
+          you stand at the entrance of a dark cave.<br>
+          <span style="opacity:0.6">go [i]nside or [l]eave?</span> <span id="tut-s1-cursor-demo" style="display:inline-block;width:2px;height:0.9em;background:var(--accent);vertical-align:text-bottom;animation:tut-blink 0.9s step-end infinite"></span>
+        </div>
+        <div style="font-size:0.75rem;color:var(--muted);text-align:right;letter-spacing:0.05em">a story game you could write today</div>
+      </div>
+      <button class="tut-btn" id="tut-s1-next">let's go →</button>
     </div>
   </div>
 
   <!-- SCREEN 2: first line -->
   <div class="tut-screen" id="tut-s2">
     <div class="tut-step-wrap">
-      <div class="tut-step-tag">02 / 05</div>
+      <div class="tut-step-tag">02 / 06</div>
       <div class="tut-heading">your first program</div>
       <div class="tut-body">Lua reads almost like English. this is all you need to say hello:</div>
       <div class="tut-code"><span class="lh-builtin">print</span>(<span class="lh-str">"hello!"</span>)</div>
@@ -544,64 +574,52 @@
     </div>
   </div>
 
-  <!-- SCREEN 3: variables -->
+  <!-- SCREEN 3: story builder (was variables quiz) -->
   <div class="tut-screen" id="tut-s3">
     <div class="tut-step-wrap">
-      <div class="tut-step-tag">03 / 05</div>
-      <div class="tut-heading">storing things</div>
-      <div class="tut-body">variables hold values — like labeled boxes. pick the right answer:</div>
+      <div class="tut-step-tag">03 / 06</div>
+      <div class="tut-heading">pick a path</div>
+      <div class="tut-body">your game reacts to what the player does. click a choice and see what happens:</div>
 
-      <div id="tut-q1">
-        <div class="tut-quiz-prompt">a player's score is a number:</div>
-        <div class="tut-quiz-code"><span class="lh-kw2">local</span> score <span class="lh-op">=</span> <span class="tut-quiz-blank">&nbsp;?&nbsp;</span></div>
-        <div class="tut-options">
-          <button class="tut-opt" data-q="1" data-val="str">"10"</button>
-          <button class="tut-opt" data-q="1" data-val="num">10</button>
-          <button class="tut-opt" data-q="1" data-val="word">ten</button>
+      <div class="tut-story-scene" id="tut-story-scene">
+        <div class="tut-story-path-label" id="tut-story-path-label"></div>
+        <div class="tut-story-text" id="tut-story-text">you stand at the edge of a dark forest. the wind picks up. something stirs.</div>
+        <div class="tut-story-choices" id="tut-story-choices">
+          <button class="tut-story-btn" data-path="enter">enter the forest</button>
+          <button class="tut-story-btn" data-path="wait">wait and listen</button>
+          <button class="tut-story-btn" data-path="run">run back to town</button>
         </div>
-        <div class="tut-quiz-feedback" id="tut-q1-fb"></div>
+        <div class="tut-story-outcome" id="tut-story-outcome"></div>
       </div>
 
-      <div id="tut-q2" style="display:none">
-        <div class="tut-quiz-prompt">a player's name is text:</div>
-        <div class="tut-quiz-code"><span class="lh-kw2">local</span> name <span class="lh-op">=</span> <span class="tut-quiz-blank">&nbsp;?&nbsp;</span></div>
-        <div class="tut-options">
-          <button class="tut-opt" data-q="2" data-val="str">"Alice"</button>
-          <button class="tut-opt" data-q="2" data-val="bare">Alice</button>
-          <button class="tut-opt" data-q="2" data-val="num">123</button>
-        </div>
-        <div class="tut-quiz-feedback" id="tut-q2-fb"></div>
+      <div id="tut-s3-note" style="display:none;font-size:0.8rem;color:var(--muted);margin-bottom:14px;line-height:1.6">
+        each choice runs different code. that's it - that's how story games work.
+        in Lua you write: <span style="color:var(--accent);font-weight:600">if choice == "i" then ... else ... end</span>
       </div>
-
-      <button class="tut-btn" id="tut-s3-next" style="display:none;margin-top:8px">continue →</button>
+      <button class="tut-story-reset" id="tut-story-reset" style="display:none">try another path</button>
+      <br id="tut-s3-br" style="display:none">
+      <button class="tut-btn" id="tut-s3-next" style="display:none;margin-top:12px">continue →</button>
     </div>
   </div>
 
-  <!-- SCREEN 4: if/else -->
+  <!-- SCREEN 4: if/else with dramatic story output -->
   <div class="tut-screen" id="tut-s4">
     <div class="tut-step-wrap">
-      <div class="tut-step-tag">04 / 05</div>
-      <div class="tut-heading">making decisions</div>
-      <div class="tut-body">your game can take different paths based on what's happening. drag the slider and watch:</div>
-      <div class="tut-if-code" id="tut-if-code"><span class="lh-kw2">local</span> score <span class="lh-op">=</span> <span class="lh-num" id="tut-score-val">7</span>
-<span class="lh-kw">if</span> score <span class="lh-op">&gt;</span> <span class="lh-num">5</span> <span class="lh-kw">then</span>
-  <span class="lh-builtin">print</span>(<span class="lh-str">"you win!"</span>)
+      <div class="tut-step-tag">04 / 06</div>
+      <div class="tut-heading">the code behind it</div>
+      <div class="tut-body">your game checks values and branches. drag the slider - watch the story change:</div>
+      <div class="tut-if-code" id="tut-if-code"><span class="lh-kw2">local</span> health <span class="lh-op">=</span> <span class="lh-num" id="tut-score-val">70</span>
+<span class="lh-kw">if</span> health <span class="lh-op">&gt;</span> <span class="lh-num">50</span> <span class="lh-kw">then</span>
+  <span class="lh-builtin">print</span>(<span class="lh-str">"you push through the pain and survive."</span>)
 <span class="lh-kw">else</span>
-  <span class="lh-builtin">print</span>(<span class="lh-str">"try again"</span>)
+  <span class="lh-builtin">print</span>(<span class="lh-str">"your wounds are too deep. game over."</span>)
 <span class="lh-kw">end</span></div>
       <div class="tut-slider-wrap">
-        <div class="tut-slider-label">score = <span id="tut-slider-disp">7</span></div>
-        <input type="range" class="tut-slider" id="tut-slider" min="0" max="10" value="7">
+        <div class="tut-slider-label">health = <span id="tut-slider-disp">70</span></div>
+        <input type="range" class="tut-slider" id="tut-slider" min="0" max="100" value="70">
       </div>
-      <div class="tut-branches">
-        <div class="tut-branch" id="tut-branch-win">
-          <span class="tut-branch-label">score &gt; 5</span>
-          <span class="tut-branch-code">"you win!"</span>
-        </div>
-        <div class="tut-branch" id="tut-branch-lose">
-          <span class="tut-branch-label">score &lt;= 5</span>
-          <span class="tut-branch-code">"try again"</span>
-        </div>
+      <div class="tut-story-output" id="tut-s4-output">
+        <div class="tut-story-line" id="tut-s4-line"></div>
       </div>
       <button class="tut-btn" id="tut-s4-next">continue →</button>
     </div>
@@ -610,33 +628,33 @@
   <!-- SCREEN 5: powers -->
   <div class="tut-screen" id="tut-s5">
     <div class="tut-step-wrap">
-      <div class="tut-step-tag">05 / 05</div>
+      <div class="tut-step-tag">05 / 06</div>
       <div class="tut-heading">special powers</div>
       <div class="tut-body">the arcade gives you functions that normal Lua doesn't have. click each one:</div>
       <div class="tut-power-demo" id="tut-power-demo">the quick brown fox</div>
       <div class="tut-powers-grid">
         <button class="tut-power-card" data-power="sleep">
-          <span class="tut-power-check">✓</span>
+          <span class="tut-power-check">&#10003;</span>
           <span class="tut-power-name">sleep()</span>
           <span class="tut-power-desc">pause for ms</span>
         </button>
         <button class="tut-power-card" data-power="clear">
-          <span class="tut-power-check">✓</span>
+          <span class="tut-power-check">&#10003;</span>
           <span class="tut-power-name">clear()</span>
           <span class="tut-power-desc">wipe terminal</span>
         </button>
         <button class="tut-power-card" data-power="colored">
-          <span class="tut-power-check">✓</span>
+          <span class="tut-power-check">&#10003;</span>
           <span class="tut-power-name">colored()</span>
           <span class="tut-power-desc">add color to text</span>
         </button>
         <button class="tut-power-card" data-power="sound">
-          <span class="tut-power-check">✓</span>
+          <span class="tut-power-check">&#10003;</span>
           <span class="tut-power-name">sound.win()</span>
           <span class="tut-power-desc">play sounds</span>
         </button>
         <button class="tut-power-card" data-power="io">
-          <span class="tut-power-check">✓</span>
+          <span class="tut-power-check">&#10003;</span>
           <span class="tut-power-name">io.read()</span>
           <span class="tut-power-desc">ask for input</span>
         </button>
@@ -646,11 +664,28 @@
     </div>
   </div>
 
-  <!-- SCREEN 6: starter picker -->
+  <!-- SCREEN 6: edit code -->
   <div class="tut-screen" id="tut-s6">
     <div class="tut-step-wrap">
+      <div class="tut-step-tag">06 / 06</div>
+      <div class="tut-heading">one more thing</div>
+      <div class="tut-body">the arcade has no accounts. when you submit a game, you get a unique <strong>edit code</strong>. this is the only way to edit or delete your game later.</div>
+      <div class="tut-editcode-box">
+        <span class="tut-editcode-val" id="tut-editcode-demo">a3f9b-2c81d</span>
+        <button class="tut-editcode-copy" id="tut-editcode-copy-demo">copy</button>
+      </div>
+      <div class="tut-editcode-note">
+        <strong>save it somewhere</strong> - it won't be shown again. no email, no password - just this code.
+      </div>
+      <button class="tut-btn" id="tut-s6-next" style="margin-top:8px">pick a starter →</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 7: starter picker -->
+  <div class="tut-screen" id="tut-s7">
+    <div class="tut-step-wrap">
       <div class="tut-heading">you're ready.</div>
-      <div class="tut-body">pick a starting point — you can change everything once you're in the editor.</div>
+      <div class="tut-body">pick a starting point - you can change everything once you're in the editor.</div>
       <div class="tut-starters-grid">
         <button class="tut-starter-card" data-starter="dice">
           <div class="tut-preview" id="tut-prev-dice"><span style="font-size:1.4rem;color:var(--accent)">?</span></div>
@@ -684,7 +719,7 @@
           <div class="tut-preview" id="tut-prev-blank" style="height:40px"><span class="tut-cursor"></span></div>
           <div class="tut-starter-info">
             <span class="tut-starter-name">blank slate</span>
-            <span class="tut-starter-hint">start from scratch — just a comment to get you going</span>
+            <span class="tut-starter-hint">start from scratch - just a comment to get you going</span>
           </div>
         </button>
       </div>
@@ -696,7 +731,7 @@
 
 <script>
 (function() {
-  // ── redirect if already seen ──
+  // redirect if already seen
   try {
     var seen = localStorage.getItem('arcade_intro');
     if (seen === 'expert' || seen === 'done') {
@@ -705,7 +740,7 @@
     }
   } catch(e) {}
 
-  // ── canvas background: floating Lua fragments ──
+  // canvas background: floating Lua fragments
   var canvas = document.getElementById('tut-canvas');
   var ctx = canvas.getContext('2d');
   var FRAGS = [
@@ -764,7 +799,7 @@
   }
   drawCanvas();
 
-  // ── particle burst ──
+  // particle burst
   function burst(x, y, count) {
     count = count || 16;
     var accent = getAccent();
@@ -786,7 +821,7 @@
     }
   }
 
-  // ── screen management ──
+  // screen management
   var currentScreen = 0;
   var allScreens = [
     document.getElementById('tut-s0'),
@@ -796,6 +831,7 @@
     document.getElementById('tut-s4'),
     document.getElementById('tut-s5'),
     document.getElementById('tut-s6'),
+    document.getElementById('tut-s7'),
   ];
 
   var progressBar = document.getElementById('tut-progress');
@@ -803,15 +839,15 @@
   var dotsEl      = document.getElementById('tut-dots');
   var dots        = dotsEl.querySelectorAll('.tut-dot');
 
-  // progress = 0% at s0, then 20-100% for s1-s5, hidden at s6
+  // progress = 0% at s0, then steps for s1-s6, hidden at s7
   function updateUI(idx) {
-    // skip & dots: only on steps 1-5
-    skipBtn.style.display  = (idx >= 1 && idx <= 5) ? '' : 'none';
-    dotsEl.style.display   = (idx >= 1 && idx <= 5) ? '' : 'none';
-    // progress bar: steps 1-5 → 20%..100%
-    if (idx >= 1 && idx <= 5) {
-      progressBar.style.width = ((idx / 5) * 100) + '%';
-    } else if (idx === 6) {
+    // skip & dots: only on steps 1-6
+    skipBtn.style.display  = (idx >= 1 && idx <= 6) ? '' : 'none';
+    dotsEl.style.display   = (idx >= 1 && idx <= 6) ? '' : 'none';
+    // progress bar: steps 1-6
+    if (idx >= 1 && idx <= 6) {
+      progressBar.style.width = ((idx / 6) * 100) + '%';
+    } else if (idx === 7) {
       progressBar.style.width = '100%';
     } else {
       progressBar.style.width = '0%';
@@ -837,7 +873,7 @@
       next.classList.add('tut-active');
       updateUI(idx);
       if (idx === 1) startScreen1();
-      if (idx === 6) startScreen6();
+      if (idx === 7) startScreen7();
     }, 260);
   }
 
@@ -845,7 +881,7 @@
   allScreens[0].classList.add('tut-active');
   updateUI(0);
 
-  // ── SCREEN 0 ──
+  // SCREEN 0
   document.getElementById('tut-expert-btn').addEventListener('click', function(e) {
     try { localStorage.setItem('arcade_intro', 'expert'); } catch(ex) {}
     window.location.href = '/arcade/editor/';
@@ -857,14 +893,14 @@
     goTo(1);
   });
 
-  // ── SCREEN 1: typewriter ──
+  // SCREEN 1: typewriter + game preview
   function startScreen1() {
     var headEl = document.getElementById('tut-s1-heading');
     var bodyEl = document.getElementById('tut-s1-body');
-    var codeEl = document.getElementById('tut-s1-code');
+    var previewEl = document.getElementById('tut-s1-game-preview');
     headEl.innerHTML = '';
     bodyEl.style.opacity = '0';
-    codeEl.style.opacity = '0';
+    previewEl.style.opacity = '0';
 
     var text = 'welcome.';
     var i = 0;
@@ -879,9 +915,9 @@
         clearInterval(tw);
         setTimeout(function() {
           cursor.remove();
-          bodyEl.textContent = 'the arcade is a collection of tiny games that run in the browser terminal. you\'re about to make one.\n\nit\'s going to be fine.';
+          bodyEl.textContent = 'the arcade is a collection of tiny games - story adventures, quizzes, puzzles - that run in the browser terminal.\n\nyou\'re about to make one.';
           bodyEl.style.opacity = '1';
-          setTimeout(function() { codeEl.style.opacity = '1'; }, 400);
+          setTimeout(function() { previewEl.style.opacity = '1'; }, 400);
         }, 200);
       }
     }, 80);
@@ -891,7 +927,7 @@
     goTo(2);
   });
 
-  // ── SCREEN 2: run demo ──
+  // SCREEN 2: run demo
   var s2ran = false;
   document.getElementById('tut-run-btn').addEventListener('click', function() {
     if (s2ran) return;
@@ -923,94 +959,115 @@
           }, 400);
         }
       }, 60);
-      btn.textContent = '▶ run it';
+      btn.textContent = '&#9654; run it';
     }, 400);
   });
 
   document.getElementById('tut-s2-next').addEventListener('click', function() { goTo(3); });
 
-  // ── SCREEN 3: quiz ──
-  var q1done = false, q2done = false;
+  // SCREEN 3: story builder
+  var storyPaths = {
+    enter: {
+      label: 'you chose: enter the forest',
+      text: 'branches snap underfoot. eyes gleam in the dark. then - a clearing, and a chest of gold.',
+      type: 'good',
+      display: 'you found treasure!'
+    },
+    wait: {
+      label: 'you chose: wait and listen',
+      text: 'you stand perfectly still. the rustling fades. a fox trots past, ignoring you entirely.',
+      type: 'good',
+      display: 'nothing happened - you\'re safe.'
+    },
+    run: {
+      label: 'you chose: run back to town',
+      text: 'you sprint down the path. behind you, a branch cracks. you don\'t look back. smart.',
+      type: 'neutral',
+      display: 'you made it back.'
+    }
+  };
+  var storyChosen = false;
+  var storiesSeen = 0;
 
-  document.querySelectorAll('.tut-opt').forEach(function(btn) {
+  document.querySelectorAll('.tut-story-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
-      var q = this.getAttribute('data-q');
-      var val = this.getAttribute('data-val');
-      var fb = document.getElementById('tut-q' + q + '-fb');
-      var opts = document.querySelectorAll('[data-q="' + q + '"]');
+      if (storyChosen) return;
+      storyChosen = true;
+      var path = this.getAttribute('data-path');
+      var data = storyPaths[path];
+      var r = this.getBoundingClientRect();
+      burst(r.left + r.width / 2, r.top + r.height / 2, 10);
 
-      if (q === '1') {
-        if (q1done) return;
-        if (val === 'num') {
-          q1done = true;
-          this.classList.add('tut-opt-correct');
-          fb.textContent = 'exactly! numbers go without quotes';
-          fb.className = 'tut-quiz-feedback tut-fb-ok';
-          opts.forEach(function(o) { o.disabled = true; });
-          var r = this.getBoundingClientRect();
-          burst(r.left + r.width / 2, r.top + r.height / 2, 12);
-          setTimeout(function() {
-            document.getElementById('tut-q2').style.display = 'block';
-          }, 500);
-        } else {
-          fb.textContent = 'not quite — numbers don\'t use quotes';
-          fb.className = 'tut-quiz-feedback tut-fb-wrong';
-          var self = this;
-          this.classList.add('tut-opt-wrong');
-          setTimeout(function() { self.classList.remove('tut-opt-wrong'); }, 400);
-        }
-      } else {
-        if (q2done) return;
-        if (val === 'str') {
-          q2done = true;
-          this.classList.add('tut-opt-correct');
-          fb.textContent = 'text always lives inside quotes';
-          fb.className = 'tut-quiz-feedback tut-fb-ok';
-          opts.forEach(function(o) { o.disabled = true; });
-          var r = this.getBoundingClientRect();
-          burst(r.left + r.width / 2, r.top + r.height / 2, 12);
-          document.getElementById('tut-s3-next').style.display = 'inline-block';
-        } else {
-          fb.textContent = 'text always needs to be inside quotes';
-          fb.className = 'tut-quiz-feedback tut-fb-wrong';
-          var self = this;
-          this.classList.add('tut-opt-wrong');
-          setTimeout(function() { self.classList.remove('tut-opt-wrong'); }, 400);
-        }
-      }
+      this.classList.add('tut-story-chosen');
+      document.querySelectorAll('.tut-story-btn').forEach(function(b) { b.disabled = true; });
+
+      var labelEl = document.getElementById('tut-story-path-label');
+      labelEl.textContent = data.label;
+      labelEl.classList.add('visible');
+
+      var outcomeEl = document.getElementById('tut-story-outcome');
+      outcomeEl.textContent = data.text;
+      outcomeEl.className = 'tut-story-outcome visible ' + (data.type === 'good' ? 'outcome-good' : '');
+
+      storiesSeen++;
+      setTimeout(function() {
+        document.getElementById('tut-s3-note').style.display = 'block';
+        document.getElementById('tut-story-reset').style.display = 'inline';
+        document.getElementById('tut-s3-br').style.display = 'inline';
+        document.getElementById('tut-s3-next').style.display = 'inline-block';
+      }, 600);
+    });
+  });
+
+  document.getElementById('tut-story-reset').addEventListener('click', function() {
+    storyChosen = false;
+    var labelEl = document.getElementById('tut-story-path-label');
+    labelEl.textContent = '';
+    labelEl.classList.remove('visible');
+    var outcomeEl = document.getElementById('tut-story-outcome');
+    outcomeEl.className = 'tut-story-outcome';
+    outcomeEl.textContent = '';
+    document.querySelectorAll('.tut-story-btn').forEach(function(b) {
+      b.disabled = false;
+      b.classList.remove('tut-story-chosen');
     });
   });
 
   document.getElementById('tut-s3-next').addEventListener('click', function() { goTo(4); });
 
-  // ── SCREEN 4: slider ──
+  // SCREEN 4: slider with story output
   var slider = document.getElementById('tut-slider');
   var scoreValEl = document.getElementById('tut-score-val');
   var sliderDisp = document.getElementById('tut-slider-disp');
-  var branchWin  = document.getElementById('tut-branch-win');
-  var branchLose = document.getElementById('tut-branch-lose');
+  var s4Output = document.getElementById('tut-s4-output');
+  var s4Line   = document.getElementById('tut-s4-line');
+  var s4SliderMoved = false;
 
-  function updateBranches(val) {
+  function updateStoryOutput(val) {
     scoreValEl.textContent = val;
     sliderDisp.textContent = val;
-    if (val > 5) {
-      branchWin.classList.add('tut-branch-active');
-      branchWin.classList.remove('tut-branch-inactive');
-      branchLose.classList.remove('tut-branch-active');
-      branchLose.classList.add('tut-branch-inactive');
-    } else {
-      branchLose.classList.add('tut-branch-active');
-      branchLose.classList.remove('tut-branch-inactive');
-      branchWin.classList.remove('tut-branch-active');
-      branchWin.classList.add('tut-branch-inactive');
-    }
+    s4Line.classList.remove('visible');
+    var isWin = val > 50;
+    setTimeout(function() {
+      if (isWin) {
+        s4Output.className = 'tut-story-output active-win';
+        s4Line.innerHTML = '<span class="tut-story-tag-win">you push through the pain and survive.</span>';
+      } else {
+        s4Output.className = 'tut-story-output active-lose';
+        s4Line.innerHTML = '<span class="tut-story-tag-lose">your wounds are too deep. game over.</span>';
+      }
+      s4Line.classList.add('visible');
+    }, 60);
   }
 
-  updateBranches(7);
-  slider.addEventListener('input', function() { updateBranches(parseInt(this.value)); });
+  updateStoryOutput(70);
+  slider.addEventListener('input', function() {
+    s4SliderMoved = true;
+    updateStoryOutput(parseInt(this.value));
+  });
   document.getElementById('tut-s4-next').addEventListener('click', function() { goTo(5); });
 
-  // ── SCREEN 5: powers ──
+  // SCREEN 5: powers
   var powersUsed = {};
   var demoEl = document.getElementById('tut-power-demo');
   var powerCountEl = document.getElementById('tut-power-count');
@@ -1124,14 +1181,28 @@
     if (!this.disabled) goTo(6);
   });
 
-  // ── skip button ──
+  // SCREEN 6: edit code
+  document.getElementById('tut-editcode-copy-demo').addEventListener('click', function() {
+    var btn = this;
+    var code = document.getElementById('tut-editcode-demo').textContent;
+    navigator.clipboard.writeText(code).then(function() {
+      btn.textContent = 'copied!';
+      setTimeout(function() { btn.textContent = 'copy'; }, 1800);
+    }).catch(function() {});
+    var r = btn.getBoundingClientRect();
+    burst(r.left + r.width / 2, r.top + r.height / 2, 10);
+  });
+
+  document.getElementById('tut-s6-next').addEventListener('click', function() { goTo(7); });
+
+  // skip button
   skipBtn.addEventListener('click', function(e) {
     var r = this.getBoundingClientRect();
     burst(r.left + r.width / 2, r.top + r.height / 2, 8);
-    goTo(6);
+    goTo(7);
   });
 
-  // ── SCREEN 6: starter cards + animated previews ──
+  // SCREEN 7: starter cards + animated previews
   var previewIntervals = [];
 
   var STARTER_CODES = {
@@ -1204,7 +1275,7 @@
     blank: '-- your game starts here\n',
   };
 
-  function startScreen6() {
+  function startScreen7() {
     // stop any running intervals
     previewIntervals.forEach(clearInterval);
     previewIntervals = [];
@@ -1214,7 +1285,6 @@
     // dice preview
     var diceEl = document.getElementById('tut-prev-dice');
     var diceFaces = ['1', '2', '3', '4', '5', '6'];
-    var diceIdx = 0;
     previewIntervals.push(setInterval(function() {
       diceEl.innerHTML = '<span style="color:var(--muted);font-size:0.75rem">rolling...</span>';
       setTimeout(function() {
@@ -1231,7 +1301,7 @@
       if (guesserState === 0) {
         guessEl.innerHTML = 'guess: <span style="color:var(--accent);font-weight:700">' + guesserNum + '</span>';
       } else if (guesserState === 1) {
-        var dir = Math.random() > 0.5 ? 'too high ↑' : 'too low ↓';
+        var dir = Math.random() > 0.5 ? 'too high &uarr;' : 'too low &darr;';
         var col = dir.indexOf('high') >= 0 ? 'var(--code-num,#e0af68)' : '#7dcfff';
         guessEl.innerHTML = '<span style="color:' + col + '">' + dir + '</span>';
         guesserNum = Math.floor(Math.random() * 10) + 1;
