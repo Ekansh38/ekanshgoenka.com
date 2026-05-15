@@ -139,12 +139,24 @@ module.exports = async (req, res) => {
 
       const patch = {};
       if (newCode)              patch.code  = newCode.trim().slice(0, MAX_CODE);
-      if (newTitle)             patch.title = newTitle.trim().slice(0, MAX_TITLE);
+      if (newTitle) {
+        const trimTitle = newTitle.trim().slice(0, MAX_TITLE);
+        patch.title = trimTitle;
+        const newId = slugify(trimTitle);
+        if (newId && newId !== id) {
+          // check for conflict (excluding current game)
+          if (all.some(g => g.id === newId)) {
+            return res.status(409).json({ error: `a game with id "${newId}" already exists` });
+          }
+          patch.id = newId;
+        }
+      }
       if (newDesc !== undefined) patch.desc  = newDesc.trim().slice(0, MAX_DESC);
 
+      const newIdVal = patch.id;
       const updated = all.map(g => g.id === id ? { ...g, ...patch } : g);
       await rebuildList(updated);
-      return res.status(200).json({ ok: true });
+      return res.status(200).json({ ok: true, newId: newIdVal || id });
     }
 
     res.status(405).json({ error: 'method not allowed' });

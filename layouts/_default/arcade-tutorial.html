@@ -169,6 +169,15 @@
     overflow-x: auto; white-space: pre;
     tab-size: 2;
   }
+  textarea.tut-code {
+    display: block; width: 100%; box-sizing: border-box;
+    color: var(--fg); font-family: inherit; resize: none;
+    cursor: text; white-space: pre; overflow-x: auto;
+    transition: border-color 0.2s;
+  }
+  textarea.tut-code:focus {
+    outline: none; border-color: var(--accent);
+  }
 
   /* next button */
   .tut-btn {
@@ -555,8 +564,8 @@
     <div class="tut-step-wrap">
       <div class="tut-step-tag">02 / 06</div>
       <div class="tut-heading">your first program</div>
-      <div class="tut-body">Lua reads almost like English. this is all you need to say hello:</div>
-      <div class="tut-code"><span class="lh-builtin">print</span>(<span class="lh-str">"hello!"</span>)</div>
+      <div class="tut-body">Lua reads almost like English. edit the code below and hit run:</div>
+      <textarea class="tut-code" id="tut-s2-code" rows="1" spellcheck="false">print("hello!")</textarea>
       <div class="tut-mini-term">
         <div class="tut-term-bar">
           <div class="tut-term-dot"></div>
@@ -673,6 +682,9 @@
       <div class="tut-editcode-box">
         <span class="tut-editcode-val" id="tut-editcode-demo">a3f9b-2c81d</span>
         <button class="tut-editcode-copy" id="tut-editcode-copy-demo">copy</button>
+      </div>
+      <div class="tut-editcode-note" style="color:var(--muted);font-size:0.75rem;margin-bottom:12px;opacity:0.7">
+        ^ just an example. your real code will look different.
       </div>
       <div class="tut-editcode-note">
         <strong>save it somewhere</strong> - it won't be shown again. no email, no password - just this code.
@@ -928,20 +940,28 @@
   });
 
   // SCREEN 2: run demo
-  var s2ran = false;
+  var s2everRan = false;
   document.getElementById('tut-run-btn').addEventListener('click', function() {
-    if (s2ran) return;
-    s2ran = true;
     var btn = this;
     var out = document.getElementById('tut-term-out');
+    var code = document.getElementById('tut-s2-code').value;
+
+    // extract all print("...") strings from code
+    var lines = [];
+    var re = /print\(\s*["']([^"']*)["']\s*\)/g;
+    var m;
+    while ((m = re.exec(code)) !== null) lines.push(m[1]);
+    if (lines.length === 0) lines = ['(nothing printed)'];
+    var msg = lines.join('\n');
+
     btn.textContent = 'running...';
     btn.disabled = true;
     out.style.fontStyle = 'italic';
     out.textContent = '';
+
     setTimeout(function() {
       out.classList.add('tut-term-active');
       out.style.fontStyle = 'normal';
-      var msg = 'hello!';
       var j = 0;
       var tw = setInterval(function() {
         out.textContent += msg[j];
@@ -952,14 +972,18 @@
           burst(r.left + r.width / 2, r.top + r.height / 2, 14);
           setTimeout(function() {
             out.classList.remove('tut-term-active');
-            var suc = document.getElementById('tut-s2-success');
-            suc.classList.add('tut-visible');
-            var nextBtn = document.getElementById('tut-s2-next');
-            nextBtn.style.display = 'inline-block';
+            btn.disabled = false;
+            btn.textContent = '\u25b6 run it';
+            if (!s2everRan) {
+              s2everRan = true;
+              var suc = document.getElementById('tut-s2-success');
+              suc.classList.add('tut-visible');
+              var nextBtn = document.getElementById('tut-s2-next');
+              nextBtn.style.display = 'inline-block';
+            }
           }, 400);
         }
       }, 60);
-      btn.textContent = '&#9654; run it';
     }, 400);
   });
 
@@ -1043,12 +1067,15 @@
   var s4Line   = document.getElementById('tut-s4-line');
   var s4SliderMoved = false;
 
+  var s4lastWin = null;
   function updateStoryOutput(val) {
     scoreValEl.textContent = val;
     sliderDisp.textContent = val;
-    s4Line.classList.remove('visible');
     var isWin = val > 50;
-    setTimeout(function() {
+    if (isWin !== s4lastWin) {
+      // branch changed — animate the transition
+      s4lastWin = isWin;
+      s4Line.classList.remove('visible');
       if (isWin) {
         s4Output.className = 'tut-story-output active-win';
         s4Line.innerHTML = '<span class="tut-story-tag-win">you push through the pain and survive.</span>';
@@ -1056,8 +1083,8 @@
         s4Output.className = 'tut-story-output active-lose';
         s4Line.innerHTML = '<span class="tut-story-tag-lose">your wounds are too deep. game over.</span>';
       }
-      s4Line.classList.add('visible');
-    }, 60);
+      requestAnimationFrame(function() { s4Line.classList.add('visible'); });
+    }
   }
 
   updateStoryOutput(70);
@@ -1123,16 +1150,16 @@
       var accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
 
       if (power === 'sleep') {
-        demoEl.textContent = 'paused...';
-        demoEl.style.filter = 'saturate(0)';
-        demoEl.style.opacity = '0.5';
+        // show "before sleep" → pause → "after sleep"
+        demoEl.innerHTML = orig + ' <span style="color:var(--muted);font-size:0.75rem">sleep(800)...</span>';
+        demoEl.style.opacity = '0.45';
+        demoEl.style.transition = 'opacity 0.15s';
         setTimeout(function() {
-          demoEl.style.filter = '';
           demoEl.style.opacity = '';
           demoEl.innerHTML = orig;
           demoEl.style.background = accent;
           setTimeout(function() { demoEl.style.background = ''; demoLocked = false; }, 200);
-        }, 700);
+        }, 900);
       } else if (power === 'clear') {
         demoEl.style.background = accent;
         demoEl.style.color = 'var(--bg)';
@@ -1166,13 +1193,19 @@
           demoLocked = false;
         }, 700);
       } else if (power === 'io') {
-        demoEl.innerHTML = 'your name: <input class="tut-demo-input" id="tut-demo-inp" placeholder="type here..." autofocus>';
+        demoEl.innerHTML = 'your name: <input class="tut-demo-input" id="tut-demo-inp" placeholder="type &amp; press Enter" autofocus>';
         var inp = document.getElementById('tut-demo-inp');
-        if (inp) inp.focus();
-        setTimeout(function() {
-          demoEl.innerHTML = orig;
-          demoLocked = false;
-        }, 3000);
+        if (inp) {
+          inp.focus();
+          inp.addEventListener('keydown', function onIoKey(e) {
+            if (e.key === 'Enter') {
+              inp.removeEventListener('keydown', onIoKey);
+              var val = inp.value.trim() || 'stranger';
+              demoEl.innerHTML = 'hello, <span style="color:var(--accent);font-weight:700">' + val + '</span>!';
+              setTimeout(function() { demoEl.innerHTML = orig; demoLocked = false; }, 1400);
+            }
+          });
+        }
       }
     });
   });
