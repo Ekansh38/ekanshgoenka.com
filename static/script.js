@@ -1008,21 +1008,21 @@ function toggleTheme() {
   }
 
   var QUOTES = [
-    '"the best code is no code at all."  — jeff atwood',
-    '"walking on water and developing software from a spec are easy if both are frozen."  — e.v. berard',
-    '"first, solve the problem. then, write the code."  — john johnson',
-    '"make it work, make it right, make it fast."  — kent beck',
-    '"any fool can write code a computer understands. good programmers write code humans understand."  — fowler',
-    '"debugging is twice as hard as writing the code in the first place."  — brian kernighan',
-    '"the most dangerous phrase: \'we\'ve always done it this way\'."  — grace hopper',
-    '"talk is cheap. show me the code."  — linus torvalds',
-    '"programs must be written for people to read, and only incidentally for machines to execute."  — abelson',
-    '"simplicity is the soul of efficiency."  — austin freeman',
-    '"it works on my machine."  — every developer',
-    '"weeks of coding can save you hours of planning."  — unknown',
-    '"a language that doesn\'t affect the way you think about programming is not worth knowing."  — alan perlis',
-    '"the computer was born to solve problems that did not exist before."  — bill gates',
-    '"software is like entropy: it is difficult to grasp, weighs nothing, and obeys the second law of thermodynamics."  — norman augustine',
+    '"the best code is no code at all."  (jeff atwood)',
+    '"walking on water and developing software from a spec are easy if both are frozen."  (e.v. berard)',
+    '"first, solve the problem. then, write the code."  (john johnson)',
+    '"make it work, make it right, make it fast."  (kent beck)',
+    '"any fool can write code a computer understands. good programmers write code humans understand."  (fowler)',
+    '"debugging is twice as hard as writing the code in the first place."  (brian kernighan)',
+    '"the most dangerous phrase: \'we\'ve always done it this way\'."  (grace hopper)',
+    '"talk is cheap. show me the code."  (linus torvalds)',
+    '"programs must be written for people to read, and only incidentally for machines to execute."  (abelson)',
+    '"simplicity is the soul of efficiency."  (austin freeman)',
+    '"it works on my machine."  (every developer)',
+    '"weeks of coding can save you hours of planning."  (unknown)',
+    '"a language that doesn\'t affect the way you think about programming is not worth knowing."  (alan perlis)',
+    '"the computer was born to solve problems that did not exist before."  (bill gates)',
+    '"software is like entropy: it is difficult to grasp, weighs nothing, and obeys the second law of thermodynamics."  (norman augustine)',
   ];
 
   // ── filesystem — populated by Hugo via baseof.html ─────────────────────────
@@ -1128,7 +1128,7 @@ function toggleTheme() {
     ].join('\n'),
 
     bg: [
-      'bg — simulation overview',
+      'bg (simulation overview)',
       '',
       '  bg [life|boids|combo|off]    get/set mode',
       '  speed [life|boids] [0-100]   get/set speed (%)',
@@ -1146,7 +1146,7 @@ function toggleTheme() {
     ].join('\n'),
 
     life: [
-      'life — conway\'s game of life',
+      'life (conway\'s game of life)',
       '',
       '  wipe                     clear grid, stop autofill',
       '  fill                     re-enable autofill',
@@ -1167,7 +1167,7 @@ function toggleTheme() {
     ].join('\n'),
 
     boids: [
-      'boids — flocking simulation',
+      'boids (flocking simulation)',
       '',
       'params:',
       '  boids.n           1–1000   default 120',
@@ -1183,7 +1183,7 @@ function toggleTheme() {
     ].join('\n'),
 
     trail: [
-      'trail — mouse trail (life/combo mode only)',
+      'trail (mouse trail, life/combo mode only)',
       '',
       '  move the cursor over the canvas to plant live cells',
       '  trail cells glow bright and fade back to base opacity',
@@ -1235,7 +1235,7 @@ function toggleTheme() {
     ].join('\n'),
 
     arcade: [
-      'arcade — lua game platform',
+      'arcade (lua game platform)',
       '',
       '  games                   list all games',
       '  play <game-id>          run a game in terminal',
@@ -1999,7 +1999,7 @@ function toggleTheme() {
       if (!t)                    { line(HELP_INDEX,        'term-line-pre'); return; }
       if (HELP_TOPICS[t])        { line(HELP_TOPICS[t],    'term-line-pre'); return; }
       if (HELP_CMDS[t])          { line(HELP_CMDS[t],      'term-line-pre'); return; }
-      line('no help for "' + t + '"  —  try: help', 'term-line-err');
+      line('no help for "' + t + '". try: help', 'term-line-err');
     },
 
     ls: function (args) {
@@ -2315,7 +2315,7 @@ function toggleTheme() {
         if (isNaN(val)) { line('usage: set <param> <value>   (see: params)', 'term-line-err'); return; }
       }
       if (!window.setParam || !window.setParam(key, val))
-        line('unknown param "' + key + '"  —  see: params', 'term-line-err');
+        line('unknown param "' + key + '". see: params', 'term-line-err');
       else
         line(key + ' = ' + val, 'term-line-ok');
     },
@@ -2432,7 +2432,7 @@ function toggleTheme() {
     'default': function (args) {
       if (args.length) { tooMany('default'); return; }
       localStorage.clear();
-      line('all settings cleared — reloading…', 'term-line-ok');
+      line('all settings cleared, reloading…', 'term-line-ok');
       setTimeout(function () { location.reload(); }, 700);
     },
     exit:   function (args) { if (args.length) { tooMany('exit'); return; } close(); },
@@ -2771,8 +2771,9 @@ function toggleTheme() {
           line('─────────────────────────────────────────', 'term-line-pre');
           line('game exited.', 'term-line-ok');
         } else if (_gameResume) {
+          var resume = _gameResume;
           _gameResume = null;
-          step(v);
+          resume(v);
         }
       } else { run(v); }
     } else if (e.key === 'ArrowUp') {
