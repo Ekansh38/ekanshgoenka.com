@@ -748,7 +748,7 @@ body.page #bg-canvas { opacity: 0.25; }
     bottom: 22px;
     right: 175px;
     z-index: 200;
-    font-size: 0.82rem;
+    font-size: 0.95rem;
     font-family: 'JetBrains Mono', monospace;
   }
 
@@ -758,7 +758,7 @@ body.page #bg-canvas { opacity: 0.25; }
     color: var(--muted);
     cursor: pointer;
     font: inherit;
-    font-size: 0.82rem;
+    font-size: 0.95rem;
     padding: 0;
     outline: none;
     transition: color 0.15s;
@@ -783,7 +783,7 @@ body.page #bg-canvas { opacity: 0.25; }
     bottom: 22px;
     right: 22px;
     z-index: 200;
-    font-size: 0.82rem;
+    font-size: 0.95rem;
     font-family: 'JetBrains Mono', monospace;
   }
 
@@ -793,7 +793,7 @@ body.page #bg-canvas { opacity: 0.25; }
     color: var(--muted);
     cursor: pointer;
     font: inherit;
-    font-size: 0.82rem;
+    font-size: 0.95rem;
     padding: 0;
     outline: none;
     transition: color 0.15s;
@@ -845,9 +845,19 @@ body.page #bg-canvas { opacity: 0.25; }
     margin-left: auto;
     font-size: 0.62rem;
     color: var(--muted);
-    opacity: 0.6;
+    opacity: 0.5;
   }
   .tp-item.active .tp-variant { color: var(--accent); opacity: 1; }
+
+  .tp-swatch {
+    margin-left: auto;
+    width: 7px;
+    height: 7px;
+    border-radius: 1px;
+    flex-shrink: 0;
+    opacity: 0.75;
+  }
+  .tp-item.active .tp-swatch { opacity: 1; }
 }
 
 

@@ -893,6 +893,15 @@ function toggleTheme() {
   };
 
   // ── preset picker — shows all presets; applying one switches mode automatically ─
+  var THEME_ACCENTS = {
+    'tokyo-night':      '#7aa2f7',
+    'gruvbox':          '#d79921',
+    'dracula':          '#bd93f9',
+    'rose-pine':        '#b4637a',
+    'github-light':     '#0969da',
+    'papercolor-light': '#005f87'
+  };
+
   function rebuildPresetPicker() {
     var menu = document.getElementById('preset-picker-menu');
     if (!menu) return;
@@ -906,7 +915,10 @@ function toggleTheme() {
       var p = PRESETS[name];
       var btn = document.createElement('button');
       btn.className = 'tp-item' + (activePreset === name ? ' active' : '');
-      btn.innerHTML = '<span class="tp-arrow">▶</span>' + name;
+      var themeTag = p.theme && THEME_ACCENTS[p.theme]
+        ? '<span class="tp-swatch" style="background:' + THEME_ACCENTS[p.theme] + '" title="' + p.theme + '"></span>'
+        : '<span class="tp-variant">any</span>';
+      btn.innerHTML = '<span class="tp-arrow">▶</span>' + name + themeTag;
       btn.addEventListener('click', function () {
         window.applyPreset(name);
         document.getElementById('preset-picker-menu').classList.remove('open');
