@@ -1766,9 +1766,9 @@ function toggleTheme() {
       '}',
       // color: ANSI escape constants
       'color={',
-      '  red="\27[31m", green="\27[32m", yellow="\27[33m",',
-      '  blue="\27[34m", purple="\27[35m", cyan="\27[36m",',
-      '  white="\27[37m", bold="\27[1m", reset="\27[0m"',
+      '  red="\\27[31m", green="\\27[32m", yellow="\\27[33m",',
+      '  blue="\\27[34m", purple="\\27[35m", cyan="\\27[36m",',
+      '  white="\\27[37m", bold="\\27[1m", reset="\\27[0m"',
       '}',
       'function colored(text, col) return col .. tostring(text) .. color.reset end',
       // sound: named presets + raw beep
@@ -2535,8 +2535,8 @@ function toggleTheme() {
 
   // expose for arcade page buttons
   window.termOpen   = open;
-  window.termRun    = function(cmd) { open(); setTimeout(function() { run(cmd); }, 80); };
-  window.termRunLua = function(code) { open(); setTimeout(function() { loadFengari(function() { runLuaGame({ id: '_test_', title: 'test run', author: 'you', code: code }); }); }, 80); };
+  window.termRun    = function(cmd) { output.innerHTML = ''; open(); setTimeout(function() { run(cmd); }, 80); };
+  window.termRunLua = function(code) { output.innerHTML = ''; open(); setTimeout(function() { loadFengari(function() { runLuaGame({ id: '_test_', title: 'test run', author: 'you', code: code }); }); }, 80); };
 
   // ── run a command ───────────────────────────────────────────
   function run(raw) {

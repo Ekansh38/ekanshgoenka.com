@@ -1,8 +1,11 @@
 {{ define "main" }}
-<h1 style="margin-bottom:4px;">arcade</h1>
-<p style="color:var(--muted);margin-bottom:32px;">visitor-submitted lua games. <span id="arc-count" style="color:var(--accent);"></span></p>
+<div class="arc-head">
+  <h1>arcade<span class="arc-cursor">_</span></h1>
+  <p class="arc-tagline">visitor-submitted lua games that run in the terminal</p>
+  <div class="arc-stat-line" id="arc-stat-line"></div>
+</div>
 
-<div id="arc-games"><p style="color:var(--muted)">loading...</p></div>
+<div id="arc-games"><div class="arc-loading-state">fetching games<span class="arc-cursor">_</span></div></div>
 
 <div class="arc-section-header">submit a game</div>
 <div class="arc-form-box">
@@ -12,20 +15,27 @@
       <input id="arc-author" type="text" placeholder="your name" maxlength="50" autocomplete="off" spellcheck="false">
     </div>
     <input id="arc-desc" type="text" placeholder="short description (optional)" maxlength="200" autocomplete="off" spellcheck="false" style="margin-bottom:10px;">
-    <div class="arc-editor">
-      <pre class="arc-editor-hl" id="arc-hl" aria-hidden="true"></pre>
-      <textarea id="arc-code" placeholder="-- lua code here&#10;print('what is your name?')&#10;local name = io.read()&#10;print('hi ' .. name)" rows="14" spellcheck="false" autocomplete="off"></textarea>
+    <div class="arc-editor-wrapper">
+      <div class="arc-editor-bar">
+        <span class="arc-editor-label">LUA</span>
+        <span class="arc-char-count" id="arc-char-count">0 / 8000</span>
+      </div>
+      <div class="arc-editor">
+        <pre class="arc-editor-hl" id="arc-hl" aria-hidden="true"></pre>
+        <textarea id="arc-code" placeholder="-- lua code here&#10;print('what is your name?')&#10;local name = io.read()&#10;print('hi ' .. name)" rows="14" spellcheck="false" autocomplete="off"></textarea>
+      </div>
     </div>
     <input id="arc-hp" type="text" tabindex="-1" autocomplete="off" style="display:none">
     <div class="arc-submit-row">
       <button id="arc-test">test in terminal →</button>
       <button id="arc-submit">submit game →</button>
       <span id="arc-status"></span>
+      <span class="arc-hint">ctrl+enter to submit</span>
     </div>
-    <div id="arc-editcode-box" style="display:none;margin-top:16px;padding:12px;border:1px solid var(--accent);font-size:0.88rem;">
-      <div style="color:var(--muted);margin-bottom:6px;">edit code (save this):</div>
-      <code id="arc-editcode" style="font-size:1rem;letter-spacing:0.05em;color:var(--fg);"></code>
-      <div style="color:var(--muted);margin-top:8px;font-size:0.82rem;">to delete: open the game page and scroll to delete, or terminal: <code>delete &lt;id&gt; &lt;code&gt;</code></div>
+    <div id="arc-editcode-box" style="display:none;margin-top:20px;padding:14px;border:1px solid var(--accent);font-size:0.88rem;">
+      <div style="color:var(--muted);margin-bottom:6px;font-size:0.75rem;letter-spacing:0.08em;">EDIT CODE — save this somewhere</div>
+      <code id="arc-editcode" style="font-size:1.05rem;letter-spacing:0.08em;color:var(--accent);"></code>
+      <div style="color:var(--muted);margin-top:10px;font-size:0.8rem;">to delete: open the game page → delete section, or terminal: <code>delete &lt;id&gt; &lt;code&gt;</code></div>
     </div>
   </div>
 </div>
@@ -139,22 +149,52 @@
 
   document.getElementById('arc-docs-code').innerHTML = highlightLua(DOCS);
 
-  // render cards
+  // animated counter
+  function animateCount(el, target, suffix) {
+    var dur = 500, t0 = performance.now();
+    function tick() {
+      var p = Math.min((performance.now() - t0) / dur, 1);
+      var ease = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(ease * target) + suffix;
+      if (p < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
   function fmt(iso) { var d = new Date(iso); return d.toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}); }
   function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
   function render(games) {
-    var el = document.getElementById('arc-games');
-    var countEl = document.getElementById('arc-count');
-    if (countEl) countEl.textContent = games.length ? games.length + ' game' + (games.length !== 1 ? 's' : '') : '';
-    if (!games.length) { el.innerHTML = '<p style="color:var(--muted)">no games yet. submit one below.</p>'; return; }
-    el.innerHTML = games.map(function(g) {
-      return '<a class="arc-card" href="/arcade/game/?id=' + esc(g.id) + '">'
+    var gamesEl = document.getElementById('arc-games');
+    var statEl  = document.getElementById('arc-stat-line');
+
+    if (!games.length) {
+      if (statEl) statEl.innerHTML = '';
+      gamesEl.innerHTML = '<p style="color:var(--muted);padding:20px 0">no games yet. submit one below.</p>';
+      return;
+    }
+
+    // stat line with animated count
+    if (statEl) {
+      var countSpan = document.createElement('span');
+      countSpan.className = 'arc-stat-val';
+      countSpan.textContent = '0';
+      var suffix = ' game' + (games.length !== 1 ? 's' : '');
+      statEl.innerHTML = '';
+      statEl.appendChild(countSpan);
+      animateCount(countSpan, games.length, suffix);
+    }
+
+    gamesEl.innerHTML = games.map(function(g, i) {
+      return '<a class="arc-card" href="/arcade/game/?id=' + esc(g.id) + '" style="animation-delay:' + (i * 0.045) + 's">'
+        + '<span class="arc-card-num">' + String(i + 1).padStart(2, '0') + '</span>'
+        + '<div class="arc-card-body">'
         + '<div class="arc-card-header">'
         + '<span class="arc-card-title">' + esc(g.title) + '</span>'
-        + '<span class="arc-card-meta">by ' + esc(g.author) + ' · ' + fmt(g.date) + '</span>'
+        + '<span class="arc-card-meta">by ' + esc(g.author) + ' &middot; ' + fmt(g.date) + '</span>'
         + '</div>'
         + (g.desc ? '<div class="arc-card-desc">' + esc(g.desc) + '</div>' : '')
+        + '</div>'
         + '</a>';
     }).join('');
   }
@@ -169,15 +209,31 @@
   // textarea editor
   var ta = document.getElementById('arc-code');
   var hl = document.getElementById('arc-hl');
+  var charCount = document.getElementById('arc-char-count');
+  var MAX_CODE = 8000;
 
   function setCode(code) { ta.value = code; updateHl(); ta.focus(); }
-  function updateHl() { hl.innerHTML = highlightLua(ta.value) + '\n'; hl.scrollTop = ta.scrollTop; }
+  function updateHl() {
+    hl.innerHTML = highlightLua(ta.value) + '\n';
+    hl.scrollTop = ta.scrollTop;
+    var n = ta.value.length;
+    charCount.textContent = n + ' / ' + MAX_CODE;
+    charCount.className = 'arc-char-count' + (n > MAX_CODE ? ' arc-char-over' : n > MAX_CODE * 0.85 ? ' arc-char-warn' : '');
+  }
   ta.addEventListener('input', updateHl);
   ta.addEventListener('scroll', function() { hl.scrollTop = ta.scrollTop; });
   updateHl();
 
   ta.addEventListener('keydown', function(e) {
     var start = ta.selectionStart, end = ta.selectionEnd, val = ta.value;
+
+    // ctrl/cmd + enter → submit
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      document.getElementById('arc-submit').click();
+      return;
+    }
+
     if (e.key === 'Tab') {
       e.preventDefault();
       ta.value = val.slice(0, start) + '  ' + val.slice(end);
@@ -244,7 +300,7 @@
           document.getElementById('arc-author').value = '';
           document.getElementById('arc-desc').value = '';
           setCode('');
-          status.textContent = 'submitted! play it: play ' + data.id;
+          status.textContent = 'submitted! play: play ' + data.id;
           status.style.color = 'var(--accent)';
           document.getElementById('arc-editcode').textContent = data.editCode;
           document.getElementById('arc-editcode-box').style.display = 'block';
