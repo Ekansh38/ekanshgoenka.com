@@ -267,7 +267,7 @@ h3 { color: var(--muted); margin: 28px 0 6px; font-size: 1rem; }
 
 header { margin-bottom: 48px; }
 .header-top { display: flex; justify-content: space-between; align-items: center; }
-.nav { display: flex; gap: 20px; margin-top: 10px; }
+.nav { display: flex; gap: 28px; margin-top: 16px; }
 .nav a {
   color: var(--accent);
   text-decoration: none;
@@ -555,7 +555,7 @@ footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--border
 .footer-links a { color: var(--muted); }
 .footer-links a:hover { color: var(--accent); text-decoration: none; }
 
-.social { display: flex; gap: 20px; margin-top: 8px; }
+.social { display: flex; gap: 26px; margin-top: 14px; }
 .social a { color: var(--fg); font-weight: 700; text-decoration: none; display: inline-block; transition: color 0.15s, transform 0.15s; }
 .social a:hover { color: var(--accent); transform: translate(2px, -2px); }
 .copy-email {
@@ -748,7 +748,7 @@ body.page #bg-canvas { opacity: 0.25; }
     bottom: 22px;
     right: 175px;
     z-index: 200;
-    font-size: 0.72rem;
+    font-size: 0.82rem;
     font-family: 'JetBrains Mono', monospace;
   }
 
@@ -758,7 +758,7 @@ body.page #bg-canvas { opacity: 0.25; }
     color: var(--muted);
     cursor: pointer;
     font: inherit;
-    font-size: 0.72rem;
+    font-size: 0.82rem;
     padding: 0;
     outline: none;
     transition: color 0.15s;
@@ -783,7 +783,7 @@ body.page #bg-canvas { opacity: 0.25; }
     bottom: 22px;
     right: 22px;
     z-index: 200;
-    font-size: 0.72rem;
+    font-size: 0.82rem;
     font-family: 'JetBrains Mono', monospace;
   }
 
@@ -793,7 +793,7 @@ body.page #bg-canvas { opacity: 0.25; }
     color: var(--muted);
     cursor: pointer;
     font: inherit;
-    font-size: 0.72rem;
+    font-size: 0.82rem;
     padding: 0;
     outline: none;
     transition: color 0.15s;
@@ -828,7 +828,7 @@ body.page #bg-canvas { opacity: 0.25; }
     background: none;
     border: none;
     font: inherit;
-    font-size: 0.72rem;
+    font-size: 0.82rem;
     color: var(--muted);
     cursor: pointer;
     text-align: left;

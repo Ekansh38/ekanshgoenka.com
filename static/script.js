@@ -156,13 +156,16 @@ function toggleTheme() {
       var s = MIN_SPEED + Math.random() * (MAX_SPEED - MIN_SPEED);
       boids.push({ x: Math.random()*W, y: Math.random()*H,
                    vx: Math.cos(a)*s,  vy: Math.sin(a)*s,
-                   op: 0.13 + Math.random() * 0.18,     // per-boid opacity 0.13–0.31
-                   wa: Math.random() * Math.PI * 2 });   // wander angle, drifts slowly
+                   op: 0.13 + Math.random() * 0.18,       // per-boid opacity 0.13–0.31
+                   wa: Math.random() * Math.PI * 2,        // wander angle, drifts slowly
+                   pr: PERCEPTION * (0.55 + Math.random() * 0.9),  // per-boid perception radius
+                   ms: MAX_SPEED  * (0.7  + Math.random() * 0.6),  // per-boid max speed
+                   wd: 0.015 + Math.random() * 0.012 });            // per-boid wander drift rate
     }
   }
 
   function updateBoids() {
-    var P2 = PERCEPTION*PERCEPTION, S2 = SEP_DIST*SEP_DIST, SP2 = SPREAD_R*SPREAD_R;
+    var S2 = SEP_DIST*SEP_DIST, SP2 = SPREAD_R*SPREAD_R;
     var sp = (1 + boidsCurrentSpeed / 100 * 19) / 5;
     var i, j, b, o, dx, dy, d2, d, spd, tmp;
 
@@ -182,7 +185,7 @@ function toggleTheme() {
           rpx -= dx/d; rpy -= dy/d; rpc++;
         }
 
-        if (d2 < P2) {
+        if (d2 < b.pr*b.pr) {
           cx += o.x; cy += o.y; cc++;
           ax += o.vx; ay += o.vy; ac++;
           if (d2 < S2 && d2 > 0) {
@@ -195,7 +198,7 @@ function toggleTheme() {
 
       if (sc  > 0) { tmp = clamp2(sx*SEP_W,  sy*SEP_W,  SEP_FORCE); fx += tmp[0]; fy += tmp[1]; }
       if (ac  > 0) {
-        tmp = clamp2(ax/ac, ay/ac, MAX_SPEED);
+        tmp = clamp2(ax/ac, ay/ac, b.ms);
         tmp = clamp2((tmp[0]-b.vx)*ALI_W, (tmp[1]-b.vy)*ALI_W, MAX_FORCE);
         fx += tmp[0]; fy += tmp[1];
       }
@@ -207,11 +210,11 @@ function toggleTheme() {
       if (b.y < MARGIN)   fy += TURN*(1-b.y/MARGIN);
       if (b.y > H-MARGIN) fy -= TURN*(1-(H-b.y)/MARGIN);
 
-      b.wa += (Math.random() - 0.5) * 0.22;  // slowly drift wander angle
+      b.wa += (Math.random() - 0.5) * b.wd * 14;  // per-boid wander drift rate
       b.vx += fx + Math.cos(b.wa) * WANDER;
       b.vy += fy + Math.sin(b.wa) * WANDER;
       spd = Math.sqrt(b.vx*b.vx + b.vy*b.vy);
-      if (spd > MAX_SPEED) { b.vx = b.vx/spd*MAX_SPEED; b.vy = b.vy/spd*MAX_SPEED; }
+      if (spd > b.ms) { b.vx = b.vx/spd*b.ms; b.vy = b.vy/spd*b.ms; }
       else if (spd < MIN_SPEED && spd > 1e-4) { b.vx = b.vx/spd*MIN_SPEED; b.vy = b.vy/spd*MIN_SPEED; }
 
       b.x += b.vx * sp; b.y += b.vy * sp;
@@ -830,13 +833,18 @@ function toggleTheme() {
   // ── presets ──────────────────────────────────────────────────
   // All speeds (lspeed/bspeed) are 0–100%. Opacity/glow/autofill params also 0–100%.
   var PRESETS = {
-    // default — exact site defaults, read from code
-    'default':  { sim:'combo', lspeed:15, bspeed:15, desc:'site defaults',
+    // default — exact site defaults + tokyo-night
+    'default':  { sim:'combo', lspeed:15, bspeed:15, theme:'tokyo-night', desc:'site defaults',
       params:{'life.cell':7,  'life.opacity':9,  'life.glow':0,  'life.autofill':50, 'life.rainbow':0,
               'boids.n':120, 'boids.size':14, 'boids.tick':1.8, 'boids.opacity':14, 'boids.glow':0,
               'trail.on':0,  'trail.size':2,  'trail.glow':12, 'trail.decay':80} },
-    // life
-    ghost:     { sim:'life',  lspeed:12, bspeed:null,
+    // ghost — same as default, any theme
+    ghost:     { sim:'combo', lspeed:15, bspeed:15, desc:'any theme',
+      params:{'life.cell':7,  'life.opacity':9,  'life.glow':0,  'life.autofill':50, 'life.rainbow':0,
+              'boids.n':120, 'boids.size':14, 'boids.tick':1.8, 'boids.opacity':14, 'boids.glow':0,
+              'trail.on':0,  'trail.size':2,  'trail.glow':12, 'trail.decay':80} },
+    // mist — barely there life
+    mist:      { sim:'life',  lspeed:12, bspeed:null,
       desc:'barely there',
       params:{'life.cell':8,  'life.opacity':6,  'life.glow':0,  'life.autofill':40, 'life.rainbow':0,
               'trail.on':0} },
@@ -1112,7 +1120,7 @@ function toggleTheme() {
       '  params                       all params + current values',
       '  set <param> <val>            change a param',
       '',
-      'presets:  default  ghost  bloom  ember  chromatic  paper',
+      'presets:  default  ghost  mist  bloom  ember  chromatic  paper',
       '          flock  midnight  dusk  soft  swarm',
       '',
       '  help life    life sim params + commands',
@@ -1279,8 +1287,9 @@ function toggleTheme() {
       'each preset switches mode automatically.',
       'some also change the colorscheme.',
       '',
-      '  default    combo  · site defaults',
-      '  ghost      life   · barely there',
+      '  default    combo  · site defaults         (tokyo-night)',
+      '  ghost      combo  · any theme',
+      '  mist       life   · barely there',
       '  bloom      life   · glow + trail            (tokyo-night)',
       '  ember      life   · warm glow               (gruvbox)',
       '  chromatic  life   · rainbow',
