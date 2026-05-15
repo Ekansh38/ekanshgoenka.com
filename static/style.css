@@ -496,6 +496,12 @@ body.page h3 { font-size: 1rem; color: var(--fg); font-weight: 700; margin: 28px
 #arc-details summary::-webkit-details-marker { display: none; }
 #arc-details summary { user-select: none; }
 
+/* lua syntax highlight */
+.lh-kw  { color: var(--accent); }
+.lh-str { color: #7ec08a; }
+.lh-num { color: #d4956a; }
+.lh-cmt { color: var(--muted); font-style: italic; }
+
 footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 0.77rem; }
 .footer-meta { color: var(--muted); }
 .footer-links { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 4px; }

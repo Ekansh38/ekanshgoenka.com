@@ -1618,11 +1618,7 @@ function toggleTheme() {
     var toLua = fx.to_luastring, toJS = fx.to_jsstring;
 
     _gameMode = true;
-    output.innerHTML = ''; // clear terminal before game starts
-    line('─────────────────────────────────────────', 'term-line-pre');
-    line(game.title + '  ·  by ' + game.author, 'term-line-ok');
-    line('type quit at any time to exit', 'term-line-pre');
-    line('─────────────────────────────────────────', 'term-line-pre');
+    output.innerHTML = '';
 
     var L = lauxlib.luaL_newstate();
     lualib.luaL_openlibs(L);
@@ -1665,16 +1661,25 @@ function toggleTheme() {
     ].join('\n');
 
     var status = lauxlib.luaL_loadstring(co, toLua(sandbox + '\n\n' + game.code));
+    var SANDBOX_LINES = sandbox.split('\n').length + 2; // +2 for the \n\n separator
+
+    function cleanErr(raw) {
+      // strip "[string "..."]:N: " → "line N: "
+      return raw.replace(/^\[string "[^"]*"\]:(\d+):\s*/, function(_, n) {
+        var userLine = Math.max(1, parseInt(n) - SANDBOX_LINES);
+        return 'line ' + userLine + ': ';
+      });
+    }
+
     if (status !== lua.LUA_OK) {
       var errStr = lua.lua_tostring(co, -1);
-      line('syntax error: ' + (errStr ? toJS(errStr) : 'unknown'), 'term-line-err');
+      line('error: ' + cleanErr(errStr ? toJS(errStr) : 'unknown'), 'term-line-err');
       _gameMode = false; return;
     }
 
     function exitGame() {
       _gameMode = false; _gameResume = null;
-      line('─────────────────────────────────────────', 'term-line-pre');
-      line('game over.  type games to see more.', 'term-line-ok');
+      line('── done  ·  type games to see more ──', 'term-line-ok');
     }
 
     function step(inputStr) {
@@ -1686,7 +1691,7 @@ function toggleTheme() {
       } else {
         if (st !== lua.LUA_OK) {
           var e = lua.lua_tostring(co, -1);
-          line('runtime error: ' + (e ? toJS(e) : 'unknown error'), 'term-line-err');
+          line('error: ' + cleanErr(e ? toJS(e) : 'unknown error'), 'term-line-err');
         }
         exitGame();
       }

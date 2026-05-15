@@ -1,5 +1,16 @@
 const crypto = require('crypto');
 
+// Vercel doesn't parse bodies for DELETE/PATCH — read manually as fallback
+async function getBody(req) {
+  if (req.body && typeof req.body === 'object') return req.body;
+  return new Promise((resolve) => {
+    let raw = '';
+    req.on('data', chunk => { raw += chunk.toString(); });
+    req.on('end', () => { try { resolve(JSON.parse(raw)); } catch { resolve({}); } });
+    req.on('error', () => resolve({}));
+  });
+}
+
 // ── Vercel KV via Upstash REST API ────────────────────────────────────────────
 async function kv(commands) {
   const url   = process.env.KV_REST_API_URL;
@@ -105,7 +116,7 @@ module.exports = async (req, res) => {
     // ── DELETE: remove a game ─────────────────────────────────────────────────
     if (req.method === 'DELETE') {
       if (!id) return res.status(400).json({ error: 'id required' });
-      const { code } = req.body || {};
+      const { code } = await getBody(req);
       if (!code) return res.status(400).json({ error: 'edit code required' });
 
       const all = await fetchAll();
@@ -120,7 +131,7 @@ module.exports = async (req, res) => {
     // ── PATCH: update a game's code ───────────────────────────────────────────
     if (req.method === 'PATCH') {
       if (!id) return res.status(400).json({ error: 'id required' });
-      const { code, newCode } = req.body || {};
+      const { code, newCode } = await getBody(req);
       if (!code) return res.status(400).json({ error: 'edit code required' });
       if (!newCode) return res.status(400).json({ error: 'newCode required' });
 
