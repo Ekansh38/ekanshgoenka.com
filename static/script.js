@@ -1723,6 +1723,7 @@ function toggleTheme() {
     lualib.luaL_openlibs(L);
 
     // game print → colored terminal output
+    var iobuf = '';
     function lineHtml(text) {
       var el = document.createElement('pre');
       el.className = 'term-line-pre';
@@ -1730,8 +1731,11 @@ function toggleTheme() {
       output.appendChild(el);
       output.scrollTop = output.scrollHeight;
     }
+    function flushIoBuf() { if (iobuf) { lineHtml(iobuf); iobuf = ''; } }
 
+    // print() — flushes io.write buffer first, then prints with newline
     lua.lua_pushcfunction(L, function(Ls) {
+      flushIoBuf();
       var n = lua.lua_gettop(Ls), parts = [];
       for (var i = 1; i <= n; i++) {
         var t = lua.lua_type(Ls, i), s;
@@ -1747,6 +1751,22 @@ function toggleTheme() {
     });
     lua.lua_setglobal(L, toLua('print'));
 
+    // _iowrite() — write without newline; flushes on embedded \n
+    lua.lua_pushcfunction(L, function(Ls) {
+      var n = lua.lua_gettop(Ls), s = '';
+      for (var i = 1; i <= n; i++) {
+        var t = lua.lua_type(Ls, i);
+        if (t === lua.LUA_TSTRING) { var r = lua.lua_tostring(Ls, i); s += r ? toJS(r) : ''; }
+        else if (t === lua.LUA_TNUMBER) { s += String(lua.lua_tonumber(Ls, i)); }
+        else if (t === lua.LUA_TBOOLEAN) { s += lua.lua_toboolean(Ls, i) ? 'true' : 'false'; }
+      }
+      var lines = (iobuf + s).split('\n');
+      for (var j = 0; j < lines.length - 1; j++) lineHtml(lines[j]);
+      iobuf = lines[lines.length - 1];
+      return 0;
+    });
+    lua.lua_setglobal(L, toLua('_iowrite'));
+
     // _sound(preset_or_freq, dur?, wave?)
     lua.lua_pushcfunction(L, function(Ls) {
       var a1 = lua.lua_type(Ls, 1) === lua.LUA_TNUMBER
@@ -1759,17 +1779,34 @@ function toggleTheme() {
     });
     lua.lua_setglobal(L, toLua('_sound'));
 
-    // clear() — wipe game output
-    lua.lua_pushcfunction(L, function(Ls) { output.innerHTML = ''; return 0; });
+    // clear() — wipe game output (also flushes iobuf)
+    lua.lua_pushcfunction(L, function(Ls) { iobuf = ''; output.innerHTML = ''; return 0; });
     lua.lua_setglobal(L, toLua('clear'));
+
+    // _net_collect() — called by net.top() after yield to read JS result table
+    lua.lua_pushcfunction(L, function(Ls) {
+      var buf = window._netBuf || [];
+      window._netBuf = null;
+      lua.lua_createtable(Ls, buf.length, 0);
+      for (var i = 0; i < buf.length; i++) {
+        lua.lua_createtable(Ls, 0, 2);
+        lua.lua_pushstring(Ls, toLua(String(buf[i].name || '')));
+        lua.lua_setfield(Ls, -2, toLua('name'));
+        lua.lua_pushnumber(Ls, Number(buf[i].score) || 0);
+        lua.lua_setfield(Ls, -2, toLua('score'));
+        lua.lua_rawseti(Ls, -2, i + 1);
+      }
+      return 1;
+    });
+    lua.lua_setglobal(L, toLua('_net_collect'));
 
     var co = lua.lua_newthread(L);
 
     var sandbox = [
       'os=nil; require=nil; load=nil; dofile=nil; loadfile=nil; collectgarbage=nil',
       'io={',
-      '  read=function(prompt) if type(prompt)=="string" then print(prompt) end return coroutine.yield() end,',
-      '  write=function(...) local s="" for i=1,select("#",...)do s=s..tostring(select(i,...))end print(s) end',
+      '  read =function(prompt) if type(prompt)=="string" then print(prompt) end return coroutine.yield() end,',
+      '  write=function(...) local s="" for i=1,select("#",...)do s=s..tostring(select(i,...))end _iowrite(s) end,',
       '}',
       // color: ANSI escape constants
       'color={',
@@ -1789,7 +1826,14 @@ function toggleTheme() {
       '  coin =function() _sound("coin") end,',
       '}',
       // sleep(ms): yields with sentinel, resumed by setTimeout
-      'function sleep(ms) coroutine.yield("\0sleep\0"..tostring(math.floor(ms or 100))) end',
+      'function sleep(ms) coroutine.yield("\\0sleep\\0"..tostring(math.floor(ms or 100))) end',
+      // net: key-value store + leaderboard, scoped to this game
+      'net={',
+      '  set =function(key,value) coroutine.yield("\\0net\\0set\\1"..tostring(key).."\\1"..tostring(value~=nil and value or "")) end,',
+      '  get =function(key) return coroutine.yield("\\0net\\0get\\1"..tostring(key)) end,',
+      '  rank=function(name,score) coroutine.yield("\\0net\\0rank\\1"..tostring(name).."\\1"..tostring(tonumber(score) or 0)) end,',
+      '  top =function(n) coroutine.yield("\\0net\\0top\\1"..tostring(math.floor(tonumber(n) or 10))) return _net_collect() end,',
+      '}',
     ].join('\n');
 
     var status = lauxlib.luaL_loadstring(co, toLua(sandbox + '\n\n' + game.code));
@@ -1809,6 +1853,7 @@ function toggleTheme() {
     }
 
     function exitGame() {
+      flushIoBuf();
       _gameMode = false; _gameResume = null;
     }
 
@@ -1817,14 +1862,55 @@ function toggleTheme() {
       if (inputStr !== undefined) { lua.lua_pushstring(co, toLua(String(inputStr))); nargs = 1; }
       var st = lua.lua_resume(co, null, nargs);
       if (st === lua.LUA_YIELD) {
-        // check for sleep sentinel
         if (lua.lua_type(co, -1) === lua.LUA_TSTRING) {
           var raw = lua.lua_tostring(co, -1);
           var sv = raw ? toJS(raw) : '';
           if (sv.charAt(0) === '\0') {
-            var ms = parseInt(sv.slice(7)) || 100;
-            setTimeout(function() { if (_gameMode) step(); }, ms);
-            return;
+            // sleep sentinel: "\0sleep\0<ms>"
+            if (sv.slice(0, 7) === '\0sleep\0') {
+              var ms = parseInt(sv.slice(7)) || 100;
+              setTimeout(function() { if (_gameMode) step(); }, ms);
+              return;
+            }
+            // net sentinel: "\0net\0<op>\1<arg1>\1<arg2>..."
+            if (sv.slice(0, 5) === '\0net\0') {
+              var parts = sv.slice(5).split('\x01');
+              var op = parts[0];
+              var gid = encodeURIComponent(game.id || '_test_');
+              if (op === 'get') {
+                fetch('/api/net?op=get&game=' + gid + '&key=' + encodeURIComponent(parts[1] || ''))
+                  .then(function(r) { return r.json(); })
+                  .then(function(d) { if (_gameMode) step(d.value !== null && d.value !== undefined ? String(d.value) : ''); })
+                  .catch(function() { if (_gameMode) step(''); });
+                return;
+              }
+              if (op === 'set') {
+                fetch('/api/net?game=' + gid, { method:'POST', headers:{'Content-Type':'application/json'},
+                  body: JSON.stringify({op:'set', key: parts[1] || '', value: parts[2] || ''}) })
+                  .then(function(r) { return r.json(); })
+                  .then(function(d) { if (_gameMode) step(d.ok ? 'ok' : 'err:' + (d.error || '?')); })
+                  .catch(function() { if (_gameMode) step('err:network'); });
+                return;
+              }
+              if (op === 'rank') {
+                fetch('/api/net?game=' + gid, { method:'POST', headers:{'Content-Type':'application/json'},
+                  body: JSON.stringify({op:'rank', name: parts[1] || '', score: parseFloat(parts[2]) || 0}) })
+                  .then(function(r) { return r.json(); })
+                  .then(function(d) { if (_gameMode) step(d.ok ? 'ok' : 'err:' + (d.error || '?')); })
+                  .catch(function() { if (_gameMode) step('err:network'); });
+                return;
+              }
+              if (op === 'top') {
+                var n = parseInt(parts[1]) || 10;
+                fetch('/api/net?op=top&game=' + gid + '&n=' + n)
+                  .then(function(r) { return r.json(); })
+                  .then(function(d) { window._netBuf = d.entries || []; if (_gameMode) step('\x01'); })
+                  .catch(function() { window._netBuf = []; if (_gameMode) step('\x01'); });
+                return;
+              }
+              if (_gameMode) step('err:unknown_op');
+              return;
+            }
           }
         }
         _gameResume = step;
