@@ -531,11 +531,24 @@ body.page h3 { font-size: 1rem; color: var(--fg); font-weight: 700; margin: 28px
   text-decoration: none;
   color: var(--fg);
   margin: 28px 0 44px;
-  transition: border-color 0.15s;
+  transition: border-color 0.18s, background 0.18s, box-shadow 0.18s, transform 0.15s;
+  position: relative;
+  overflow: hidden;
 }
-.arc-editor-cta:hover { border-color: var(--accent); text-decoration: none; }
-.arc-editor-cta-label { font-weight: 700; font-size: 1rem; color: var(--accent); }
-.arc-editor-cta-sub { font-size: 0.8rem; color: var(--muted); }
+.arc-editor-cta::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity 0.18s;
+  pointer-events: none;
+}
+.arc-editor-cta:hover { border-color: var(--accent); text-decoration: none; transform: translateY(-2px); box-shadow: 0 4px 20px color-mix(in srgb, var(--accent) 20%, transparent); }
+.arc-editor-cta:hover::before { opacity: 0.06; }
+.arc-editor-cta:active { transform: translateY(0); box-shadow: none; }
+.arc-editor-cta-label { font-weight: 700; font-size: 1rem; color: var(--accent); position: relative; transition: letter-spacing 0.18s; }
+.arc-editor-cta:hover .arc-editor-cta-label { letter-spacing: 0.02em; }
+.arc-editor-cta-sub { font-size: 0.8rem; color: var(--muted); position: relative; }
 
 /* ── Edit link (game page) ── */
 .ag-edit-link-row { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); }
