@@ -54,19 +54,9 @@
     </div>
   </div>
 
-  <details class="ag-del-section">
-    <summary class="ag-del-summary">update source</summary>
-    <div class="ag-del-form" style="flex-direction:column;align-items:stretch;">
-      <input type="text" id="ag-upd-code-inp" class="arc-code-inp" placeholder="edit code (xxxxx-xxxxx)">
-      <input type="text" id="ag-upd-title" class="arc-code-inp" placeholder="new title (leave blank to keep current)" maxlength="50" autocomplete="off" spellcheck="false">
-      <input type="text" id="ag-upd-desc"  class="arc-code-inp" placeholder="new description (leave blank to keep current)" maxlength="200" autocomplete="off" spellcheck="false">
-      <textarea id="ag-upd-code" class="ag-upd-textarea" spellcheck="false" autocomplete="off" placeholder="-- paste updated code here (leave blank to keep current)"></textarea>
-      <div style="display:flex;align-items:center;gap:12px;">
-        <button id="ag-upd-confirm" class="arc-del-confirm">publish update</button>
-        <span id="ag-upd-status" class="arc-del-status"></span>
-      </div>
-    </div>
-  </details>
+  <div class="ag-edit-link-row">
+    <a id="ag-edit-link" href="#" class="ag-edit-link">edit in editor →</a>
+  </div>
 
   <details class="ag-del-section">
     <summary class="ag-del-summary">delete this game</summary>
@@ -162,42 +152,8 @@
         });
       });
 
-      // tab support in update textarea
-      document.getElementById('ag-upd-code').addEventListener('keydown', function(e) {
-        if (e.key === 'Tab') { e.preventDefault(); var s=this.selectionStart,v=this.value; this.value=v.slice(0,s)+'  '+v.slice(this.selectionEnd); this.selectionStart=this.selectionEnd=s+2; }
-      });
-
-      document.getElementById('ag-upd-confirm').addEventListener('click', function() {
-        var code     = document.getElementById('ag-upd-code-inp').value.trim();
-        var newCode  = document.getElementById('ag-upd-code').value.trim();
-        var newTitle = document.getElementById('ag-upd-title').value.trim();
-        var newDesc  = document.getElementById('ag-upd-desc').value.trim();
-        var status = document.getElementById('ag-upd-status');
-        var btn = this;
-        if (!code) { status.textContent = 'enter your edit code'; status.style.color = 'var(--code-err)'; return; }
-        if (!newCode && !newTitle && !newDesc) { status.textContent = 'fill in at least one field'; status.style.color = 'var(--code-err)'; return; }
-        btn.disabled = true; btn.textContent = 'publishing...'; status.textContent = '';
-        var payload = { code: code };
-        if (newCode)  payload.newCode  = newCode;
-        if (newTitle) payload.newTitle = newTitle;
-        if (newDesc)  payload.newDesc  = newDesc;
-        fetch('/api/games?id=' + encodeURIComponent(id), {
-          method: 'PATCH', headers: {'Content-Type':'application/json'},
-          body: JSON.stringify(payload)
-        }).then(function(r){return r.json();}).then(function(d){
-          if (d.ok) {
-            status.textContent = 'updated!'; status.style.color = 'var(--accent)';
-            try { localStorage.removeItem('arcade_v1'); } catch(e) {}
-            setTimeout(function() { window.location.reload(); }, 1000);
-          } else {
-            status.textContent = d.error || 'error'; status.style.color = 'var(--code-err)';
-            btn.disabled = false; btn.textContent = 'publish update';
-          }
-        }).catch(function() {
-          status.textContent = 'network error'; status.style.color = 'var(--code-err)';
-          btn.disabled = false; btn.textContent = 'publish update';
-        });
-      });
+      // wire edit-in-editor link
+      document.getElementById('ag-edit-link').href = '/arcade/editor/?edit=' + encodeURIComponent(id);
 
       // delete
       document.getElementById('ag-del-confirm').addEventListener('click', function() {

@@ -14,47 +14,10 @@
 
 <div id="arc-games"><div class="arc-loading-state">fetching games...</div></div>
 
-<div class="arc-section-header">submit a game</div>
-<div class="arc-form-box">
-  <div class="arc-form">
-    <div class="arc-row">
-      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;">
-        <input id="arc-title" type="text" placeholder="title (unique, becomes the id)" maxlength="50" autocomplete="off" spellcheck="false">
-        <span id="arc-slug-preview" class="arc-slug-preview" style="display:none"></span>
-      </div>
-      <input id="arc-author" type="text" placeholder="author" maxlength="50" autocomplete="off" spellcheck="false">
-    </div>
-    <input id="arc-desc" type="text" placeholder="short description (optional)" maxlength="200" autocomplete="off" spellcheck="false" style="margin-bottom:10px;">
-    <div class="arc-editor-wrapper">
-      <div class="arc-editor-bar">
-        <span class="arc-editor-label">LUA</span>
-        <span class="arc-char-count" id="arc-char-count">0 / 25000</span>
-      </div>
-      <div class="arc-editor">
-        <div class="arc-editor-nums" id="arc-editor-nums">1</div>
-        <div class="arc-editor-right">
-          <pre class="arc-editor-hl" id="arc-hl" aria-hidden="true"></pre>
-          <textarea id="arc-code" placeholder="-- lua code here&#10;print('what is your name?')&#10;local name = io.read()&#10;print('hi ' .. name)" rows="14" spellcheck="false" autocomplete="off"></textarea>
-        </div>
-      </div>
-    </div>
-    <input id="arc-hp" type="text" tabindex="-1" autocomplete="off" style="display:none">
-    <div class="arc-submit-row">
-      <button id="arc-test">test in terminal →</button>
-      <button id="arc-submit">submit game →</button>
-      <span id="arc-status"></span>
-      <span class="arc-hint">ctrl+enter to submit</span>
-    </div>
-    <div id="arc-editcode-box" style="display:none;margin-top:20px;padding:14px;border:1px solid var(--accent);font-size:0.88rem;">
-      <div style="color:var(--muted);margin-bottom:8px;font-size:0.75rem;letter-spacing:0.08em;">EDIT CODE — save this somewhere</div>
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
-        <code id="arc-editcode" style="font-size:1.05rem;letter-spacing:0.08em;color:var(--accent);"></code>
-        <button id="arc-editcode-copy" class="ag-copy-btn">copy</button>
-      </div>
-      <div style="color:var(--muted);font-size:0.8rem;">to update or delete: open the game page → update / delete sections</div>
-    </div>
-  </div>
-</div>
+<a href="/arcade/editor/" class="arc-editor-cta">
+  <span class="arc-editor-cta-label">write a game</span>
+  <span class="arc-editor-cta-sub">vim · syntax highlighting · run &amp; submit in one place →</span>
+</a>
 
 <details class="arc-docs-details">
   <summary class="arc-section-header arc-docs-summary">snippets</summary>

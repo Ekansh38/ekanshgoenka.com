@@ -1086,6 +1086,7 @@ function toggleTheme() {
     '  look   colorscheme  color',
     '  sys    neofetch  top  ps  df  env  history  whoami',
     '  fun    cowsay  curl',
+    '  arcade games  play  scores  source  delete',
     '',
     '  :     open   ·   esc   close   ·   tab   autocomplete',
   ].join('\n');
@@ -1103,6 +1104,7 @@ function toggleTheme() {
       '  help look      colorschemes',
       '  help sys       system commands',
       '  help fun       misc commands',
+      '  help arcade    arcade commands',
       '  help <cmd>     usage for any command',
     ].join('\n'),
 
@@ -1228,6 +1230,22 @@ function toggleTheme() {
       '',
       '  sudo   rm -rf /   vim',
     ].join('\n'),
+
+    arcade: [
+      'arcade — lua game platform',
+      '',
+      '  games                   list all games',
+      '  play <game-id>          run a game in terminal',
+      '  source <game-id>        view source code',
+      '  scores <game-id> [n]    leaderboard (default top 10)',
+      '  delete <game-id> <code> delete (requires edit code)',
+      '',
+      '  open arcade             browse arcade',
+      '  open arcade/editor      write / edit a game',
+      '',
+      'while a game is running:',
+      '  esc   stop game',
+    ].join('\n'),
   };
 
   var HELP_CMDS = {
@@ -1267,6 +1285,8 @@ function toggleTheme() {
       '  open projects          /projects/',
       '  open projects/geno     project page',
       '  open music/btop        album page',
+      '  open arcade            arcade home',
+      '  open arcade/editor     write / edit a game',
     ].join('\n'),
 
     bg: [
@@ -1312,6 +1332,38 @@ function toggleTheme() {
       '  soft       boids  · slow drift              (rose-pine)',
       '  swarm      boids  · fast dense              (gruvbox)',
     ].join('\n'),
+
+    play: [
+      'play <game-id>',
+      '',
+      '  play dungeon-strike   run by id',
+      '  games                 list all game ids',
+      '',
+      '  esc   stop game',
+    ].join('\n'),
+
+    scores: [
+      'scores <game-id> [n]',
+      '',
+      '  scores dungeon-strike      top 10',
+      '  scores dungeon-strike 25   top 25  (max 50)',
+    ].join('\n'),
+
+    source: [
+      'source <game-id>',
+      '',
+      '  print game source code',
+      '  open arcade/editor?edit=<id>   edit in browser',
+    ].join('\n'),
+
+    delete: [
+      'delete <game-id> <edit-code>',
+      '',
+      '  delete dungeon-strike xxxxx-xxxxx',
+      '  edit code was given when you submitted the game',
+    ].join('\n'),
+
+    games: 'games\n  list all games in the arcade',
 
     reset:   'reset\n  reinit sim',
 

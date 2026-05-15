@@ -81,6 +81,8 @@
       {{ with .Site.GetPage "/games" }}{{ range .Pages -}}
       {{ printf "games/%s" .File.BaseFileName | jsonify | safeJS }}: { type: "file", title: {{ .Title | jsonify | safeJS }}, body: {{ default "" .Params.summary | jsonify | safeJS }}, engine: {{ default "" .Params.engine | jsonify | safeJS }}, url: {{ default "" .Params.itchio | jsonify | safeJS }} },
       {{ end }}{{ end }}
+      'arcade': { type: 'dir', url: '/arcade/' },
+      'arcade/editor': { type: 'dir', url: '/arcade/editor/' },
       'writing': { type: 'dir' },
       {{ with .Site.GetPage "/writing" }}{{ range .Pages -}}
       {{ printf "writing/%s" .File.BaseFileName | jsonify | safeJS }}: { type: "file", title: {{ .Title | jsonify | safeJS }}, body: {{ .Plain | jsonify | safeJS }}, url: {{ .RelPermalink | jsonify | safeJS }} },

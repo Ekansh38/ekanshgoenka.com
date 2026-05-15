@@ -1,0 +1,390 @@
+{{ define "main" }}
+<style>
+  body { max-width: min(1200px, 96vw) !important; }
+  .ae-wrap {
+    display: flex; flex-direction: column;
+    border: 1px solid var(--border);
+    height: calc(100vh - 120px);
+    min-height: 520px;
+    margin-top: 8px;
+  }
+  .ae-topbar {
+    display: flex; align-items: center; gap: 12px;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--code-bg);
+    flex-shrink: 0;
+  }
+  .ae-back { color: var(--muted); font-size: 0.82rem; text-decoration: none; white-space: nowrap; }
+  .ae-back:hover { color: var(--fg); }
+  .ae-mode { font-size: 0.82rem; color: var(--muted); }
+  .ae-mode strong { color: var(--accent); font-weight: 400; }
+  .ae-topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .ae-charcount { font-size: 0.75rem; color: var(--muted); opacity: 0.6; }
+  .ae-charcount.ae-char-warn { color: var(--code-num); opacity: 1; }
+  .ae-charcount.ae-char-over { color: var(--code-err); opacity: 1; }
+
+  /* meta bars */
+  .ae-metabar {
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--code-bg);
+    flex-shrink: 0; flex-wrap: wrap;
+  }
+  .ae-metabar input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: var(--fg);
+    font-family: inherit;
+    font-size: 0.85rem;
+    padding: 3px 6px;
+    outline: none;
+    min-width: 0;
+  }
+  .ae-metabar input:focus { border-bottom-color: var(--accent); }
+  .ae-metabar input::placeholder { color: var(--muted); opacity: 0.6; }
+  .ae-inp-title  { flex: 2; min-width: 140px; }
+  .ae-inp-author { flex: 1; min-width: 100px; }
+  .ae-inp-desc   { flex: 3; min-width: 160px; }
+  .ae-inp-editcode { flex: 1; min-width: 140px; }
+  .ae-inp-upd    { flex: 2; min-width: 120px; }
+  .ae-slug-preview { font-size: 0.72rem; color: var(--accent); opacity: 0.7; white-space: nowrap; }
+
+  /* editor */
+  .ae-editor-wrap { flex: 1; min-height: 0; overflow: hidden; position: relative; }
+  #ae-editor { height: 100%; }
+  #ae-editor .cm-editor { height: 100%; }
+  #ae-editor .cm-scroller { overflow: auto; }
+
+  /* actions bar */
+  .ae-actions {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 14px;
+    border-top: 1px solid var(--border);
+    background: var(--code-bg);
+    flex-shrink: 0;
+  }
+  .ae-run-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--fg);
+    font-family: inherit; font-size: 0.82rem;
+    padding: 5px 14px; cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .ae-run-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .ae-status { font-size: 0.82rem; }
+  .ae-status-err { color: var(--code-err); }
+  .ae-status-ok  { color: var(--accent); }
+  .ae-spacer { flex: 1; }
+  .ae-primary-btn {
+    background: var(--accent);
+    border: none; color: var(--bg);
+    font-family: inherit; font-size: 0.82rem; font-weight: 700;
+    padding: 5px 16px; cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .ae-primary-btn:hover { opacity: 0.85; }
+  .ae-primary-btn:disabled { opacity: 0.4; cursor: default; }
+
+  /* success banner */
+  .ae-success {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    border-top: 1px solid var(--accent);
+    background: var(--code-bg);
+    flex-shrink: 0; flex-wrap: wrap;
+    font-size: 0.85rem;
+  }
+  .ae-success-label { color: var(--accent); font-weight: 700; }
+  .ae-success-code  { color: var(--accent); letter-spacing: 0.08em; font-size: 1rem; }
+  .ae-success-link  { color: var(--muted); text-decoration: none; margin-left: auto; }
+  .ae-success-link:hover { color: var(--fg); }
+</style>
+
+<div class="arc-bg-dots" aria-hidden="true"></div>
+
+<div class="ae-wrap">
+
+  <!-- top bar -->
+  <div class="ae-topbar">
+    <a href="/arcade" class="ae-back">← arcade</a>
+    <span class="ae-mode" id="ae-mode">new game</span>
+    <div class="ae-topbar-right">
+      <span class="ae-charcount" id="ae-charcount">0 / 25000</span>
+    </div>
+  </div>
+
+  <!-- new / remix meta bar -->
+  <div class="ae-metabar" id="ae-new-bar">
+    <input id="ae-title"  class="ae-inp-title"  type="text" placeholder="title" maxlength="50" autocomplete="off" spellcheck="false">
+    <input id="ae-author" class="ae-inp-author" type="text" placeholder="author" maxlength="50" autocomplete="off" spellcheck="false">
+    <input id="ae-desc"   class="ae-inp-desc"   type="text" placeholder="description (optional)" maxlength="200" autocomplete="off" spellcheck="false">
+    <span id="ae-slug" class="ae-slug-preview" style="display:none"></span>
+  </div>
+
+  <!-- edit meta bar -->
+  <div class="ae-metabar" id="ae-edit-bar" style="display:none">
+    <input id="ae-upd-title" class="ae-inp-upd"      type="text" placeholder="new title (optional)" maxlength="50" autocomplete="off" spellcheck="false">
+    <input id="ae-upd-desc"  class="ae-inp-desc"     type="text" placeholder="new description (optional)" maxlength="200" autocomplete="off" spellcheck="false">
+    <input id="ae-editcode"  class="ae-inp-editcode" type="text" placeholder="edit code (xxxxx-xxxxx)" autocomplete="off" spellcheck="false">
+  </div>
+
+  <!-- code editor -->
+  <div class="ae-editor-wrap">
+    <div id="ae-editor"></div>
+  </div>
+
+  <!-- action bar -->
+  <div class="ae-actions">
+    <button class="ae-run-btn" id="ae-run">▶ run</button>
+    <span class="ae-status" id="ae-status"></span>
+    <div class="ae-spacer"></div>
+    <button class="ae-primary-btn" id="ae-submit">submit game →</button>
+    <button class="ae-primary-btn" id="ae-update" style="display:none">publish update →</button>
+  </div>
+
+  <!-- success banner (shown after submit) -->
+  <div class="ae-success" id="ae-success" style="display:none">
+    <span class="ae-success-label">submitted!</span>
+    <span style="color:var(--muted);font-size:0.78rem;">edit code:</span>
+    <code class="ae-success-code" id="ae-success-code"></code>
+    <button class="ag-copy-btn" id="ae-success-copy">copy</button>
+    <a class="ae-success-link" id="ae-success-link" href="#">view game →</a>
+  </div>
+
+</div>
+
+<script type="module">
+import { EditorView, keymap, lineNumbers, highlightActiveLine, highlightActiveLineGutter, drawSelection } from 'https://esm.sh/@codemirror/view@6';
+import { EditorState } from 'https://esm.sh/@codemirror/state@6';
+import { history, historyKeymap, defaultKeymap, indentWithTab } from 'https://esm.sh/@codemirror/commands@6';
+import { StreamLanguage, syntaxHighlighting, HighlightStyle, bracketMatching } from 'https://esm.sh/@codemirror/language@6';
+import { lua } from 'https://esm.sh/@codemirror/legacy-modes@0.4/mode/lua';
+import { vim } from 'https://esm.sh/@codemirror/vim@6';
+import { tags } from 'https://esm.sh/@lezer/highlight@1';
+
+// ── theme using site CSS variables (auto-adapts to all themes) ──
+const siteTheme = EditorView.theme({
+  '&': { color: 'var(--fg)', backgroundColor: 'var(--code-bg)', height: '100%' },
+  '&.cm-focused': { outline: 'none' },
+  '.cm-scroller': { fontFamily: 'inherit', lineHeight: '1.65', overflow: 'auto' },
+  '.cm-content': { caretColor: 'var(--accent)', padding: '10px 0' },
+  '.cm-cursor, .cm-dropCursor': { borderLeftColor: 'var(--accent)', borderLeftWidth: '2px' },
+  '.cm-activeLine': { backgroundColor: 'rgba(127,127,127,0.055)' },
+  '.cm-activeLineGutter': { backgroundColor: 'rgba(127,127,127,0.055)' },
+  '.cm-gutters': {
+    backgroundColor: 'var(--code-bg)', color: 'var(--muted)',
+    border: 'none', borderRight: '1px solid var(--border)',
+  },
+  '.cm-lineNumbers .cm-gutterElement': { padding: '0 10px 0 14px', minWidth: '44px' },
+  '.cm-selectionBackground': { backgroundColor: 'rgba(122,162,247,0.22) !important' },
+  '&.cm-focused .cm-selectionBackground': { backgroundColor: 'rgba(122,162,247,0.22) !important' },
+  '.cm-matchingBracket': { outline: '1px solid var(--accent)', color: 'inherit !important' },
+  '.cm-nonmatchingBracket': { color: 'var(--code-err) !important' },
+  // vim status line
+  '.cm-vim-panel': {
+    fontFamily: 'inherit', fontSize: '0.82rem',
+    backgroundColor: 'var(--code-bg)', color: 'var(--fg)',
+    borderTop: '1px solid var(--border)', padding: '3px 10px',
+  },
+  '.cm-vim-panel input': {
+    fontFamily: 'inherit', backgroundColor: 'transparent',
+    color: 'var(--fg)', outline: 'none', border: 'none',
+  },
+});
+
+const siteSyntax = syntaxHighlighting(HighlightStyle.define([
+  { tag: [tags.keyword, tags.controlKeyword, tags.definitionKeyword], color: 'var(--code-kw)' },
+  { tag: tags.string,   color: 'var(--code-str)' },
+  { tag: tags.number,   color: 'var(--code-num)' },
+  { tag: tags.comment,  color: 'var(--code-cmt)', fontStyle: 'italic' },
+  { tag: tags.function(tags.variableName), color: 'var(--code-fn)' },
+  { tag: tags.operator, color: 'var(--code-op)' },
+  { tag: [tags.bool, tags.null], color: 'var(--code-type)' },
+  { tag: tags.variableName, color: 'var(--fg)' },
+]));
+
+// ── create editor ──
+const view = new EditorView({
+  state: EditorState.create({
+    doc: '-- write your game here\nprint("hello, arcade!")\n',
+    extensions: [
+      vim(),
+      StreamLanguage.define(lua),
+      siteTheme,
+      siteSyntax,
+      lineNumbers(),
+      history(),
+      highlightActiveLine(),
+      highlightActiveLineGutter(),
+      drawSelection(),
+      bracketMatching(),
+      keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
+      EditorView.updateListener.of(function(upd) {
+        if (upd.docChanged) updateCharCount();
+      }),
+    ],
+  }),
+  parent: document.getElementById('ae-editor'),
+});
+
+function getCode() { return view.state.doc.toString(); }
+function setCode(code) {
+  view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: code } });
+}
+function updateCharCount() {
+  var n = getCode().length;
+  var el = document.getElementById('ae-charcount');
+  el.textContent = n + ' / 25000';
+  el.className = 'ae-charcount' + (n > 25000 ? ' ae-char-over' : n > 21250 ? ' ae-char-warn' : '');
+}
+function slugify(s) { return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,28)||''; }
+function setStatus(msg, type) {
+  var el = document.getElementById('ae-status');
+  el.textContent = msg;
+  el.className = 'ae-status' + (type === 'err' ? ' ae-status-err' : type === 'ok' ? ' ae-status-ok' : '');
+}
+
+// ── URL params → mode ──
+var params   = new URLSearchParams(window.location.search);
+var editId   = params.get('edit');
+var remixId  = params.get('remix');
+var modeEl   = document.getElementById('ae-mode');
+var newBar   = document.getElementById('ae-new-bar');
+var editBar  = document.getElementById('ae-edit-bar');
+var submitBtn = document.getElementById('ae-submit');
+var updateBtn = document.getElementById('ae-update');
+
+if (editId) {
+  // ── EDIT MODE ──
+  modeEl.innerHTML = 'loading&hellip;';
+  newBar.style.display = 'none';
+  editBar.style.display = 'flex';
+  submitBtn.style.display = 'none';
+  updateBtn.style.display = 'inline-block';
+
+  fetch('/api/games?id=' + encodeURIComponent(editId))
+    .then(function(r) { return r.json(); })
+    .then(function(game) {
+      if (game.error) { modeEl.textContent = 'game not found'; return; }
+      modeEl.innerHTML = 'editing &nbsp;<strong>' + game.title + '</strong>';
+      document.getElementById('ae-upd-title').placeholder = 'new title (currently: ' + game.title + ')';
+      document.getElementById('ae-upd-desc').placeholder  = 'new description (currently: ' + (game.desc || 'none') + ')';
+      setCode(game.code || '');
+    })
+    .catch(function() { modeEl.textContent = 'error loading game'; });
+
+} else if (remixId) {
+  // ── REMIX MODE ──
+  modeEl.textContent = 'remix';
+  document.getElementById('ae-title').value = 'remix-' + remixId.slice(0, 20);
+  fetch('/api/games?id=' + encodeURIComponent(remixId))
+    .then(function(r) { return r.json(); })
+    .then(function(game) { if (!game.error) setCode(game.code || ''); });
+
+} else {
+  // ── NEW GAME MODE ──
+  modeEl.textContent = 'new game';
+}
+
+// ── slug preview ──
+var titleInp = document.getElementById('ae-title');
+var slugEl   = document.getElementById('ae-slug');
+if (titleInp) {
+  titleInp.addEventListener('input', function() {
+    var s = slugify(this.value);
+    if (s) { slugEl.textContent = 'id: ' + s; slugEl.style.display = 'inline'; }
+    else { slugEl.style.display = 'none'; }
+  });
+}
+
+// ── run ──
+document.getElementById('ae-run').addEventListener('click', function() {
+  var code = getCode().trim();
+  if (!code) { setStatus('write some code first', 'err'); return; }
+  if (window.termRunLua) { window.termRunLua(code); setStatus('', ''); }
+  else { setStatus('open [:] terminal first', 'err'); }
+});
+
+// ── submit (new game) ──
+submitBtn.addEventListener('click', function() {
+  var title  = document.getElementById('ae-title').value.trim();
+  var author = document.getElementById('ae-author').value.trim();
+  var desc   = document.getElementById('ae-desc').value.trim();
+  var code   = getCode().trim();
+  var btn    = this;
+  if (!title)  { setStatus('title required', 'err'); return; }
+  if (!author) { setStatus('author required', 'err'); return; }
+  if (!code)   { setStatus('code required', 'err'); return; }
+  if (code.length > 25000) { setStatus('code too long (max 25000)', 'err'); return; }
+  btn.disabled = true; btn.textContent = 'submitting…'; setStatus('', '');
+  fetch('/api/games', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title: title, author: author, desc: desc, code: code }),
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (data.ok) {
+      try { localStorage.removeItem('arcade_v1'); } catch(e) {}
+      document.getElementById('ae-success-code').textContent = data.editCode;
+      document.getElementById('ae-success-link').href        = '/arcade/game/?id=' + data.id;
+      document.getElementById('ae-success-link').textContent = 'view ' + data.id + ' →';
+      document.getElementById('ae-success').style.display    = 'flex';
+      btn.disabled = false; btn.textContent = 'submit another →';
+      setStatus('', '');
+    } else {
+      setStatus(data.error || 'something went wrong', 'err');
+      btn.disabled = false; btn.textContent = 'submit game →';
+    }
+  }).catch(function() {
+    setStatus('network error', 'err');
+    btn.disabled = false; btn.textContent = 'submit game →';
+  });
+});
+
+// ── update (edit mode) ──
+updateBtn.addEventListener('click', function() {
+  var code      = getCode().trim();
+  var editCode  = document.getElementById('ae-editcode').value.trim();
+  var newTitle  = document.getElementById('ae-upd-title').value.trim();
+  var newDesc   = document.getElementById('ae-upd-desc').value.trim();
+  var btn       = this;
+  if (!editCode) { setStatus('enter your edit code', 'err'); return; }
+  if (!code && !newTitle && !newDesc) { setStatus('nothing to update', 'err'); return; }
+  btn.disabled = true; btn.textContent = 'publishing…'; setStatus('', '');
+  var payload = { code: editCode };
+  if (code)     payload.newCode  = code;
+  if (newTitle) payload.newTitle = newTitle;
+  if (newDesc)  payload.newDesc  = newDesc;
+  fetch('/api/games?id=' + encodeURIComponent(editId), {
+    method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (data.ok) {
+      try { localStorage.removeItem('arcade_v1'); } catch(e) {}
+      setStatus('updated!', 'ok');
+      btn.disabled = false; btn.textContent = 'publish update →';
+      setTimeout(function() { window.location.href = '/arcade/game/?id=' + editId; }, 900);
+    } else {
+      setStatus(data.error || 'error', 'err');
+      btn.disabled = false; btn.textContent = 'publish update →';
+    }
+  }).catch(function() {
+    setStatus('network error', 'err');
+    btn.disabled = false; btn.textContent = 'publish update →';
+  });
+});
+
+// ── copy edit code ──
+document.getElementById('ae-success-copy').addEventListener('click', function() {
+  var btn = this;
+  navigator.clipboard.writeText(document.getElementById('ae-success-code').textContent).then(function() {
+    btn.textContent = 'copied!'; btn.classList.add('copied');
+    setTimeout(function() { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 1800);
+  });
+});
+
+updateCharCount();
+</script>
+{{ end }}
