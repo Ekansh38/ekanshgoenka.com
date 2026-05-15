@@ -254,13 +254,11 @@
 
   /* docs pulse animation for new users */
   @keyframes ae-pulse-glow {
-    0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent); border-color: var(--border); color: var(--muted); }
-    40%  { box-shadow: 0 0 8px 2px color-mix(in srgb, var(--accent) 45%, transparent); border-color: var(--accent); color: var(--accent); }
-    100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 0%, transparent); border-color: var(--border); color: var(--muted); }
+    0%   { border-color: var(--border); box-shadow: none; }
+    50%  { border-color: var(--accent); box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 40%, transparent); }
+    100% { border-color: var(--border); box-shadow: none; }
   }
-  .ae-docs-pulse {
-    animation: ae-pulse-glow 0.9s ease-out 3;
-  }
+  .ae-docs-pulse { animation: ae-pulse-glow 1.4s ease-in-out infinite; }
 
   /* ── action bar ── */
   .ae-actions {
@@ -685,16 +683,18 @@
 
   // ── docs panel ──
   var SNIPPETS = [
-    { name: 'hello world', note: 'simplest game', code: 'print(colored("Hello, world!", color.cyan))\nprint("This is my first game.")\nio.read("")' },
-    { name: 'dice roller', note: 'random + conditions', code: 'local roll = math.random(1, 6)\nprint(colored("rolling...", color.yellow))\nsleep(600)\nprint("you rolled: " .. roll)\nif roll == 6 then\n  print(colored("max roll!", color.green))\n  sound.win()\nelse\n  print("try again")\n  sound.blip()\nend' },
-    { name: 'number guesser', note: 'loops + input', code: 'local secret = math.random(1, 10)\nlocal tries = 0\nprint(colored("guess 1-10", color.cyan))\nwhile true do\n  local g = tonumber(io.read("guess: "))\n  tries = tries + 1\n  if g == secret then\n    print(colored("got it in " .. tries .. "!", color.green))\n    sound.win() break\n  elseif g < secret then print("too low")\n  else print("too high") end\nend' },
-    { name: 'story game', note: 'branching choices', code: 'print(colored("THE CAVE", color.yellow))\nprint("you stand at the entrance.")\nlocal c = io.read("[i]nside or [l]eave? ")\nif c == "i" then\n  print(colored("you venture in...", color.cyan))\n  sleep(1000)\n  if math.random(1,2) == 1 then\n    print(colored("you find treasure!", color.yellow))\n    sound.win()\n  else\n    print(colored("a bat! you run.", color.red))\n    sound.lose()\n  end\nelse\n  print("wise choice.") sound.click()\nend' },
-    { name: 'countdown', note: 'animation', code: 'print(colored("get ready...", color.yellow))\nsleep(800)\nfor i = 5, 1, -1 do\n  clear()\n  print(colored("  " .. i, color.yellow))\n  sound.click()\n  sleep(700)\nend\nclear()\nprint(colored("  GO!", color.green))\nsound.win()' },
-    { name: 'leaderboard', note: 'net API - saves scores', code: 'local name = io.read("your name: ")\nlocal score = math.random(100, 999)\nnet.rank(name, score)\nprint("score: " .. colored(tostring(score), color.yellow))\nlocal top = net.top(5)\nprint(colored("-- top 5 --", color.cyan))\nfor i, e in ipairs(top) do\n  print(i .. ". " .. e.name .. "  " .. e.score)\nend' },
-    { name: 'bouncing ball', note: 'frame animation', code: 'local x=0;local dir=1\nfor f=1,60 do\n  clear()\n  print(colored(string.rep(" ",x).."●",color.cyan))\n  x=x+dir\n  if x>=30 then dir=-1 elseif x<=0 then dir=1 end\n  sleep(40)\nend' },
-    { name: 'quiz game', note: 'ask 3 questions, keep score', code: 'local score = 0\nlocal qs = {\n  {q="capital of France? ", a="paris"},\n  {q="2 + 2 = ? ", a="4"},\n  {q="color of sky? ", a="blue"},\n}\nprint(colored("QUIZ TIME", color.yellow))\nfor i, item in ipairs(qs) do\n  local ans = io.read(i .. ". " .. item.q)\n  if ans:lower() == item.a then\n    print(colored("correct!", color.green))\n    sound.coin()\n    score = score + 1\n  else\n    print(colored("nope! answer: " .. item.a, color.red))\n    sound.blip()\n  end\nend\nprint("")\nprint(colored("score: " .. score .. "/3", color.cyan))\nif score == 3 then sound.win() else sound.lose() end' },
-    { name: 'loading bar', note: 'progress bar animation', code: 'local total = 20\nprint(colored("loading...", color.yellow))\nfor i = 0, total do\n  clear()\n  local filled = string.rep("█", i)\n  local empty  = string.rep("░", total - i)\n  local pct    = math.floor(i / total * 100)\n  print(colored("[" .. filled .. empty .. "] " .. pct .. "%", color.cyan))\n  sleep(80)\nend\nprint(colored("done!", color.green))\nsound.win()' },
-    { name: 'shared counter', note: 'net API - counts plays', code: 'local raw = net.get("plays")\nlocal plays = tonumber(raw) or 0\nplays = plays + 1\nnet.set("plays", tostring(plays))\nprint(colored("▶ play #" .. plays, color.yellow))\nif plays == 1 then\n  print("you are the first player!")\n  sound.win()\nelseif plays % 10 == 0 then\n  print(colored("milestone: " .. plays .. " total plays!", color.green))\n  sound.coin()\nelse\n  print("total plays so far: " .. plays)\n  sound.blip()\nend' },
+    { name: 'hello world', note: 'simplest game', code: 'print(colored("Hello, world!", color.cyan))\nprint("This is my first game.")\nprint("")\nprint(colored("press enter to exit...", color.yellow))\nio.read("")' },
+    { name: 'ask your name', note: 'read input from the player', code: 'local name = io.read("what\'s your name? ")\nprint("")\nprint(colored("hi " .. name .. "!", color.cyan))\nprint("welcome to the arcade.")\nsound.win()' },
+    { name: 'dice roller', note: 'random numbers + conditions', code: 'local roll = math.random(1, 6)\n\nprint(colored("rolling the dice...", color.yellow))\nsleep(600)\nprint(colored("you rolled: " .. roll, color.cyan))\n\nif roll == 6 then\n  print(colored("LUCKY! max roll!", color.green))\n  sound.win()\nelseif roll >= 4 then\n  print("nice roll!")\n  sound.coin()\nelse\n  print("better luck next time")\n  sound.blip()\nend' },
+    { name: 'number guessing game', note: 'loops + player input + win condition', code: 'local secret = math.random(1, 10)\nlocal tries = 0\n\nprint(colored("guess a number between 1 and 10", color.cyan))\nprint("")\n\nwhile true do\n  local input = io.read("your guess: ")\n  local guess = tonumber(input)\n\n  if not guess then\n    print("type a number!")\n  else\n    tries = tries + 1\n    if guess == secret then\n      print(colored("correct! got it in " .. tries .. " tries!", color.green))\n      sound.win()\n      break\n    elseif guess < secret then\n      print("too low")\n    else\n      print("too high")\n    end\n  end\nend' },
+    { name: 'story game', note: 'branching choices, make your own adventure', code: 'print(colored("THE CAVE", color.yellow))\nprint("you stand at the entrance of a dark cave.")\nprint("torchlight flickers on the walls.")\nprint("")\n\nlocal choice = io.read("go [i]nside or [l]eave? ")\n\nif choice == "i" then\n  print("")\n  print(colored("you venture inside...", color.cyan))\n  sleep(1000)\n  local found = math.random(1, 2)\n  if found == 1 then\n    print(colored("you find a chest full of gold!", color.yellow))\n    sound.win()\n  else\n    print(colored("a bat swoops past! you run out screaming.", color.red))\n    sound.lose()\n  end\nelse\n  print("")\n  print("smart choice. some caves are best left alone.")\n  sound.click()\nend' },
+    { name: 'countdown', note: 'animation with sleep + clear', code: 'print(colored("get ready...", color.yellow))\nsleep(800)\n\nfor i = 5, 1, -1 do\n  clear()\n  print("")\n  print(colored("  " .. i, color.yellow))\n  sound.click()\n  sleep(700)\nend\n\nclear()\nprint(colored("  GO!", color.green))\nsound.win()' },
+    { name: 'quiz game', note: 'ask multiple questions, keep score', code: 'local score = 0\nlocal questions = {\n  {q = "what is 2 + 2? ", a = "4"},\n  {q = "capital of france? ", a = "paris"},\n  {q = "how many sides in a triangle? ", a = "3"},\n}\n\nprint(colored("QUIZ TIME!", color.cyan))\nprint("")\n\nfor i, item in ipairs(questions) do\n  local ans = io.read(i .. ". " .. item.q)\n  if string.lower(ans) == item.a then\n    print(colored("correct!", color.green))\n    score = score + 1\n    sound.coin()\n  else\n    print(colored("wrong! answer: " .. item.a, color.red))\n    sound.blip()\n  end\n  print("")\nend\n\nprint("your score: " .. colored(score .. "/" .. #questions, color.yellow))\nif score == #questions then sound.win() end' },
+    { name: 'bouncing ball', note: 'frame-by-frame animation', code: 'local x = 0\nlocal dir = 1\nlocal width = 35\n\nfor frame = 1, 80 do\n  clear()\n  print(colored(string.rep(" ", x) .. "●", color.cyan))\n  x = x + dir\n  if x >= width then dir = -1\n  elseif x <= 0  then dir =  1\n  end\n  sleep(40)\nend' },
+    { name: 'loading bar', note: 'progress animation with clear + loop', code: 'print(colored("loading...", color.yellow))\nsleep(400)\n\nlocal total = 20\nfor i = 1, total do\n  clear()\n  local filled = string.rep("█", i)\n  local empty  = string.rep("·", total - i)\n  local pct    = math.floor(i / total * 100)\n  print(colored("[" .. filled .. empty .. "] " .. pct .. "%", color.cyan))\n  sleep(60)\nend\n\nprint(colored("done!", color.green))\nsound.win()' },
+    { name: 'animation loop', note: 'clear + sleep to animate frames', code: 'local frames = {"|", "/", "-", "\\\\"}\nfor i = 1, 20 do\n  clear()\n  local f = frames[(i % #frames) + 1]\n  print(colored(f .. " running...", color.cyan))\n  sleep(120)\nend\nprint(colored("done!", color.green))' },
+    { name: 'leaderboard', note: 'submit score + display top players (net API)', code: 'local name  = io.read("your name: ")\nlocal score = math.random(100, 999)\n\nnet.rank(name, score)\nprint("submitted score: " .. colored(tostring(score), color.yellow))\nprint("")\n\nlocal top = net.top(5)\nif #top == 0 then\n  print("no scores yet!")\nelse\n  print(colored("── top scores ──", color.cyan))\n  for i, e in ipairs(top) do\n    local rank = i .. "."\n    local nm   = e.name .. string.rep(" ", math.max(0, 14 - #e.name))\n    print(colored(rank .. " ", color.blue) .. nm .. colored(tostring(e.score), color.yellow))\n  end\nend' },
+    { name: 'shared counter', note: 'count how many times your game has been played (net API)', code: 'local count = (tonumber(net.get("plays")) or 0) + 1\nnet.set("plays", tostring(count))\n\nprint(colored("this game has been played:", color.cyan))\nprint(colored(tostring(count) .. " times", color.yellow))' },
   ];
 
   var REF_SECTIONS = [
@@ -887,13 +887,16 @@
     }
   }
 
-  document.getElementById('ae-docs-btn').addEventListener('click', function() {
+  var docsTabBtn = document.getElementById('ae-docs-btn');
+  docsTabBtn.addEventListener('click', function() {
     docsOpen = !docsOpen;
     var panel = document.getElementById('ae-docs-panel');
     panel.style.display = docsOpen ? 'flex' : 'none';
     this.classList.toggle('ae-btn-on', docsOpen);
     if (docsOpen) renderDocsContent();
     editor.refresh();
+    docsTabBtn.classList.remove('ae-docs-pulse');
+    try { sessionStorage.setItem('ae_docs_seen', '1'); } catch(e) {}
   });
 
   document.querySelectorAll('.ae-docs-tab').forEach(function(tab) {
@@ -1064,10 +1067,9 @@
       showDocs = (intro !== 'expert');
     }
     if (showDocs && docsBtn) {
-      docsBtn.classList.add('ae-docs-pulse');
-      docsBtn.addEventListener('animationend', function() {
-        docsBtn.classList.remove('ae-docs-pulse');
-      }, { once: true });
+      if (!sessionStorage.getItem('ae_docs_seen')) {
+        docsBtn.classList.add('ae-docs-pulse');
+      }
     }
   })();
 
