@@ -1,7 +1,14 @@
 {{ define "main" }}
-<div class="arc-head">
-  <h1>arcade</h1>
-  <p class="arc-tagline">visitor-submitted lua games that run in the terminal</p>
+<style>
+  body { max-width: min(900px, 92vw) !important; }
+</style>
+
+<div class="arc-bg-dots" aria-hidden="true"></div>
+
+<div class="arc-banner">
+  <span class="arc-banner-tag">ekanshgoenka.com / arcade</span>
+  <h1 class="arc-title-big" data-text="ARCADE">ARCADE</h1>
+  <p class="arc-banner-tagline">visitor-submitted lua games that run in the terminal</p>
   <div class="arc-stat-line" id="arc-stat-line"></div>
 </div>
 
@@ -11,8 +18,8 @@
 <div class="arc-form-box">
   <div class="arc-form">
     <div class="arc-row">
-      <input id="arc-title"  type="text" placeholder="game title (unique, becomes the id)" maxlength="50" autocomplete="off" spellcheck="false">
-      <input id="arc-author" type="text" placeholder="your name" maxlength="50" autocomplete="off" spellcheck="false">
+      <input id="arc-title"  type="text" placeholder="title (unique — becomes the id)" maxlength="50" autocomplete="off" spellcheck="false">
+      <input id="arc-author" type="text" placeholder="author" maxlength="50" autocomplete="off" spellcheck="false">
     </div>
     <input id="arc-desc" type="text" placeholder="short description (optional)" maxlength="200" autocomplete="off" spellcheck="false" style="margin-bottom:10px;">
     <div class="arc-editor-wrapper">
@@ -225,11 +232,9 @@
       return '<a class="arc-card" href="/arcade/game/?id=' + esc(g.id) + '" style="animation-delay:' + (i * 0.045) + 's">'
         + '<span class="arc-card-num">' + String(i + 1).padStart(2, '0') + '</span>'
         + '<div class="arc-card-body">'
-        + '<div class="arc-card-header">'
         + '<span class="arc-card-title">' + esc(g.title) + '</span>'
         + '<span class="arc-card-meta">by ' + esc(g.author) + ' &middot; ' + fmt(g.date) + '</span>'
-        + '</div>'
-        + (g.desc ? '<div class="arc-card-desc">' + esc(g.desc) + '</div>' : '')
+        + (g.desc ? '<span class="arc-card-desc">' + esc(g.desc) + '</span>' : '')
         + '</div>'
         + '</a>';
     }).join('');

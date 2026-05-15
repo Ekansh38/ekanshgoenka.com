@@ -396,10 +396,68 @@ body.page h3 { font-size: 1rem; color: var(--fg); font-weight: 700; margin: 28px
 
 @keyframes arc-fadein { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
 
-/* ── Header ── */
-.arc-head { margin-bottom:40px; }
-.arc-head h1 { margin-bottom:4px; }
-.arc-tagline { color:var(--muted); margin:8px 0 12px; }
+/* background dot grid — scoped to arcade pages */
+.arc-bg-dots {
+  position: fixed; inset: 0;
+  background-image: radial-gradient(var(--border) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none; z-index: -1; opacity: 0.55;
+}
+
+/* ── Glitch title ── */
+@keyframes arc-glitch-a {
+  0%,100%{ clip-path:inset(0 0 95% 0); transform:translate(-3px,0); }
+  30%    { clip-path:inset(20% 0 60% 0); transform:translate(3px,0); }
+  70%    { clip-path:inset(65% 0 10% 0); transform:translate(-2px,0); }
+}
+@keyframes arc-glitch-b {
+  0%,100%{ clip-path:inset(85% 0 0 0); transform:translate(3px,0); }
+  40%    { clip-path:inset(30% 0 50% 0); transform:translate(-3px,0); }
+  80%    { clip-path:inset(50% 0 20% 0); transform:translate(2px,0); }
+}
+
+/* ── Banner ── */
+.arc-banner {
+  border: 1px solid var(--accent);
+  padding: 28px 32px 24px;
+  margin-bottom: 44px;
+  position: relative;
+}
+.arc-banner-tag {
+  position: absolute;
+  top: -0.65em; left: 20px;
+  background: var(--bg);
+  padding: 0 10px;
+  font-size: 0.7rem;
+  color: var(--muted);
+  letter-spacing: 0.14em;
+}
+.arc-title-big {
+  display: inline-block;
+  position: relative;
+  font-size: clamp(2.2rem, 5vw, 3.2rem);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  line-height: 1;
+  margin-bottom: 10px;
+  user-select: none;
+}
+.arc-title-big::before, .arc-title-big::after {
+  content: attr(data-text);
+  position: absolute; left:0; top:0;
+  font-size: inherit; font-weight: inherit; letter-spacing: inherit;
+  opacity: 0; pointer-events: none;
+}
+.arc-title-big:hover::before {
+  color: #f7768e; opacity: 0.85;
+  animation: arc-glitch-a 0.22s steps(1) infinite;
+}
+.arc-title-big:hover::after {
+  color: #7aa2f7; opacity: 0.75;
+  animation: arc-glitch-b 0.22s steps(1) 0.07s infinite;
+}
+.arc-banner-tagline { color: var(--muted); font-size: 0.88rem; margin: 0 0 10px; }
 .arc-stat-line { font-size:0.82rem; color:var(--muted); letter-spacing:0.03em; }
 .arc-stat-val { color:var(--accent); font-weight:700; }
 
@@ -410,46 +468,30 @@ body.page h3 { font-size: 1rem; color: var(--fg); font-weight: 700; margin: 28px
 .arc-card {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 16px 16px 16px 0;
+  gap: 20px;
+  padding: 18px 0;
   border-bottom: 1px solid var(--border);
   text-decoration: none !important;
   color: var(--fg);
-  position: relative;
-  overflow: hidden;
-  transition: background 0.15s, padding-left 0.15s;
+  transition: opacity 0.15s;
   animation: arc-fadein 0.28s ease both;
 }
-.arc-card:first-child { border-top: 1px solid var(--border); }
-.arc-card::before {
-  content: '';
-  position: absolute;
-  left: -4px; top: 0; bottom: 0;
-  width: 4px;
-  background: var(--accent);
-  transition: left 0.18s ease;
-}
-.arc-card:hover::before { left: 0; }
-.arc-card:hover { background: var(--code-bg); padding-left: 8px; }
 .arc-card::after { display: none; }
+.arc-card:hover { opacity: 0.7; }
 .arc-card:hover .arc-card-title { color: var(--accent); }
 .arc-card-num {
-  font-size: 0.72rem;
+  font-size: 0.65rem;
   color: var(--muted);
-  font-weight: 700;
-  min-width: 22px;
+  opacity: 0.35;
+  min-width: 20px;
+  text-align: right;
   flex-shrink: 0;
-  letter-spacing: 0.04em;
-  opacity: 0.5;
-  transition: opacity 0.15s, color 0.15s;
   font-variant-numeric: tabular-nums;
 }
-.arc-card:hover .arc-card-num { opacity: 1; color: var(--accent); }
 .arc-card-body { flex: 1; min-width: 0; }
-.arc-card-header { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
-.arc-card-title { font-weight: 700; font-size: 1rem; transition: color 0.15s; }
-.arc-card-meta { color: var(--muted); font-size: 0.8rem; }
-.arc-card-desc { color: var(--muted); font-size: 0.85rem; line-height: 1.5; }
+.arc-card-title { font-weight: 700; font-size: 0.95rem; display: block; margin-bottom: 2px; transition: color 0.15s; }
+.arc-card-meta { color: var(--muted); font-size: 0.76rem; display: block; margin-bottom: 4px; }
+.arc-card-desc { color: var(--muted); font-size: 0.8rem; opacity: 0.7; }
 
 /* ── Section headers ── */
 .arc-section-header {
