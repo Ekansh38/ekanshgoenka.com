@@ -16,7 +16,7 @@ devlog: "https://www.youtube.com/playlist?list=PL0VzTA7jLj1SHQWzZwZ8IUoeMu9LrmBK
 - sending email
 - seeing packets travel between machines in real-time
 - a custom hand-rolled filesystem with inodes, permissions, and directories
-- a virtual kernel — implements real Unix-like syscalls (open, read, socket) and a full TCP/IP stack; programs interact with it exactly like they would a real OS
+- a virtual kernel that implements real Unix-like syscalls (open, read, socket) and a full TCP/IP stack; programs interact with it exactly like they would a real OS
 
 It is a pretty cool project and you should definitely star it on Github.
 
