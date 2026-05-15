@@ -394,14 +394,11 @@ body.page h3 { font-size: 1rem; color: var(--fg); font-weight: 700; margin: 28px
 
 /* ── ARCADE ──────────────────────────────────────────────────── */
 
-@keyframes arc-blink { 0%,100%{opacity:1} 50%{opacity:0} }
-.arc-cursor { display:inline-block; color:var(--accent); animation:arc-blink 1s step-end infinite; margin-left:1px; }
-
 @keyframes arc-fadein { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
 
 /* ── Header ── */
 .arc-head { margin-bottom:40px; }
-.arc-head h1 { margin-bottom:4px; display:inline; }
+.arc-head h1 { margin-bottom:4px; }
 .arc-tagline { color:var(--muted); margin:8px 0 12px; }
 .arc-stat-line { font-size:0.82rem; color:var(--muted); letter-spacing:0.03em; }
 .arc-stat-val { color:var(--accent); font-weight:700; }
@@ -413,8 +410,8 @@ body.page h3 { font-size: 1rem; color: var(--fg); font-weight: 700; margin: 28px
 .arc-card {
   display: flex;
   align-items: flex-start;
-  gap: 20px;
-  padding: 20px 44px 20px 0;
+  gap: 14px;
+  padding: 16px 16px 16px 0;
   border-bottom: 1px solid var(--border);
   text-decoration: none !important;
   color: var(--fg);
@@ -493,7 +490,7 @@ body.page h3 { font-size: 1rem; color: var(--fg); font-weight: 700; margin: 28px
 }
 .arc-form input:focus { border-color: var(--accent); }
 
-/* ── Editor wrapper with top bar ── */
+/* ── Editor with line numbers ── */
 .arc-editor-wrapper { margin-bottom: 10px; }
 .arc-editor-bar {
   display: flex;
@@ -509,15 +506,33 @@ body.page h3 { font-size: 1rem; color: var(--fg); font-weight: 700; margin: 28px
 .arc-char-warn  { color: #e0af68 !important; }
 .arc-char-over  { color: #f7768e !important; }
 
-/* syntax-highlighted editor overlay */
 .arc-editor {
-  position: relative;
+  display: flex;
   background: var(--code-bg);
   border: 1px solid var(--border);
   margin-bottom: 0;
   transition: border-color 0.15s;
 }
 .arc-editor:focus-within { border-color: var(--accent); }
+.arc-editor-nums {
+  padding: 8px 8px 8px 6px;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--muted);
+  opacity: 0.35;
+  text-align: right;
+  user-select: none;
+  overflow: hidden;
+  white-space: pre;
+  border-right: 1px solid var(--border);
+  flex-shrink: 0;
+  min-width: 28px;
+}
+.arc-editor-right {
+  flex: 1;
+  position: relative;
+  min-width: 0;
+}
 .arc-editor-hl {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -552,6 +567,15 @@ body.page h3 { font-size: 1rem; color: var(--fg); font-weight: 700; margin: 28px
   min-height: 220px;
   z-index: 1;
 }
+
+/* ── Collapsible docs ── */
+.arc-docs-details > summary { list-style: none; }
+.arc-docs-details > summary::-webkit-details-marker { display: none; }
+.arc-docs-details > summary::marker { display: none; }
+.arc-docs-details > summary { margin-bottom: 0; }
+.arc-docs-details[open] > summary { margin-bottom: 24px; }
+.arc-docs-summary::before { content: '+ '; font-weight: 400; font-size: 0.9rem; color: var(--muted); }
+.arc-docs-details[open] .arc-docs-summary::before { content: '- '; }
 .arc-submit-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
 #arc-submit, #arc-test {
   background: none;

@@ -1,11 +1,11 @@
 {{ define "main" }}
 <div class="arc-head">
-  <h1>arcade<span class="arc-cursor">_</span></h1>
+  <h1>arcade</h1>
   <p class="arc-tagline">visitor-submitted lua games that run in the terminal</p>
   <div class="arc-stat-line" id="arc-stat-line"></div>
 </div>
 
-<div id="arc-games"><div class="arc-loading-state">fetching games<span class="arc-cursor">_</span></div></div>
+<div id="arc-games"><div class="arc-loading-state">fetching games...</div></div>
 
 <div class="arc-section-header">submit a game</div>
 <div class="arc-form-box">
@@ -18,11 +18,14 @@
     <div class="arc-editor-wrapper">
       <div class="arc-editor-bar">
         <span class="arc-editor-label">LUA</span>
-        <span class="arc-char-count" id="arc-char-count">0 / 8000</span>
+        <span class="arc-char-count" id="arc-char-count">0 / 25000</span>
       </div>
       <div class="arc-editor">
-        <pre class="arc-editor-hl" id="arc-hl" aria-hidden="true"></pre>
-        <textarea id="arc-code" placeholder="-- lua code here&#10;print('what is your name?')&#10;local name = io.read()&#10;print('hi ' .. name)" rows="14" spellcheck="false" autocomplete="off"></textarea>
+        <div class="arc-editor-nums" id="arc-editor-nums">1</div>
+        <div class="arc-editor-right">
+          <pre class="arc-editor-hl" id="arc-hl" aria-hidden="true"></pre>
+          <textarea id="arc-code" placeholder="-- lua code here&#10;print('what is your name?')&#10;local name = io.read()&#10;print('hi ' .. name)" rows="14" spellcheck="false" autocomplete="off"></textarea>
+        </div>
       </div>
     </div>
     <input id="arc-hp" type="text" tabindex="-1" autocomplete="off" style="display:none">
@@ -40,13 +43,16 @@
   </div>
 </div>
 
-<div class="arc-section-header">lua reference</div>
-<pre id="arc-docs-code" class="arc-source-block" style="font-size:0.82rem;line-height:1.7;"></pre>
+<details class="arc-docs-details" open>
+  <summary class="arc-section-header arc-docs-summary">lua reference</summary>
+  <pre id="arc-docs-code" class="arc-source-block" style="font-size:0.82rem;line-height:1.7;"></pre>
+</details>
 
 <script>
 (function() {
   var API = '/api/games';
   var LS_KEY = 'arcade_v1', LS_TTL = 5 * 60 * 1000;
+  var MAX_CODE = 25000;
 
   function lsGet() { try { var d = JSON.parse(localStorage.getItem(LS_KEY)); if (d && Date.now() - d.t < LS_TTL) return d.v; } catch(e) {} return null; }
   function lsSet(v) { try { localStorage.setItem(LS_KEY, JSON.stringify({t: Date.now(), v: v})); } catch(e) {} }
@@ -174,7 +180,6 @@
       return;
     }
 
-    // stat line with animated count
     if (statEl) {
       var countSpan = document.createElement('span');
       countSpan.className = 'arc-stat-val';
@@ -206,34 +211,44 @@
   }
   load();
 
-  // textarea editor
-  var ta = document.getElementById('arc-code');
-  var hl = document.getElementById('arc-hl');
+  // textarea editor with line numbers
+  var ta      = document.getElementById('arc-code');
+  var hl      = document.getElementById('arc-hl');
+  var numsEl  = document.getElementById('arc-editor-nums');
   var charCount = document.getElementById('arc-char-count');
-  var MAX_CODE = 8000;
+  var lastLineCount = 1;
+
+  function updateNums() {
+    var n = Math.max(1, ta.value.split('\n').length);
+    if (n === lastLineCount) return;
+    lastLineCount = n;
+    numsEl.textContent = Array.from({length: n}, function(_, i) { return i + 1; }).join('\n');
+  }
 
   function setCode(code) { ta.value = code; updateHl(); ta.focus(); }
   function updateHl() {
     hl.innerHTML = highlightLua(ta.value) + '\n';
     hl.scrollTop = ta.scrollTop;
-    var n = ta.value.length;
-    charCount.textContent = n + ' / ' + MAX_CODE;
-    charCount.className = 'arc-char-count' + (n > MAX_CODE ? ' arc-char-over' : n > MAX_CODE * 0.85 ? ' arc-char-warn' : '');
+    updateNums();
+    var c = ta.value.length;
+    charCount.textContent = c + ' / ' + MAX_CODE;
+    charCount.className = 'arc-char-count' + (c > MAX_CODE ? ' arc-char-over' : c > MAX_CODE * 0.85 ? ' arc-char-warn' : '');
   }
   ta.addEventListener('input', updateHl);
-  ta.addEventListener('scroll', function() { hl.scrollTop = ta.scrollTop; });
+  ta.addEventListener('scroll', function() {
+    hl.scrollTop = ta.scrollTop;
+    numsEl.scrollTop = ta.scrollTop;
+  });
   updateHl();
 
   ta.addEventListener('keydown', function(e) {
     var start = ta.selectionStart, end = ta.selectionEnd, val = ta.value;
 
-    // ctrl/cmd + enter → submit
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
       e.preventDefault();
       document.getElementById('arc-submit').click();
       return;
     }
-
     if (e.key === 'Tab') {
       e.preventDefault();
       ta.value = val.slice(0, start) + '  ' + val.slice(end);
@@ -258,7 +273,7 @@
     }
   });
 
-  // remix prefill from URL param
+  // remix prefill
   var remixId = new URLSearchParams(window.location.search).get('remix');
   if (remixId) {
     document.getElementById('arc-title').value = 'remix-' + remixId.slice(0, 20);

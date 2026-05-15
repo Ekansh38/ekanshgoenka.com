@@ -41,7 +41,7 @@ function checkAuth(submitted, game) {
   return game.codeHash && hashCode(submitted) === game.codeHash;
 }
 
-const MAX_TITLE = 50, MAX_AUTHOR = 50, MAX_DESC = 200, MAX_CODE = 8000;
+const MAX_TITLE = 50, MAX_AUTHOR = 50, MAX_DESC = 200, MAX_CODE = 25000;
 const MAX_KEEP = 50;
 
 async function fetchAll() {
