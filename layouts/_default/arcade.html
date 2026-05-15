@@ -258,18 +258,16 @@
 
   function setCode(code) { ta.value = code; updateHl(); ta.focus(); }
   function updateHl() {
+    // auto-grow: textarea height = its scroll content height
+    ta.style.height = '0';
+    ta.style.height = ta.scrollHeight + 'px';
     hl.innerHTML = highlightLua(ta.value) + '\n';
-    hl.scrollTop = ta.scrollTop;
     updateNums();
     var c = ta.value.length;
     charCount.textContent = c + ' / ' + MAX_CODE;
     charCount.className = 'arc-char-count' + (c > MAX_CODE ? ' arc-char-over' : c > MAX_CODE * 0.85 ? ' arc-char-warn' : '');
   }
   ta.addEventListener('input', updateHl);
-  ta.addEventListener('scroll', function() {
-    hl.scrollTop = ta.scrollTop;
-    numsEl.scrollTop = ta.scrollTop;
-  });
   updateHl();
 
   ta.addEventListener('keydown', function(e) {
