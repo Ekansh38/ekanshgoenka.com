@@ -1857,7 +1857,7 @@ function toggleTheme() {
     var sandbox = [
       'os=nil; require=nil; load=nil; dofile=nil; loadfile=nil; collectgarbage=nil',
       'io={',
-      '  read =function(prompt) if type(prompt)=="string" then print(prompt) end return coroutine.yield() end,',
+      '  read =function(prompt) if type(prompt)=="string" then _iowrite(prompt) end return coroutine.yield() end,',
       '  write=function(...) local s="" for i=1,select("#",...)do s=s..tostring(select(i,...))end _iowrite(s) end,',
       '}',
       // color: ANSI escape constants
@@ -1965,7 +1965,59 @@ function toggleTheme() {
             }
           }
         }
+        // game is waiting for io.read() input — show inline input in output
         _gameResume = step;
+        var prompt = iobuf; iobuf = '';
+
+        var inputRow = document.createElement('div');
+        inputRow.className = 'term-input-row';
+
+        if (prompt) {
+          var promptEl = document.createElement('pre');
+          promptEl.className = 'term-line-pre term-input-prompt';
+          promptEl.innerHTML = ansiToHtml(prompt);
+          inputRow.appendChild(promptEl);
+        }
+
+        var inlineInp = document.createElement('input');
+        inlineInp.type = 'text';
+        inlineInp.className = 'term-inline-input';
+        inlineInp.autocomplete = 'off';
+        inlineInp.spellcheck = false;
+        inputRow.appendChild(inlineInp);
+
+        output.appendChild(inputRow);
+        output.scrollTop = output.scrollHeight;
+        inlineInp.focus();
+
+        inlineInp.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            var val = inlineInp.value;
+            // freeze inline input, show typed text inline
+            inlineInp.remove();
+            var typedEl = document.createElement('pre');
+            typedEl.className = 'term-line-pre';
+            typedEl.textContent = val;
+            inputRow.appendChild(typedEl);
+            // restore normal input focus, resume game
+            inp.focus();
+            _gameResume = null;
+            if (val.trim() === 'quit' || val.trim() === 'exit' || val.trim() === 'q') {
+              _gameMode = false;
+              line('game exited.', 'term-line-ok');
+            } else {
+              step(val);
+            }
+          } else if (e.key === 'Escape') {
+            _gameMode = false; _gameResume = null;
+            inlineInp.remove();
+            inp.focus();
+            line('game exited.', 'term-line-ok');
+          }
+          e.stopPropagation();
+        });
+
       } else {
         if (st !== lua.LUA_OK) {
           var e = lua.lua_tostring(co, -1);

@@ -547,9 +547,6 @@
     },
   });
 
-  // prevent site-level handlers ([:] terminal) from capturing keystrokes in editor
-  editor.getWrapperElement().addEventListener('keydown', function(e) { e.stopPropagation(); }, true);
-
   editor.on('change', function() { updateCharCount(); scheduleSave(); });
 
   // ── prefill: sessionStorage snippet → then draft → then default ──
@@ -582,13 +579,24 @@
     el.className = 'ae-status' + (type === 'err' ? ' ae-status-err' : type === 'ok' ? ' ae-status-ok' : '');
   }
 
-  // ── vim toggle ──
-  var vimOn = false;
+  // prevent site-level handlers ([:] terminal) from capturing keystrokes in editor
+  // IMPORTANT: use bubble phase (false), NOT capture (true) — capture blocks CM's own handlers
+  editor.getWrapperElement().addEventListener('keydown', function(e) { e.stopPropagation(); }, false);
+
+  // ── vim toggle with persistence ──
+  var vimOn = localStorage.getItem('arcade_vim') === '1';
+  function applyVim(on) {
+    editor.setOption('keyMap', on ? 'vim' : 'default');
+    var btn = document.getElementById('ae-vim-btn');
+    btn.textContent = 'vim: ' + (on ? 'on' : 'off');
+    btn.classList.toggle('ae-btn-on', on);
+  }
+  applyVim(vimOn);
+
   document.getElementById('ae-vim-btn').addEventListener('click', function() {
     vimOn = !vimOn;
-    editor.setOption('keyMap', vimOn ? 'vim' : 'default');
-    this.textContent = 'vim: ' + (vimOn ? 'on' : 'off');
-    this.classList.toggle('ae-btn-on', vimOn);
+    localStorage.setItem('arcade_vim', vimOn ? '1' : '0');
+    applyVim(vimOn);
     editor.focus();
   });
 
