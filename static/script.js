@@ -1645,6 +1645,25 @@ function toggleTheme() {
     document.head.appendChild(s);
   }
 
+  // exposed for arcade page: check lua syntax without running
+  window.luaCheck = function(code, cb) {
+    loadFengari(function() {
+      var fx = window.fengari;
+      if (!fx) { cb(null); return; }
+      var lua = fx.lua, lauxlib = fx.lauxlib;
+      var L = lauxlib.luaL_newstate();
+      var st = lauxlib.luaL_loadstring(L, fx.to_luastring(code));
+      var err = null;
+      if (st !== lua.LUA_OK) {
+        var raw = lua.lua_tostring(L, -1);
+        err = (raw ? fx.to_jsstring(raw) : 'syntax error')
+          .replace(/^\[string "[^"]*"\]:(\d+):\s*/, 'line $1: ');
+      }
+      lua.lua_close(L);
+      cb(err);
+    });
+  };
+
   // ── web audio sound effects ───────────────────────────────────────────────
   function arcadeSound(preset, dur, wave) {
     try {

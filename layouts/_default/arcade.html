@@ -4,7 +4,7 @@
 
 <div id="arc-games"><p style="color:var(--muted)">loading...</p></div>
 
-<div class="arc-section-header" style="margin-top:48px;">submit a game</div>
+<div class="arc-section-header">submit a game</div>
 <div class="arc-form-box">
   <div class="arc-form">
     <div class="arc-row">
@@ -230,25 +230,40 @@
     var status = document.getElementById('arc-status');
     var btn    = document.getElementById('arc-submit');
     if (!title || !author || !code) { status.textContent = 'title, name, and code required.'; status.style.color = 'var(--muted)'; return; }
-    btn.disabled = true; btn.textContent = 'submitting...'; status.textContent = '';
-    fetch(API, { method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({title:title, author:author, desc:desc, code:code, hp:hp}) })
-    .then(function(r){return r.json();})
-    .then(function(data) {
-      if (data.ok) {
-        document.getElementById('arc-title').value = '';
-        document.getElementById('arc-author').value = '';
-        document.getElementById('arc-desc').value = '';
-        setCode('');
-        status.textContent = 'submitted! play it: play ' + data.id;
-        status.style.color = 'var(--accent)';
-        document.getElementById('arc-editcode').textContent = data.editCode;
-        document.getElementById('arc-editcode-box').style.display = 'block';
-        lsBust(); load(true);
-      } else { status.textContent = data.error || 'something went wrong.'; status.style.color = 'var(--muted)'; }
-    })
-    .catch(function(){ status.textContent = 'network error.'; status.style.color = 'var(--muted)'; })
-    .finally(function(){ btn.disabled = false; btn.textContent = 'submit game →'; });
+
+    btn.disabled = true; btn.textContent = 'checking...'; status.textContent = '';
+
+    function doSubmit() {
+      btn.textContent = 'submitting...';
+      fetch(API, { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({title:title, author:author, desc:desc, code:code, hp:hp}) })
+      .then(function(r){return r.json();})
+      .then(function(data) {
+        if (data.ok) {
+          document.getElementById('arc-title').value = '';
+          document.getElementById('arc-author').value = '';
+          document.getElementById('arc-desc').value = '';
+          setCode('');
+          status.textContent = 'submitted! play it: play ' + data.id;
+          status.style.color = 'var(--accent)';
+          document.getElementById('arc-editcode').textContent = data.editCode;
+          document.getElementById('arc-editcode-box').style.display = 'block';
+          lsBust(); load(true);
+        } else { status.textContent = data.error || 'something went wrong.'; status.style.color = 'var(--muted)'; }
+      })
+      .catch(function(){ status.textContent = 'network error.'; status.style.color = 'var(--muted)'; })
+      .finally(function(){ btn.disabled = false; btn.textContent = 'submit game →'; });
+    }
+
+    if (window.luaCheck) {
+      window.luaCheck(code, function(err) {
+        if (err) {
+          status.textContent = err;
+          status.style.color = '#f7768e';
+          btn.disabled = false; btn.textContent = 'submit game →';
+        } else { doSubmit(); }
+      });
+    } else { doSubmit(); }
   });
 })();
 </script>

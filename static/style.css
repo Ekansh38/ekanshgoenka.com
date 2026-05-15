@@ -473,37 +473,61 @@ body.page h3 { font-size: 1rem; color: var(--fg); font-weight: 700; margin: 28px
 #arc-status { font-size: 0.88rem; color: var(--muted); }
 
 .arc-section-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
   font-weight: 700;
-  color: var(--fg);
-  border-left: 3px solid var(--accent);
-  padding-left: 10px;
-  margin-bottom: 16px;
+  font-size: 1.05rem;
+  color: var(--accent);
+  margin: 56px 0 26px;
+  letter-spacing: 0.02em;
+}
+.arc-section-header::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
 }
 
-.arc-form-box {
-  border: 1px solid var(--border);
-  background: var(--code-bg);
-  padding: 20px 22px;
-  margin-bottom: 0;
-}
+.arc-form-box { padding: 0; }
 
 .arc-card {
   display: block;
-  background: var(--code-bg);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--accent);
-  padding: 14px 18px;
-  margin-bottom: 8px;
+  padding: 22px 40px 22px 0;
+  border-bottom: 1px solid var(--border);
   text-decoration: none !important;
   color: var(--fg);
-  transition: border-color 0.15s, background 0.15s;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.15s;
 }
-.arc-card:hover { border-color: var(--accent); background: var(--bg); }
+.arc-card:first-child { border-top: 1px solid var(--border); }
+.arc-card::before {
+  content: '';
+  position: absolute;
+  left: -4px; top: 0; bottom: 0;
+  width: 4px;
+  background: var(--accent);
+  transition: left 0.18s ease;
+}
+.arc-card:hover::before { left: 0; }
+.arc-card::after {
+  content: '→';
+  position: absolute;
+  right: 2px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--accent);
+  opacity: 0;
+  transition: opacity 0.18s, right 0.18s;
+  font-size: 1rem;
+}
+.arc-card:hover::after { opacity: 1; right: 0; }
+.arc-card:hover { background: var(--code-bg); }
 .arc-card:hover .arc-card-title { color: var(--accent); }
-.arc-card-header { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+.arc-card-header { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 5px; }
 .arc-card-title { font-weight: 700; font-size: 1rem; transition: color 0.15s; }
 .arc-card-meta { color: var(--muted); font-size: 0.82rem; }
-.arc-card-desc { color: var(--muted); font-size: 0.85rem; }
+.arc-card-desc { color: var(--muted); font-size: 0.85rem; margin-top: 3px; }
 .arc-source-block {
   margin: 12px 0 4px;
   padding: 12px;
