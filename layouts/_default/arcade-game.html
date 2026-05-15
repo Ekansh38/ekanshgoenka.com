@@ -56,21 +56,9 @@
 
   <details class="ag-del-section">
     <summary class="ag-del-summary">update source</summary>
-    <div class="ag-del-form" style="display:flex;flex-direction:column;gap:10px;">
+    <div class="ag-del-form" style="flex-direction:column;align-items:stretch;">
       <input type="text" id="ag-upd-code-inp" class="arc-code-inp" placeholder="edit code (xxxxx-xxxxx)">
-      <div class="arc-editor-wrapper" style="margin:0">
-        <div class="arc-editor-bar">
-          <span class="arc-editor-label">NEW CODE</span>
-          <span id="ag-upd-char-count" class="arc-char-count">0 / 25000</span>
-        </div>
-        <div class="arc-editor" style="min-height:120px;max-height:400px;">
-          <div class="arc-editor-nums" id="ag-upd-nums">1</div>
-          <div class="arc-editor-right">
-            <pre class="arc-editor-hl" id="ag-upd-hl" aria-hidden="true"></pre>
-            <textarea id="ag-upd-code" spellcheck="false" autocomplete="off" rows="8" placeholder="-- paste updated code here"></textarea>
-          </div>
-        </div>
-      </div>
+      <textarea id="ag-upd-code" class="ag-upd-textarea" spellcheck="false" autocomplete="off" placeholder="-- paste updated code here"></textarea>
       <div style="display:flex;align-items:center;gap:12px;">
         <button id="ag-upd-confirm" class="arc-del-confirm">publish update</button>
         <span id="ag-upd-status" class="arc-del-status"></span>
@@ -172,28 +160,10 @@
         });
       });
 
-      // update editor
-      (function() {
-        var ta = document.getElementById('ag-upd-code');
-        var hl = document.getElementById('ag-upd-hl');
-        var nums = document.getElementById('ag-upd-nums');
-        var cc = document.getElementById('ag-upd-char-count');
-        var MAX = 25000;
-        var lastN = 1;
-        function updHl() {
-          ta.style.height = '0'; ta.style.height = ta.scrollHeight + 'px';
-          hl.innerHTML = highlightLua(ta.value) + '\n';
-          var n = Math.max(1, ta.value.split('\n').length);
-          if (n !== lastN) { lastN = n; nums.textContent = Array.from({length:n},function(_,i){return i+1;}).join('\n'); }
-          var c = ta.value.length;
-          cc.textContent = c + ' / ' + MAX;
-          cc.className = 'arc-char-count' + (c > MAX ? ' arc-char-over' : c > MAX*0.85 ? ' arc-char-warn' : '');
-        }
-        ta.addEventListener('input', updHl);
-        ta.addEventListener('keydown', function(e) {
-          if (e.key === 'Tab') { e.preventDefault(); var s=ta.selectionStart,v=ta.value; ta.value=v.slice(0,s)+'  '+v.slice(ta.selectionEnd); ta.selectionStart=ta.selectionEnd=s+2; updHl(); }
-        });
-      })();
+      // tab support in update textarea
+      document.getElementById('ag-upd-code').addEventListener('keydown', function(e) {
+        if (e.key === 'Tab') { e.preventDefault(); var s=this.selectionStart,v=this.value; this.value=v.slice(0,s)+'  '+v.slice(this.selectionEnd); this.selectionStart=this.selectionEnd=s+2; }
+      });
 
       document.getElementById('ag-upd-confirm').addEventListener('click', function() {
         var code = document.getElementById('ag-upd-code-inp').value.trim();

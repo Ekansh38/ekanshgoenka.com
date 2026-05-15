@@ -856,6 +856,21 @@ body.page h3 { font-size: 1rem; color: var(--fg); font-weight: 700; margin: 28px
   margin-top: 14px;
   flex-wrap: wrap;
 }
+.ag-upd-textarea {
+  width: 100%;
+  min-height: 180px;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 0.82rem;
+  padding: 10px 12px;
+  outline: none;
+  resize: vertical;
+  line-height: 1.6;
+  box-sizing: border-box;
+}
+.ag-upd-textarea:focus { border-color: var(--accent); }
 
 /* Error */
 .ag-error { color: var(--muted); padding: 40px 0; }
