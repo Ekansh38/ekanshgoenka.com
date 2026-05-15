@@ -643,6 +643,17 @@ body.page h3 { font-size: 1rem; color: var(--fg); font-weight: 700; margin: 28px
 #arc-status { font-size: 0.85rem; }
 .arc-hint { font-size: 0.75rem; color: var(--muted); opacity: 0.5; margin-left: auto; white-space: nowrap; }
 
+/* ── Snippets ── */
+.arc-snippets { display: flex; flex-direction: column; gap: 16px; margin-top: 4px; }
+.arc-snippet { border: 1px solid var(--border); }
+.arc-snippet-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--code-bg);
+}
+.arc-snippet-title { font-size: 0.78rem; color: var(--muted); letter-spacing: 0.06em; }
+
 /* ── Misc ── */
 .arc-source-block {
   margin: 0;
