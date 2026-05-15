@@ -42,6 +42,19 @@
   }
   #tut-skip:hover { opacity: 1; color: var(--fg); }
 
+  /* back button */
+  #tut-back {
+    position: absolute; bottom: 28px; left: 22px;
+    background: none; border: none;
+    color: var(--muted); font-family: inherit; font-size: 0.75rem;
+    cursor: pointer; opacity: 0; z-index: 10;
+    padding: 4px 8px;
+    transition: opacity 0.25s, color 0.15s;
+    pointer-events: none;
+  }
+  #tut-back.tut-back-visible { opacity: 0.5; pointer-events: all; }
+  #tut-back:hover { opacity: 1; color: var(--fg); }
+
   /* step dots */
   #tut-dots {
     position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
@@ -160,8 +173,8 @@
   }
   .tut-body strong { color: var(--fg); font-weight: 600; }
 
-  /* code block */
-  .tut-code {
+  /* static highlighted code block */
+  .tut-code-hl {
     background: var(--code-bg, var(--bg));
     border: 1px solid var(--border);
     padding: 14px 18px; font-size: 0.82rem;
@@ -169,14 +182,32 @@
     overflow-x: auto; white-space: pre;
     tab-size: 2;
   }
-  textarea.tut-code {
-    display: block; width: 100%; box-sizing: border-box;
-    color: var(--fg); font-family: inherit; resize: none;
-    cursor: text; white-space: pre; overflow-x: auto;
-    transition: border-color 0.2s;
+
+  /* code editor component */
+  .tut-ce-wrap {
+    position: relative;
+    border: 1px solid var(--border);
+    background: var(--code-bg, var(--bg));
+    margin-bottom: 20px;
+    overflow: hidden;
   }
-  textarea.tut-code:focus {
-    outline: none; border-color: var(--accent);
+  .tut-ce-wrap:focus-within { border-color: var(--accent); }
+  .tut-ce-hl {
+    position: absolute; inset: 0;
+    padding: 14px 18px; margin: 0;
+    font-size: 0.82rem; line-height: 1.75; tab-size: 2;
+    font-family: inherit; white-space: pre; overflow: hidden;
+    pointer-events: none; color: var(--fg);
+    box-sizing: border-box;
+  }
+  .tut-ce-ta {
+    position: relative; display: block; width: 100%;
+    padding: 14px 18px; box-sizing: border-box;
+    font-size: 0.82rem; line-height: 1.75; tab-size: 2;
+    font-family: inherit; white-space: pre;
+    background: transparent; color: transparent;
+    caret-color: var(--fg); border: none; resize: none;
+    outline: none; overflow: auto; min-height: 48px;
   }
 
   /* next button */
@@ -223,6 +254,7 @@
     font-style: italic; background: var(--bg);
     border: none; outline: none;
     transition: border-color 0.3s;
+    white-space: pre-wrap;
   }
   .tut-term-out.tut-term-active {
     color: var(--fg); font-style: normal;
@@ -240,7 +272,33 @@
   }
   .tut-success-msg.tut-visible { opacity: 1; }
 
-  /* SCREEN 3: story builder */
+  /* SCREEN 3: variables */
+  .tut-var-term {
+    border: 1px solid var(--border); margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .tut-var-out {
+    min-height: 40px; padding: 10px 14px;
+    font-size: 0.88rem; color: var(--muted);
+    font-style: italic; background: var(--bg);
+    white-space: pre-wrap;
+  }
+  .tut-var-out.active { color: var(--fg); font-style: normal; }
+  .tut-var-inp-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 14px; border-top: 1px solid var(--border);
+    background: var(--code-bg, var(--bg));
+  }
+  .tut-var-prompt {
+    font-size: 0.82rem; color: var(--muted); flex-shrink: 0;
+  }
+  .tut-var-inp {
+    background: transparent; border: none; border-bottom: 1px solid var(--accent);
+    color: var(--fg); font-family: inherit; font-size: 0.82rem;
+    outline: none; flex: 1;
+  }
+
+  /* SCREEN 4: story builder */
   .tut-story-scene {
     border: 1px solid var(--border);
     background: var(--code-bg, var(--bg));
@@ -296,7 +354,7 @@
   }
   .tut-story-reset:hover { opacity: 1; }
 
-  /* SCREEN 4: slider / if-else */
+  /* SCREEN 5: if-else slider */
   .tut-if-code {
     background: var(--code-bg, var(--bg));
     border: 1px solid var(--border);
@@ -322,7 +380,6 @@
     width: 14px; height: 14px; border-radius: 0;
     background: var(--accent); cursor: pointer;
   }
-  /* story output for screen 4 */
   .tut-story-output {
     border: 1px solid var(--border);
     padding: 16px 20px; margin-bottom: 18px;
@@ -347,7 +404,40 @@
   .tut-story-tag-win { color: var(--accent); font-weight: 700; }
   .tut-story-tag-lose { color: var(--code-err, #f7768e); font-weight: 700; }
 
-  /* SCREEN 5: powers */
+  /* SCREEN 6: loops */
+  .tut-loop-out {
+    border: 1px solid var(--border);
+    background: var(--code-bg, var(--bg));
+    padding: 12px 16px; min-height: 90px;
+    font-size: 0.85rem; margin-bottom: 14px;
+    position: relative;
+  }
+  .tut-loop-step-line {
+    color: var(--fg); opacity: 0; transform: translateX(-6px);
+    transition: opacity 0.25s, transform 0.25s;
+    line-height: 1.7;
+  }
+  .tut-loop-step-line.show { opacity: 1; transform: translateX(0); }
+  .tut-loop-complete {
+    font-size: 0.78rem; color: var(--accent);
+    opacity: 0; transition: opacity 0.4s;
+    margin-bottom: 10px;
+  }
+  .tut-loop-complete.show { opacity: 1; }
+  .tut-loop-controls {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 16px;
+  }
+  .tut-loop-i-display {
+    font-size: 0.82rem; color: var(--muted);
+  }
+  .tut-loop-i-display span {
+    color: var(--accent); font-weight: 700; font-size: 1rem;
+    display: inline-block; min-width: 1.5em; text-align: center;
+    transition: transform 0.15s;
+  }
+
+  /* SCREEN 7: powers */
   .tut-power-demo {
     border: 1px solid var(--border);
     padding: 14px 18px; margin-bottom: 18px;
@@ -399,7 +489,7 @@
   }
   .tut-power-note span { color: var(--accent); }
 
-  /* SCREEN 6 (new): edit code */
+  /* SCREEN 9 (edit code) */
   .tut-editcode-box {
     border: 1px solid var(--accent);
     padding: 18px 22px; margin-bottom: 18px;
@@ -503,7 +593,7 @@
   }
   .tut-net-note span { color: var(--accent); }
 
-  /* SCREEN 7: starter cards */
+  /* STARTER screen */
   #tut-s7 .tut-step-wrap { max-width: 700px; }
   .tut-starters-grid {
     display: grid; grid-template-columns: 1fr 1fr;
@@ -589,6 +679,7 @@
   <canvas id="tut-canvas"></canvas>
   <div id="tut-progress"></div>
   <button id="tut-skip">skip tutorial</button>
+  <button id="tut-back">← back</button>
 
   <div id="tut-dots">
     <div class="tut-dot" data-i="0"></div>
@@ -598,6 +689,8 @@
     <div class="tut-dot" data-i="4"></div>
     <div class="tut-dot" data-i="5"></div>
     <div class="tut-dot" data-i="6"></div>
+    <div class="tut-dot" data-i="7"></div>
+    <div class="tut-dot" data-i="8"></div>
   </div>
 
   <!-- SCREEN 0: experience check -->
@@ -615,7 +708,7 @@
         <span class="tut-card-symbol" style="top:10px;right:14px;animation-delay:0.8s">?</span>
         <span class="tut-card-symbol" style="bottom:12px;left:10px;animation-delay:2.5s">?</span>
         <span class="tut-choice-title">new to this</span>
-        <span class="tut-choice-desc">walk me through it - takes about 2 minutes</span>
+        <span class="tut-choice-desc">walk me through it — takes about 5–10 minutes</span>
       </button>
     </div>
   </div>
@@ -671,7 +764,7 @@
   <!-- SCREEN 1: welcome -->
   <div class="tut-screen" id="tut-s1">
     <div class="tut-step-wrap">
-      <div class="tut-step-tag">01 / 07</div>
+      <div class="tut-step-tag">01 / 09</div>
       <div class="tut-heading" id="tut-s1-heading"></div>
       <div class="tut-body" id="tut-s1-body" style="opacity:0;transition:opacity 0.5s"></div>
       <div id="tut-s1-game-preview" style="opacity:0;transition:opacity 0.4s;margin-bottom:20px">
@@ -686,13 +779,16 @@
     </div>
   </div>
 
-  <!-- SCREEN 2: first line -->
+  <!-- SCREEN 2: first line of code -->
   <div class="tut-screen" id="tut-s2">
     <div class="tut-step-wrap">
-      <div class="tut-step-tag">02 / 07</div>
+      <div class="tut-step-tag">02 / 09</div>
       <div class="tut-heading">your first program</div>
-      <div class="tut-body">Lua reads almost like English. edit the code below and hit run:</div>
-      <textarea class="tut-code" id="tut-s2-code" rows="1" spellcheck="false">print("hello!")</textarea>
+      <div class="tut-body">Lua reads almost like English. edit the code below — change the text inside the quotes — then hit run:</div>
+      <div class="tut-ce-wrap" id="tut-s2-ce">
+        <pre class="tut-ce-hl" id="tut-s2-hl"></pre>
+        <textarea class="tut-ce-ta" id="tut-s2-code" rows="1" spellcheck="false">print("hello!")</textarea>
+      </div>
       <div class="tut-mini-term">
         <div class="tut-term-bar">
           <div class="tut-term-dot"></div>
@@ -705,15 +801,42 @@
           <button class="tut-btn-muted" id="tut-run-btn">&#9654; run it</button>
         </div>
       </div>
-      <div class="tut-success-msg" id="tut-s2-success">that's your first program.</div>
+      <div class="tut-success-msg" id="tut-s2-success">that's your first program. ✓</div>
       <button class="tut-btn" id="tut-s2-next" style="display:none;margin-top:12px">continue →</button>
     </div>
   </div>
 
-  <!-- SCREEN 3: story builder (was variables quiz) -->
+  <!-- SCREEN 3: variables -->
+  <div class="tut-screen" id="tut-svars">
+    <div class="tut-step-wrap">
+      <div class="tut-step-tag">03 / 09</div>
+      <div class="tut-heading">variables store things</div>
+      <div class="tut-body">a variable is a label for a value. <strong>local name = ...</strong> creates one. try it — type your name below:</div>
+      <div class="tut-code-hl" style="margin-bottom:16px"><span class="lh-kw2">local</span> name <span class="lh-op">=</span> io.<span class="lh-fn">read</span>(<span class="lh-str">"your name? "</span>)
+<span class="lh-builtin">print</span>(<span class="lh-str">"hello, "</span> <span class="lh-op">..</span> name)
+<span class="lh-builtin">print</span>(<span class="lh-str">"welcome to the arcade, "</span> <span class="lh-op">..</span> name <span class="lh-op">..</span> <span class="lh-str">"!"</span>)</div>
+      <div class="tut-var-term">
+        <div class="tut-term-bar">
+          <div class="tut-term-dot"></div>
+          <div class="tut-term-dot"></div>
+          <div class="tut-term-dot"></div>
+          <span class="tut-term-title">terminal</span>
+        </div>
+        <div class="tut-var-out" id="tut-vars-out">waiting for input...</div>
+        <div class="tut-var-inp-row">
+          <span class="tut-var-prompt">your name?</span>
+          <input class="tut-var-inp" id="tut-vars-inp" placeholder="type and press Enter" autocomplete="off" spellcheck="false">
+        </div>
+      </div>
+      <div class="tut-success-msg" id="tut-vars-success">the <span style="color:var(--accent)">.. operator</span> joins strings together. that's all variables are.</div>
+      <button class="tut-btn" id="tut-svars-next" style="display:none;margin-top:14px">continue →</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 4: story builder / if-else intro -->
   <div class="tut-screen" id="tut-s3">
     <div class="tut-step-wrap">
-      <div class="tut-step-tag">03 / 07</div>
+      <div class="tut-step-tag">04 / 09</div>
       <div class="tut-heading">pick a path</div>
       <div class="tut-body">your game reacts to what the player does. click a choice and see what happens:</div>
 
@@ -729,8 +852,8 @@
       </div>
 
       <div id="tut-s3-note" style="display:none;font-size:0.8rem;color:var(--muted);margin-bottom:14px;line-height:1.6">
-        each choice runs different code. that's it - that's how story games work.
-        in Lua you write: <span style="color:var(--accent);font-weight:600">if choice == "i" then ... else ... end</span>
+        each choice runs different code. that's it — that's how story games work.
+        in Lua: <span style="color:var(--accent);font-weight:600">if choice == "i" then ... else ... end</span>
       </div>
       <button class="tut-story-reset" id="tut-story-reset" style="display:none">try another path</button>
       <br id="tut-s3-br" style="display:none">
@@ -738,12 +861,12 @@
     </div>
   </div>
 
-  <!-- SCREEN 4: if/else with dramatic story output -->
+  <!-- SCREEN 5: the code behind if/else -->
   <div class="tut-screen" id="tut-s4">
     <div class="tut-step-wrap">
-      <div class="tut-step-tag">04 / 07</div>
+      <div class="tut-step-tag">05 / 09</div>
       <div class="tut-heading">the code behind it</div>
-      <div class="tut-body">your game checks values and branches. drag the slider - watch the story change:</div>
+      <div class="tut-body">your game checks values and branches. drag the slider — watch the story change:</div>
       <div class="tut-if-code" id="tut-if-code"><span class="lh-kw2">local</span> health <span class="lh-op">=</span> <span class="lh-num" id="tut-score-val">70</span>
 <span class="lh-kw">if</span> health <span class="lh-op">&gt;</span> <span class="lh-num">50</span> <span class="lh-kw">then</span>
   <span class="lh-builtin">print</span>(<span class="lh-str">"you push through the pain and survive."</span>)
@@ -761,10 +884,31 @@
     </div>
   </div>
 
-  <!-- SCREEN 5: powers -->
+  <!-- SCREEN 6: loops -->
+  <div class="tut-screen" id="tut-sloops">
+    <div class="tut-step-wrap">
+      <div class="tut-step-tag">06 / 09</div>
+      <div class="tut-heading">loops repeat things</div>
+      <div class="tut-body">a <strong>for</strong> loop runs the same code multiple times, counting as it goes. step through it:</div>
+      <div class="tut-code-hl" style="margin-bottom:14px"><span class="lh-kw">for</span> i <span class="lh-op">=</span> <span class="lh-num">1</span>, <span class="lh-num">5</span> <span class="lh-kw">do</span>
+  <span class="lh-builtin">print</span>(<span class="lh-str">"step "</span> <span class="lh-op">..</span> i)
+<span class="lh-kw">end</span></div>
+      <div class="tut-loop-controls">
+        <button class="tut-btn-muted" id="tut-loop-step-btn">step →</button>
+        <div class="tut-loop-i-display">i = <span id="tut-loop-i-val">–</span></div>
+      </div>
+      <div class="tut-loop-out" id="tut-loop-out">
+        <div style="color:var(--muted);font-size:0.78rem;font-style:italic">output will appear here...</div>
+      </div>
+      <div class="tut-loop-complete" id="tut-loop-complete">loop finished — ran 5 times ✓</div>
+      <button class="tut-btn" id="tut-sloops-next" style="display:none">continue →</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 7: special powers -->
   <div class="tut-screen" id="tut-s5">
     <div class="tut-step-wrap">
-      <div class="tut-step-tag">05 / 07</div>
+      <div class="tut-step-tag">07 / 09</div>
       <div class="tut-heading">special powers</div>
       <div class="tut-body">the arcade gives you functions that normal Lua doesn't have. click each one:</div>
       <div class="tut-power-demo" id="tut-power-demo">the quick brown fox</div>
@@ -800,14 +944,14 @@
     </div>
   </div>
 
-  <!-- SCREEN 5b: networking -->
+  <!-- SCREEN 8: networking -->
   <div class="tut-screen" id="tut-snet">
     <div class="tut-step-wrap">
-      <div class="tut-step-tag">06 / 07</div>
+      <div class="tut-step-tag">08 / 09</div>
       <div class="tut-heading">the arcade has a database</div>
-      <div class="tut-body">your game can save and load data that persists between plays. add a leaderboard in 2 lines:</div>
-      <div class="tut-if-code" style="margin-bottom:14px"><span class="lh-builtin">net</span>.<span class="lh-fn">rank</span>(<span class="lh-str">"ekansh"</span>, <span class="lh-num">99</span>)      <span class="lh-cmt">-- save score</span>
-<span class="lh-kw2">local</span> top <span class="lh-op">=</span> <span class="lh-builtin">net</span>.<span class="lh-fn">top</span>(<span class="lh-num">5</span>)            <span class="lh-cmt">-- fetch top 5</span>
+      <div class="tut-body">your game can save data that persists between plays. add a leaderboard in 2 lines:</div>
+      <div class="tut-code-hl" style="margin-bottom:14px"><span class="lh-arcade">net</span>.<span class="lh-fn">rank</span>(<span class="lh-str">"ekansh"</span>, <span class="lh-num">99</span>)      <span class="lh-cmt">-- save score</span>
+<span class="lh-kw2">local</span> top <span class="lh-op">=</span> <span class="lh-arcade">net</span>.<span class="lh-fn">top</span>(<span class="lh-num">5</span>)            <span class="lh-cmt">-- fetch top 5</span>
 <span class="lh-kw">for</span> i, e <span class="lh-kw">in</span> <span class="lh-builtin">ipairs</span>(top) <span class="lh-kw">do</span>
   <span class="lh-builtin">print</span>(i <span class="lh-op">..</span> <span class="lh-str">". "</span> <span class="lh-op">..</span> e.name <span class="lh-op">..</span> <span class="lh-str">"  "</span> <span class="lh-op">..</span> e.score)
 <span class="lh-kw">end</span></div>
@@ -819,7 +963,7 @@
         </div>
         <div class="tut-net-panel" id="tut-net-panel-lb">
           <div class="tut-lb" id="tut-lb-list">
-            <div class="tut-lb-empty">no scores yet - add one below</div>
+            <div class="tut-lb-empty">no scores yet — add one below</div>
           </div>
           <div style="margin-top:12px">
             <div class="tut-net-actions">
@@ -830,8 +974,8 @@
           <div class="tut-net-note">each game has its own leaderboard namespace. data is stored in <span>Redis</span> (Upstash) via a serverless API. it persists forever.</div>
         </div>
         <div class="tut-net-panel hidden" id="tut-net-panel-kv">
-          <div class="tut-if-code" style="margin-bottom:10px;font-size:0.78rem"><span class="lh-builtin">net</span>.<span class="lh-fn">set</span>(<span class="lh-str">"lives"</span>, <span class="lh-num">3</span>)
-<span class="lh-kw2">local</span> lives <span class="lh-op">=</span> <span class="lh-builtin">net</span>.<span class="lh-fn">get</span>(<span class="lh-str">"lives"</span>)</div>
+          <div class="tut-code-hl" style="margin-bottom:10px;font-size:0.78rem"><span class="lh-arcade">net</span>.<span class="lh-fn">set</span>(<span class="lh-str">"lives"</span>, <span class="lh-num">3</span>)
+<span class="lh-kw2">local</span> lives <span class="lh-op">=</span> <span class="lh-arcade">net</span>.<span class="lh-fn">get</span>(<span class="lh-str">"lives"</span>)</div>
           <div class="tut-net-note">key-value storage scoped per game. good for saving player progress, unlocks, or anything that should persist. <span>reads and writes are async</span> — execution resumes automatically when done.</div>
         </div>
       </div>
@@ -840,37 +984,37 @@
     </div>
   </div>
 
-  <!-- SCREEN 6: edit code + docs panel -->
+  <!-- SCREEN 9: edit code + docs panel -->
   <div class="tut-screen" id="tut-s6">
     <div class="tut-step-wrap">
-      <div class="tut-step-tag">07 / 07</div>
-      <div class="tut-heading">last two things</div>
+      <div class="tut-step-tag">09 / 09</div>
+      <div class="tut-heading">two last things</div>
       <div class="tut-body">no accounts. when you submit a game, you get a unique <strong>edit code</strong> — save it, it won't be shown again:</div>
       <div class="tut-editcode-box">
         <span class="tut-editcode-val" id="tut-editcode-demo">a3f9b-2c81d</span>
         <button class="tut-editcode-copy" id="tut-editcode-copy-demo">copy</button>
       </div>
-      <div class="tut-editcode-note" style="color:var(--muted);font-size:0.75rem;margin-bottom:14px;opacity:0.7">
+      <div class="tut-editcode-note" style="color:var(--muted);font-size:0.75rem;margin-bottom:20px;opacity:0.7">
         ^ just an example. your real code will look different.
       </div>
-      <div class="tut-body" style="margin-bottom:12px">the editor has a <strong>docs panel</strong> on the right side. every API with examples, plus ready-to-paste snippets. click the tab to open it anytime:</div>
+      <div class="tut-body" style="margin-bottom:12px">the editor has a <strong>docs panel</strong> on the right side. every API with examples, plus ready-to-paste snippets:</div>
       <div style="border:1px solid var(--border);background:var(--code-bg,var(--bg));padding:12px 18px;margin-bottom:20px;font-size:0.82rem">
         <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:10px">
           <div style="padding:5px 12px;color:var(--accent);border-bottom:2px solid var(--accent);font-size:0.72rem;font-weight:700">snippets</div>
           <div style="padding:5px 12px;color:var(--muted);font-size:0.72rem">reference</div>
         </div>
-        <div style="color:var(--muted);font-size:0.78rem">hello world &nbsp;·&nbsp; number guesser &nbsp;·&nbsp; story game &nbsp;·&nbsp; countdown &nbsp;·&nbsp; leaderboard</div>
-        <div style="color:var(--muted);font-size:0.72rem;margin-top:6px;opacity:0.6">click any snippet → inserts code at cursor</div>
+        <div style="color:var(--muted);font-size:0.78rem">hello world &nbsp;·&nbsp; number guesser &nbsp;·&nbsp; story game &nbsp;·&nbsp; countdown &nbsp;·&nbsp; leaderboard &nbsp;·&nbsp; bouncing ball</div>
+        <div style="color:var(--muted);font-size:0.72rem;margin-top:6px;opacity:0.6">click any snippet → inserts code at cursor · reference tab has every API</div>
       </div>
       <button class="tut-btn" id="tut-s6-next" style="margin-top:4px">pick a starter →</button>
     </div>
   </div>
 
-  <!-- SCREEN 7: starter picker -->
+  <!-- SCREEN 10: starter picker -->
   <div class="tut-screen" id="tut-s7">
     <div class="tut-step-wrap">
       <div class="tut-heading">you're ready.</div>
-      <div class="tut-body">pick a starting point - you can change everything once you're in the editor.</div>
+      <div class="tut-body">pick a starting point — you can change everything once you're in the editor.</div>
       <div class="tut-starters-grid">
         <button class="tut-starter-card" data-starter="dice">
           <div class="tut-preview" id="tut-prev-dice"><span style="font-size:1.4rem;color:var(--accent)">?</span></div>
@@ -904,7 +1048,7 @@
           <div class="tut-preview" id="tut-prev-blank" style="height:40px"><span class="tut-cursor"></span></div>
           <div class="tut-starter-info">
             <span class="tut-starter-name">blank slate</span>
-            <span class="tut-starter-hint">start from scratch - just a comment to get you going</span>
+            <span class="tut-starter-hint">start from scratch</span>
           </div>
         </button>
       </div>
@@ -924,7 +1068,71 @@
     }
   } catch(e) {}
 
-  // canvas background: floating Lua fragments
+  // ── lua syntax highlight ──────────────────────────────────────────────────────
+  function hlEsc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function highlightLua(code) {
+    var KW_CTL = /^(if|then|else|elseif|end|while|do|for|in|return|break|repeat|until)$/;
+    var KW_DEF = /^(local|function)$/;
+    var KW_VAL = /^(true|false|nil)$/;
+    var KW_OP  = /^(and|or|not)$/;
+    var FN_STD = /^(math|string|table|io|os|coroutine)$/;
+    var FN_BLT = /^(print|tostring|tonumber|type|pairs|ipairs|pcall|xpcall|error|select|assert|next|rawget|rawset|setmetatable|getmetatable)$/;
+    var FN_ARC = /^(sleep|clear|colored|color|sound|net)$/;
+    var MOPS   = ['~=','<=','>=','==','..','//'];
+    function tok(src) {
+      var out = '', i = 0;
+      while (i < src.length) {
+        var c = src[i];
+        if (c === '"' || c === "'") {
+          var j = i + 1;
+          while (j < src.length) { if (src[j]==='\\'){j+=2;} else if (src[j]===c){j++;break;} else{j++;} }
+          out += '<span class="lh-str">' + hlEsc(src.slice(i,j)) + '</span>'; i = j; continue;
+        }
+        if (/[0-9]/.test(c) || (c==='.' && /[0-9]/.test(src[i+1]||''))) {
+          var j = i;
+          if (src[j]==='0'&&/[xX]/.test(src[j+1]||'')){j+=2;while(/[0-9a-fA-F]/.test(src[j]||''))j++;}
+          else{while(/[0-9]/.test(src[j]||''))j++;if(src[j]==='.'){ j++;while(/[0-9]/.test(src[j]||''))j++;}if(/[eE]/.test(src[j]||'')){j++;if(/[+-]/.test(src[j]||''))j++;while(/[0-9]/.test(src[j]||''))j++;}}
+          out += '<span class="lh-num">' + hlEsc(src.slice(i,j)) + '</span>'; i = j; continue;
+        }
+        if (/[a-zA-Z_]/.test(c)) {
+          var j = i; while(/[a-zA-Z0-9_]/.test(src[j]||''))j++;
+          var w = src.slice(i,j);
+          var rest = src.slice(j).replace(/^[ \t]*/,'');
+          var call = rest[0]==='('||rest[0]==='{'||rest[0]==='"'||rest[0]==="'";
+          var cls = KW_CTL.test(w)?'lh-kw':KW_DEF.test(w)?'lh-kw2':KW_VAL.test(w)?'lh-val':KW_OP.test(w)?'lh-op':FN_ARC.test(w)?'lh-arcade':FN_STD.test(w)?'lh-std':(FN_BLT.test(w)&&call)?'lh-builtin':call?'lh-fn':null;
+          out += cls ? '<span class="'+cls+'">'+hlEsc(w)+'</span>' : hlEsc(w); i = j; continue;
+        }
+        if (/[+\-*\/%^#&|~<>=]/.test(c)) {
+          var m=''; for(var o=0;o<MOPS.length;o++){if(src.slice(i,i+MOPS[o].length)===MOPS[o]){m=MOPS[o];break;}} if(!m)m=c;
+          out += '<span class="lh-op">'+hlEsc(m)+'</span>'; i+=m.length; continue;
+        }
+        out += hlEsc(c); i++;
+      }
+      return out;
+    }
+    return code.split('\n').map(function(line) {
+      var comment='', ci=-1, inS=false, sq='';
+      for(var k=0;k<line.length;k++){var ch=line[k];if(inS){if(ch==='\\')k++;else if(ch===sq)inS=false;}else{if(ch==='"'||ch==="'"){inS=true;sq=ch;}else if(ch==='-'&&line[k+1]==='-'){ci=k;break;}}}
+      if(ci>=0){comment='<span class="lh-cmt">'+hlEsc(line.slice(ci))+'</span>';line=line.slice(0,ci);}
+      return tok(line)+comment;
+    }).join('\n');
+  }
+
+  // ── code editor component ─────────────────────────────────────────────────────
+  function TutCodeEditor(taEl, hlEl) {
+    function sync() {
+      hlEl.innerHTML = highlightLua(taEl.value);
+    }
+    taEl.addEventListener('input', sync);
+    taEl.addEventListener('scroll', function() {
+      hlEl.scrollTop = taEl.scrollTop;
+      hlEl.scrollLeft = taEl.scrollLeft;
+    });
+    sync();
+    this.getValue = function() { return taEl.value; };
+  }
+
+  // ── canvas background ─────────────────────────────────────────────────────────
   var canvas = document.getElementById('tut-canvas');
   var ctx = canvas.getContext('2d');
   var FRAGS = [
@@ -939,20 +1147,14 @@
   function initFrags() {
     frags = FRAGS.map(function(txt) {
       return {
-        txt: txt,
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.5,
-        vy: (Math.random() - 0.5) * 0.24,
-        size: 10 + Math.random() * 4,
-        op: 0.04 + Math.random() * 0.055,
+        txt: txt, x: Math.random()*canvas.width, y: Math.random()*canvas.height,
+        vx: (Math.random()-0.5)*0.5, vy: (Math.random()-0.5)*0.24,
+        size: 10+Math.random()*4, op: 0.04+Math.random()*0.055,
       };
     });
   }
-
   function resizeCanvas() {
-    canvas.width  = window.innerWidth;
-    canvas.height = window.innerHeight;
+    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
     initFrags();
   }
   resizeCanvas();
@@ -961,79 +1163,74 @@
   function getAccent() {
     return getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#7aa2f7';
   }
-
   function drawCanvas() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0,0,canvas.width,canvas.height);
     var accent = getAccent();
     frags.forEach(function(f) {
-      ctx.save();
-      ctx.globalAlpha = f.op;
-      ctx.fillStyle = accent;
-      ctx.font = f.size + 'px "JetBrains Mono", monospace';
-      ctx.fillText(f.txt, f.x, f.y);
-      ctx.restore();
-      f.x += f.vx;
-      f.y += f.vy;
-      if (f.x > canvas.width + 200)  f.x = -200;
-      if (f.x < -200) f.x = canvas.width + 200;
-      if (f.y > canvas.height + 30)  f.y = -30;
-      if (f.y < -30)  f.y = canvas.height + 30;
+      ctx.save(); ctx.globalAlpha = f.op; ctx.fillStyle = accent;
+      ctx.font = f.size+'px "JetBrains Mono", monospace';
+      ctx.fillText(f.txt, f.x, f.y); ctx.restore();
+      f.x+=f.vx; f.y+=f.vy;
+      if(f.x>canvas.width+200) f.x=-200; if(f.x<-200) f.x=canvas.width+200;
+      if(f.y>canvas.height+30) f.y=-30;  if(f.y<-30)  f.y=canvas.height+30;
     });
     requestAnimationFrame(drawCanvas);
   }
   drawCanvas();
 
-  // particle burst
+  // ── particle burst ────────────────────────────────────────────────────────────
   function burst(x, y, count) {
     count = count || 16;
     var accent = getAccent();
     for (var i = 0; i < count; i++) {
       var p = document.createElement('div');
       p.className = 'tut-particle';
-      var angle = (i / count) * Math.PI * 2;
-      var dist  = 40 + Math.random() * 60;
-      p.style.left = x + 'px';
-      p.style.top  = y + 'px';
-      p.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
-      p.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
+      var angle = (i/count)*Math.PI*2, dist = 40+Math.random()*60;
+      p.style.left = x+'px'; p.style.top = y+'px';
+      p.style.setProperty('--tx', Math.cos(angle)*dist+'px');
+      p.style.setProperty('--ty', Math.sin(angle)*dist+'px');
       p.style.background = accent;
-      p.style.opacity = '1';
-      p.style.width  = (3 + Math.random() * 5) + 'px';
-      p.style.height = (3 + Math.random() * 5) + 'px';
+      p.style.width = (3+Math.random()*5)+'px';
+      p.style.height = (3+Math.random()*5)+'px';
       document.body.appendChild(p);
-      setTimeout(function(el) { el.parentNode && el.parentNode.removeChild(el); }, 850, p);
+      setTimeout(function(el){el.parentNode&&el.parentNode.removeChild(el);},850,p);
     }
   }
 
-  // screen management
-  // indices: 0=s0, 1=s1, 2=s2, 3=s3, 4=s4, 5=s5, 6=snet, 7=s6, 8=s7(starter), 9=sexpert
-  var IDX_START   = 8; // starter picker
-  var IDX_EXPERT  = 9; // expert API screen
+  // ── screen management ─────────────────────────────────────────────────────────
+  // indices: 0=s0, 1=s1, 2=s2, 3=svars, 4=s3, 5=s4, 6=sloops, 7=s5, 8=snet, 9=s6, 10=s7, 11=sexpert
+  var IDX_START  = 10;
+  var IDX_EXPERT = 11;
   var currentScreen = 0;
+  var navHistory = [];
+
   var allScreens = [
-    document.getElementById('tut-s0'),      // 0
-    document.getElementById('tut-s1'),      // 1
-    document.getElementById('tut-s2'),      // 2
-    document.getElementById('tut-s3'),      // 3
-    document.getElementById('tut-s4'),      // 4
-    document.getElementById('tut-s5'),      // 5
-    document.getElementById('tut-snet'),    // 6  networking
-    document.getElementById('tut-s6'),      // 7  edit code + docs
-    document.getElementById('tut-s7'),      // 8  starter picker
-    document.getElementById('tut-sexpert'), // 9  expert APIs
+    document.getElementById('tut-s0'),      // 0  experience check
+    document.getElementById('tut-s1'),      // 1  welcome
+    document.getElementById('tut-s2'),      // 2  first program
+    document.getElementById('tut-svars'),   // 3  variables
+    document.getElementById('tut-s3'),      // 4  pick a path
+    document.getElementById('tut-s4'),      // 5  slider / if-else
+    document.getElementById('tut-sloops'),  // 6  loops
+    document.getElementById('tut-s5'),      // 7  special powers
+    document.getElementById('tut-snet'),    // 8  networking
+    document.getElementById('tut-s6'),      // 9  edit code + docs
+    document.getElementById('tut-s7'),      // 10 starter picker
+    document.getElementById('tut-sexpert'), // 11 expert APIs
   ];
 
   var progressBar = document.getElementById('tut-progress');
   var skipBtn     = document.getElementById('tut-skip');
+  var backBtn     = document.getElementById('tut-back');
   var dotsEl      = document.getElementById('tut-dots');
   var dots        = dotsEl.querySelectorAll('.tut-dot');
 
   function updateUI(idx) {
-    var inNewbie = (idx >= 1 && idx <= 7);
+    var inNewbie = (idx >= 1 && idx <= 9);
     skipBtn.style.display = inNewbie ? '' : 'none';
     dotsEl.style.display  = inNewbie ? '' : 'none';
     if (inNewbie) {
-      progressBar.style.width = ((idx / 7) * 100) + '%';
+      progressBar.style.width = ((idx / 9) * 100) + '%';
     } else if (idx === IDX_START) {
       progressBar.style.width = '100%';
     } else {
@@ -1043,12 +1240,16 @@
       var i = parseInt(d.getAttribute('data-i'));
       d.classList.toggle('tut-dot-active', i === idx - 1);
     });
+    // back button: show on screens 1-9 if there's history
+    var canGoBack = navHistory.length > 0 && idx >= 1 && idx <= 9;
+    backBtn.classList.toggle('tut-back-visible', canGoBack);
   }
 
   function goTo(idx) {
     var old = allScreens[currentScreen];
     var next = allScreens[idx];
     if (!next) return;
+    navHistory.push(currentScreen);
     old.classList.add('tut-exit');
     old.classList.remove('tut-active');
     setTimeout(function() {
@@ -1056,199 +1257,195 @@
       currentScreen = idx;
       next.classList.add('tut-active');
       updateUI(idx);
-      if (idx === 1) startScreen1();
+      if (idx === 1)         startScreen1();
       if (idx === IDX_START) startScreen7();
     }, 260);
   }
+
+  function goBack() {
+    if (!navHistory.length) return;
+    var prev = navHistory.pop();
+    var old  = allScreens[currentScreen];
+    var next = allScreens[prev];
+    if (!next) return;
+    old.classList.add('tut-exit');
+    old.classList.remove('tut-active');
+    setTimeout(function() {
+      old.classList.remove('tut-exit');
+      currentScreen = prev;
+      next.classList.add('tut-active');
+      updateUI(prev);
+      if (prev === 1) startScreen1();
+    }, 260);
+  }
+
+  backBtn.addEventListener('click', goBack);
 
   // show first screen
   allScreens[0].classList.add('tut-active');
   updateUI(0);
 
-  // SCREEN 0
-  document.getElementById('tut-expert-btn').addEventListener('click', function(e) {
+  // ── SCREEN 0 ──────────────────────────────────────────────────────────────────
+  document.getElementById('tut-expert-btn').addEventListener('click', function() {
     var r = this.getBoundingClientRect();
-    burst(r.left + r.width / 2, r.top + r.height / 2, 16);
+    burst(r.left+r.width/2, r.top+r.height/2, 16);
     goTo(IDX_EXPERT);
   });
-
-  document.getElementById('tut-newbie-btn').addEventListener('click', function(e) {
+  document.getElementById('tut-newbie-btn').addEventListener('click', function() {
     var r = this.getBoundingClientRect();
-    burst(r.left + r.width / 2, r.top + r.height / 2, 20);
+    burst(r.left+r.width/2, r.top+r.height/2, 20);
     goTo(1);
   });
 
-  // EXPERT SCREEN
+  // ── EXPERT SCREEN ─────────────────────────────────────────────────────────────
   function playWinSoundFn() {
     try {
-      var actx = new (window.AudioContext || window.webkitAudioContext)();
-      [220, 330, 440, 660].forEach(function(freq, i) {
-        var osc = actx.createOscillator(), gain = actx.createGain();
+      var actx = new (window.AudioContext||window.webkitAudioContext)();
+      [220,330,440,660].forEach(function(freq,i) {
+        var osc=actx.createOscillator(), gain=actx.createGain();
         osc.connect(gain); gain.connect(actx.destination);
-        osc.frequency.value = freq; osc.type = 'sine';
-        gain.gain.setValueAtTime(0.12, actx.currentTime + i * 0.1);
-        gain.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + i * 0.1 + 0.15);
-        osc.start(actx.currentTime + i * 0.1);
-        osc.stop(actx.currentTime + i * 0.1 + 0.2);
+        osc.frequency.value=freq; osc.type='sine';
+        gain.gain.setValueAtTime(0.12,actx.currentTime+i*0.1);
+        gain.gain.exponentialRampToValueAtTime(0.001,actx.currentTime+i*0.1+0.15);
+        osc.start(actx.currentTime+i*0.1);
+        osc.stop(actx.currentTime+i*0.1+0.2);
       });
-    } catch(e) {}
+    } catch(e){}
   }
-
-  var eapiColors = {
-    red: '#f7768e', green: '#9ece6a', yellow: '#e0af68',
-    blue: '#7aa2f7', cyan: '#73daca', purple: '#bb9af7'
-  };
-
+  var eapiColors = {red:'#f7768e',green:'#9ece6a',yellow:'#e0af68',blue:'#7aa2f7',cyan:'#73daca',purple:'#bb9af7'};
   document.querySelectorAll('.tut-api-row').forEach(function(row) {
     row.addEventListener('click', function() {
       var api = this.getAttribute('data-eapi');
       this.classList.add('tut-api-tried');
       var outEl;
-      if (api === 'io') {
+      if (api==='io') {
         outEl = document.getElementById('eapi-io-out');
-      } else if (api === 'sleep') {
+      } else if (api==='sleep') {
         outEl = document.getElementById('eapi-sleep-out');
-        outEl.textContent = '3...';
-        outEl.classList.add('show');
-        setTimeout(function() { outEl.textContent = '3... 2...'; }, 400);
-        setTimeout(function() { outEl.textContent = '3... 2... 1...'; }, 800);
-        setTimeout(function() { outEl.textContent = '3... 2... 1... GO!'; }, 1200);
+        outEl.textContent = '3...'; outEl.classList.add('show');
+        setTimeout(function(){outEl.textContent='3... 2...';},400);
+        setTimeout(function(){outEl.textContent='3... 2... 1...';},800);
+        setTimeout(function(){outEl.textContent='3... 2... 1... GO!';},1200);
         return;
-      } else if (api === 'colored') {
+      } else if (api==='colored') {
         outEl = document.getElementById('eapi-colored-out');
-        var accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
-        var pairs = [
-          ['error!', eapiColors.red],
-          ['success', eapiColors.green],
-          ['warning', eapiColors.yellow],
-          ['info', eapiColors.blue],
-        ];
-        outEl.innerHTML = pairs.map(function(p) {
-          return '<span style="color:' + p[1] + '">' + p[0] + '</span>';
-        }).join('  ');
-      } else if (api === 'sound') {
+        var pairs=[['error!',eapiColors.red],['success',eapiColors.green],['warning',eapiColors.yellow],['info',eapiColors.blue]];
+        outEl.innerHTML = pairs.map(function(p){return '<span style="color:'+p[1]+'">'+p[0]+'</span>';}).join('  ');
+      } else if (api==='sound') {
         outEl = document.getElementById('eapi-sound-out');
         playWinSoundFn();
-      } else if (api === 'net') {
+      } else if (api==='net') {
         outEl = document.getElementById('eapi-net-out');
         outEl.innerHTML = '1. ekansh  <span style="color:var(--accent)">99</span>\n2. guest   <span style="color:var(--accent)">42</span>';
       }
       if (outEl) outEl.classList.add('show');
     });
   });
+  document.getElementById('tut-expert-next').addEventListener('click', function() { goTo(IDX_START); });
 
-  document.getElementById('tut-expert-next').addEventListener('click', function() {
-    goTo(IDX_START);
-  });
-
-  // SCREEN 1: typewriter + game preview
+  // ── SCREEN 1: typewriter ──────────────────────────────────────────────────────
   function startScreen1() {
-    var headEl = document.getElementById('tut-s1-heading');
-    var bodyEl = document.getElementById('tut-s1-body');
+    var headEl   = document.getElementById('tut-s1-heading');
+    var bodyEl   = document.getElementById('tut-s1-body');
     var previewEl = document.getElementById('tut-s1-game-preview');
-    headEl.innerHTML = '';
-    bodyEl.style.opacity = '0';
-    previewEl.style.opacity = '0';
-
-    var text = 'welcome.';
-    var i = 0;
+    headEl.innerHTML = ''; bodyEl.style.opacity = '0'; previewEl.style.opacity = '0';
+    var text = 'welcome.', i = 0;
     var cursor = document.createElement('span');
     cursor.className = 'tut-cursor';
     headEl.appendChild(cursor);
-
     var tw = setInterval(function() {
-      cursor.before(document.createTextNode(text[i]));
-      i++;
+      cursor.before(document.createTextNode(text[i])); i++;
       if (i >= text.length) {
         clearInterval(tw);
         setTimeout(function() {
           cursor.remove();
-          bodyEl.textContent = 'the arcade is a collection of tiny games - story adventures, quizzes, puzzles - that run in the browser terminal.\n\nyou\'re about to make one.';
+          bodyEl.textContent = 'the arcade is a collection of tiny games — story adventures, quizzes, puzzles — that run in the browser terminal.\n\nyou\'re about to make one.';
           bodyEl.style.opacity = '1';
-          setTimeout(function() { previewEl.style.opacity = '1'; }, 400);
+          setTimeout(function(){ previewEl.style.opacity='1'; }, 400);
         }, 200);
       }
     }, 80);
   }
+  document.getElementById('tut-s1-next').addEventListener('click', function() { goTo(2); });
 
-  document.getElementById('tut-s1-next').addEventListener('click', function() {
-    goTo(2);
-  });
+  // ── SCREEN 2: code editor + run ───────────────────────────────────────────────
+  var s2ta = document.getElementById('tut-s2-code');
+  var s2hl = document.getElementById('tut-s2-hl');
+  var s2CE = new TutCodeEditor(s2ta, s2hl);
+  // auto-height
+  function s2AutoHeight() {
+    s2ta.style.height = 'auto';
+    s2ta.style.height = s2ta.scrollHeight + 'px';
+    s2hl.style.height = s2ta.offsetHeight + 'px';
+  }
+  s2ta.addEventListener('input', s2AutoHeight);
+  s2AutoHeight();
 
-  // SCREEN 2: run demo
   var s2everRan = false;
   document.getElementById('tut-run-btn').addEventListener('click', function() {
     var btn = this;
     var out = document.getElementById('tut-term-out');
-    var code = document.getElementById('tut-s2-code').value;
-
-    // extract all print("...") strings from code
-    var lines = [];
-    var re = /print\(\s*["']([^"']*)["']\s*\)/g;
-    var m;
+    var code = s2ta.value;
+    var lines = [], re = /print\(\s*["']([^"']*)["']\s*\)/g, m;
     while ((m = re.exec(code)) !== null) lines.push(m[1]);
     if (lines.length === 0) lines = ['(nothing printed)'];
     var msg = lines.join('\n');
-
-    btn.textContent = 'running...';
-    btn.disabled = true;
-    out.style.fontStyle = 'italic';
-    out.textContent = '';
-
+    btn.textContent = 'running...'; btn.disabled = true;
+    out.style.fontStyle = 'italic'; out.textContent = '';
     setTimeout(function() {
-      out.classList.add('tut-term-active');
-      out.style.fontStyle = 'normal';
+      out.classList.add('tut-term-active'); out.style.fontStyle = 'normal';
       var j = 0;
       var tw = setInterval(function() {
-        out.textContent += msg[j];
-        j++;
+        out.textContent += msg[j]; j++;
         if (j >= msg.length) {
           clearInterval(tw);
           var r = out.getBoundingClientRect();
-          burst(r.left + r.width / 2, r.top + r.height / 2, 14);
+          burst(r.left+r.width/2, r.top+r.height/2, 14);
           setTimeout(function() {
             out.classList.remove('tut-term-active');
-            btn.disabled = false;
-            btn.textContent = '\u25b6 run it';
+            btn.disabled = false; btn.textContent = '\u25b6 run it';
             if (!s2everRan) {
               s2everRan = true;
-              var suc = document.getElementById('tut-s2-success');
-              suc.classList.add('tut-visible');
-              var nextBtn = document.getElementById('tut-s2-next');
-              nextBtn.style.display = 'inline-block';
+              document.getElementById('tut-s2-success').classList.add('tut-visible');
+              document.getElementById('tut-s2-next').style.display = 'inline-block';
             }
           }, 400);
         }
       }, 60);
     }, 400);
   });
-
   document.getElementById('tut-s2-next').addEventListener('click', function() { goTo(3); });
 
-  // SCREEN 3: story builder
-  var storyPaths = {
-    enter: {
-      label: 'you chose: enter the forest',
-      text: 'branches snap underfoot. eyes gleam in the dark. then - a clearing, and a chest of gold.',
-      type: 'good',
-      display: 'you found treasure!'
-    },
-    wait: {
-      label: 'you chose: wait and listen',
-      text: 'you stand perfectly still. the rustling fades. a fox trots past, ignoring you entirely.',
-      type: 'good',
-      display: 'nothing happened - you\'re safe.'
-    },
-    run: {
-      label: 'you chose: run back to town',
-      text: 'you sprint down the path. behind you, a branch cracks. you don\'t look back. smart.',
-      type: 'neutral',
-      display: 'you made it back.'
+  // ── SCREEN 3: variables ───────────────────────────────────────────────────────
+  var varsInp = document.getElementById('tut-vars-inp');
+  var varsOut = document.getElementById('tut-vars-out');
+  var varsDone = false;
+  varsInp.addEventListener('keydown', function(e) {
+    if (e.key !== 'Enter') return;
+    var val = this.value.trim() || 'stranger';
+    this.value = '';
+    var accent = getAccent();
+    varsOut.className = 'tut-var-out active';
+    varsOut.innerHTML = 'hello, <span style="color:'+accent+';font-weight:700">'+hlEsc(val)+'</span>\nwelcome to the arcade, <span style="color:'+accent+';font-weight:700">'+hlEsc(val)+'</span>!';
+    var r = varsOut.getBoundingClientRect();
+    burst(r.left+r.width/2, r.top+r.height/2, 12);
+    if (!varsDone) {
+      varsDone = true;
+      setTimeout(function() {
+        document.getElementById('tut-vars-success').classList.add('tut-visible');
+        document.getElementById('tut-svars-next').style.display = 'inline-block';
+      }, 400);
     }
+  });
+  document.getElementById('tut-svars-next').addEventListener('click', function() { goTo(4); });
+
+  // ── SCREEN 4: story builder ───────────────────────────────────────────────────
+  var storyPaths = {
+    enter: { label:'you chose: enter the forest', text:'branches snap underfoot. eyes gleam in the dark. then — a clearing, and a chest of gold.', type:'good' },
+    wait:  { label:'you chose: wait and listen',  text:'you stand perfectly still. the rustling fades. a fox trots past, ignoring you entirely.', type:'good' },
+    run:   { label:'you chose: run back to town', text:'you sprint down the path. behind you, a branch cracks. you don\'t look back. smart.', type:'neutral' }
   };
   var storyChosen = false;
-  var storiesSeen = 0;
-
   document.querySelectorAll('.tut-story-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
       if (storyChosen) return;
@@ -1256,20 +1453,14 @@
       var path = this.getAttribute('data-path');
       var data = storyPaths[path];
       var r = this.getBoundingClientRect();
-      burst(r.left + r.width / 2, r.top + r.height / 2, 10);
-
+      burst(r.left+r.width/2, r.top+r.height/2, 10);
       this.classList.add('tut-story-chosen');
-      document.querySelectorAll('.tut-story-btn').forEach(function(b) { b.disabled = true; });
-
+      document.querySelectorAll('.tut-story-btn').forEach(function(b){ b.disabled=true; });
       var labelEl = document.getElementById('tut-story-path-label');
-      labelEl.textContent = data.label;
-      labelEl.classList.add('visible');
-
+      labelEl.textContent = data.label; labelEl.classList.add('visible');
       var outcomeEl = document.getElementById('tut-story-outcome');
       outcomeEl.textContent = data.text;
-      outcomeEl.className = 'tut-story-outcome visible ' + (data.type === 'good' ? 'outcome-good' : '');
-
-      storiesSeen++;
+      outcomeEl.className = 'tut-story-outcome visible '+(data.type==='good'?'outcome-good':'');
       setTimeout(function() {
         document.getElementById('tut-s3-note').style.display = 'block';
         document.getElementById('tut-story-reset').style.display = 'inline';
@@ -1278,38 +1469,27 @@
       }, 600);
     });
   });
-
   document.getElementById('tut-story-reset').addEventListener('click', function() {
     storyChosen = false;
     var labelEl = document.getElementById('tut-story-path-label');
-    labelEl.textContent = '';
-    labelEl.classList.remove('visible');
+    labelEl.textContent = ''; labelEl.classList.remove('visible');
     var outcomeEl = document.getElementById('tut-story-outcome');
-    outcomeEl.className = 'tut-story-outcome';
-    outcomeEl.textContent = '';
-    document.querySelectorAll('.tut-story-btn').forEach(function(b) {
-      b.disabled = false;
-      b.classList.remove('tut-story-chosen');
-    });
+    outcomeEl.className = 'tut-story-outcome'; outcomeEl.textContent = '';
+    document.querySelectorAll('.tut-story-btn').forEach(function(b){b.disabled=false;b.classList.remove('tut-story-chosen');});
   });
+  document.getElementById('tut-s3-next').addEventListener('click', function() { goTo(5); });
 
-  document.getElementById('tut-s3-next').addEventListener('click', function() { goTo(4); });
-
-  // SCREEN 4: slider with story output
-  var slider = document.getElementById('tut-slider');
+  // ── SCREEN 5: slider / if-else ────────────────────────────────────────────────
+  var slider    = document.getElementById('tut-slider');
   var scoreValEl = document.getElementById('tut-score-val');
   var sliderDisp = document.getElementById('tut-slider-disp');
-  var s4Output = document.getElementById('tut-s4-output');
-  var s4Line   = document.getElementById('tut-s4-line');
-  var s4SliderMoved = false;
-
+  var s4Output  = document.getElementById('tut-s4-output');
+  var s4Line    = document.getElementById('tut-s4-line');
   var s4lastWin = null;
   function updateStoryOutput(val) {
-    scoreValEl.textContent = val;
-    sliderDisp.textContent = val;
+    scoreValEl.textContent = val; sliderDisp.textContent = val;
     var isWin = val > 50;
     if (isWin !== s4lastWin) {
-      // branch changed — animate the transition
       s4lastWin = isWin;
       s4Line.classList.remove('visible');
       if (isWin) {
@@ -1319,18 +1499,52 @@
         s4Output.className = 'tut-story-output active-lose';
         s4Line.innerHTML = '<span class="tut-story-tag-lose">your wounds are too deep. game over.</span>';
       }
-      requestAnimationFrame(function() { s4Line.classList.add('visible'); });
+      requestAnimationFrame(function(){ s4Line.classList.add('visible'); });
     }
   }
-
   updateStoryOutput(70);
-  slider.addEventListener('input', function() {
-    s4SliderMoved = true;
-    updateStoryOutput(parseInt(this.value));
-  });
-  document.getElementById('tut-s4-next').addEventListener('click', function() { goTo(5); });
+  slider.addEventListener('input', function() { updateStoryOutput(parseInt(this.value)); });
+  document.getElementById('tut-s4-next').addEventListener('click', function() { goTo(6); });
 
-  // SCREEN 5: powers
+  // ── SCREEN 6: loops ───────────────────────────────────────────────────────────
+  var loopStep = 0;
+  var loopMax  = 5;
+  var loopOut  = document.getElementById('tut-loop-out');
+  var loopIVal = document.getElementById('tut-loop-i-val');
+  var loopStepBtn = document.getElementById('tut-loop-step-btn');
+  var loopComplete = document.getElementById('tut-loop-complete');
+  var loopLines = [];
+
+  loopStepBtn.addEventListener('click', function() {
+    if (loopStep >= loopMax) return;
+    loopStep++;
+    // clear placeholder on first step
+    if (loopStep === 1) loopOut.innerHTML = '';
+
+    loopIVal.style.transform = 'scale(1.4)';
+    setTimeout(function(){ loopIVal.style.transform=''; }, 150);
+    loopIVal.textContent = loopStep;
+
+    var line = document.createElement('div');
+    line.className = 'tut-loop-step-line';
+    line.innerHTML = '<span style="color:var(--muted)">step </span><span style="color:var(--accent);font-weight:700">'+loopStep+'</span>';
+    loopOut.appendChild(line);
+    setTimeout(function(){ line.classList.add('show'); }, 20);
+
+    if (loopStep >= loopMax) {
+      loopStepBtn.disabled = true;
+      loopIVal.textContent = '✓';
+      setTimeout(function() {
+        loopComplete.classList.add('show');
+        document.getElementById('tut-sloops-next').style.display = 'inline-block';
+        var r = loopOut.getBoundingClientRect();
+        burst(r.left+r.width/2, r.top+r.height/2, 14);
+      }, 300);
+    }
+  });
+  document.getElementById('tut-sloops-next').addEventListener('click', function() { goTo(7); });
+
+  // ── SCREEN 7: powers ──────────────────────────────────────────────────────────
   var powersUsed = {};
   var demoEl = document.getElementById('tut-power-demo');
   var powerCountEl = document.getElementById('tut-power-count');
@@ -1340,36 +1554,33 @@
 
   function updatePowerCount() {
     var n = Object.keys(powersUsed).length;
-    powerCountEl.textContent = n;
-    if (n >= 3) {
-      s5nextBtn.disabled = false;
-    }
     if (n >= 5) {
+      s5nextBtn.disabled = false;
       s5nextBtn.style.borderColor = 'var(--accent)';
       s5nextBtn.style.fontWeight = '700';
       powerNote.innerHTML = 'all powers unlocked! <span>ready to go</span>';
+    } else if (n >= 3) {
+      s5nextBtn.disabled = false;
+      powerNote.innerHTML = 'activate <span>'+n+'</span> / 5 powers to continue';
     } else {
-      powerNote.innerHTML = 'activate <span id="tut-power-count">' + n + '</span> / 5 powers to continue';
+      s5nextBtn.disabled = true;
+      powerNote.innerHTML = 'activate <span>'+n+'</span> / 5 powers to continue';
     }
   }
 
   function playWinSound() {
     try {
-      var ctx2 = new (window.AudioContext || window.webkitAudioContext)();
-      var notes = [220, 330, 440, 660];
-      notes.forEach(function(freq, i) {
-        var osc  = ctx2.createOscillator();
-        var gain = ctx2.createGain();
-        osc.connect(gain);
-        gain.connect(ctx2.destination);
-        osc.frequency.value = freq;
-        osc.type = 'sine';
-        gain.gain.setValueAtTime(0.15, ctx2.currentTime + i * 0.1);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx2.currentTime + i * 0.1 + 0.15);
-        osc.start(ctx2.currentTime + i * 0.1);
-        osc.stop(ctx2.currentTime + i * 0.1 + 0.2);
+      var ctx2 = new (window.AudioContext||window.webkitAudioContext)();
+      [220,330,440,660].forEach(function(freq,i) {
+        var osc=ctx2.createOscillator(), gain=ctx2.createGain();
+        osc.connect(gain); gain.connect(ctx2.destination);
+        osc.frequency.value=freq; osc.type='sine';
+        gain.gain.setValueAtTime(0.15,ctx2.currentTime+i*0.1);
+        gain.gain.exponentialRampToValueAtTime(0.001,ctx2.currentTime+i*0.1+0.15);
+        osc.start(ctx2.currentTime+i*0.1);
+        osc.stop(ctx2.currentTime+i*0.1+0.2);
       });
-    } catch(e) {}
+    } catch(e){}
   }
 
   document.querySelectorAll('.tut-power-card').forEach(function(card) {
@@ -1380,66 +1591,44 @@
       powersUsed[power] = true;
       this.classList.add('tut-power-used');
       updatePowerCount();
-
       demoLocked = true;
       var orig = demoEl.innerHTML;
-      var accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+      var accent = getAccent();
 
-      if (power === 'sleep') {
-        // show "before sleep" → pause → "after sleep"
-        demoEl.innerHTML = orig + ' <span style="color:var(--muted);font-size:0.75rem">sleep(800)...</span>';
-        demoEl.style.opacity = '0.45';
-        demoEl.style.transition = 'opacity 0.15s';
-        setTimeout(function() {
-          demoEl.style.opacity = '';
-          demoEl.innerHTML = orig;
-          demoEl.style.background = accent;
-          setTimeout(function() { demoEl.style.background = ''; demoLocked = false; }, 200);
+      if (power==='sleep') {
+        demoEl.innerHTML = orig+' <span style="color:var(--muted);font-size:0.75rem">sleep(800)...</span>';
+        demoEl.style.opacity='0.45'; demoEl.style.transition='opacity 0.15s';
+        setTimeout(function(){
+          demoEl.style.opacity=''; demoEl.innerHTML=orig;
+          demoEl.style.background=accent;
+          setTimeout(function(){demoEl.style.background='';demoLocked=false;},200);
         }, 900);
-      } else if (power === 'clear') {
-        demoEl.style.background = accent;
-        demoEl.style.color = 'var(--bg)';
-        setTimeout(function() {
-          demoEl.textContent = '';
-          demoEl.style.background = '';
-          demoEl.style.color = '';
-          var msg = 'the quick brown fox';
-          var j = 0;
-          var tw = setInterval(function() {
-            demoEl.textContent += msg[j]; j++;
-            if (j >= msg.length) { clearInterval(tw); demoLocked = false; }
-          }, 55);
+      } else if (power==='clear') {
+        demoEl.style.background=accent; demoEl.style.color='var(--bg)';
+        setTimeout(function(){
+          demoEl.textContent=''; demoEl.style.background=''; demoEl.style.color='';
+          var msg='the quick brown fox', j=0;
+          var tw=setInterval(function(){ demoEl.textContent+=msg[j];j++;if(j>=msg.length){clearInterval(tw);demoLocked=false;} },55);
         }, 250);
-      } else if (power === 'colored') {
-        demoEl.style.color = accent;
-        demoEl.style.textShadow = '0 0 8px ' + accent;
-        setTimeout(function() {
-          demoEl.style.color = '';
-          demoEl.style.textShadow = '';
-          demoLocked = false;
-        }, 900);
-      } else if (power === 'sound') {
+      } else if (power==='colored') {
+        demoEl.style.color=accent; demoEl.style.textShadow='0 0 8px '+accent;
+        setTimeout(function(){ demoEl.style.color=''; demoEl.style.textShadow=''; demoLocked=false; }, 900);
+      } else if (power==='sound') {
         playWinSound();
-        var origText = demoEl.innerHTML;
-        demoEl.innerHTML = origText + ' <span style="color:var(--accent)">&#9834;</span>';
-        card.style.boxShadow = '0 0 14px ' + accent;
-        setTimeout(function() {
-          demoEl.innerHTML = orig;
-          card.style.boxShadow = '';
-          demoLocked = false;
-        }, 700);
-      } else if (power === 'io') {
-        demoEl.innerHTML = 'your name: <input class="tut-demo-input" id="tut-demo-inp" placeholder="type &amp; press Enter" autofocus>';
+        demoEl.innerHTML = orig+' <span style="color:var(--accent)">&#9834;</span>';
+        card.style.boxShadow='0 0 14px '+accent;
+        setTimeout(function(){ demoEl.innerHTML=orig; card.style.boxShadow=''; demoLocked=false; }, 700);
+      } else if (power==='io') {
+        demoEl.innerHTML='your name: <input class="tut-demo-input" id="tut-demo-inp" placeholder="type & press Enter" autofocus>';
         var inp = document.getElementById('tut-demo-inp');
         if (inp) {
           inp.focus();
-          inp.addEventListener('keydown', function onIoKey(e) {
-            if (e.key === 'Enter') {
-              inp.removeEventListener('keydown', onIoKey);
-              var val = inp.value.trim() || 'stranger';
-              demoEl.innerHTML = 'hello, <span style="color:var(--accent);font-weight:700">' + val + '</span>!';
-              setTimeout(function() { demoEl.innerHTML = orig; demoLocked = false; }, 1400);
-            }
+          inp.addEventListener('keydown', function onKey(e) {
+            if (e.key!=='Enter') return;
+            inp.removeEventListener('keydown', onKey);
+            var val = inp.value.trim() || 'stranger';
+            demoEl.innerHTML='hello, <span style="color:var(--accent);font-weight:700">'+hlEsc(val)+'</span>!';
+            setTimeout(function(){ demoEl.innerHTML=orig; demoLocked=false; }, 1400);
           });
         }
       }
@@ -1447,79 +1636,70 @@
   });
 
   document.getElementById('tut-s5-next').addEventListener('click', function() {
-    if (!this.disabled) goTo(6); // go to networking
+    if (!this.disabled) goTo(8);
   });
 
-  // SCREEN 6: networking
+  // ── SCREEN 8: networking ──────────────────────────────────────────────────────
   var lbData = [];
-  var lbNames = ['ekansh', 'alex', 'sam', 'riley', 'jordan'];
-  var lbScores = [99, 84, 71, 65, 52];
-
-  // tabs
   document.querySelectorAll('.tut-net-tab').forEach(function(tab) {
     tab.addEventListener('click', function() {
       var target = this.getAttribute('data-tab');
-      document.querySelectorAll('.tut-net-tab').forEach(function(t) { t.classList.remove('active'); });
+      document.querySelectorAll('.tut-net-tab').forEach(function(t){ t.classList.remove('active'); });
       this.classList.add('active');
-      document.getElementById('tut-net-panel-lb').classList.toggle('hidden', target !== 'lb');
-      document.getElementById('tut-net-panel-kv').classList.toggle('hidden', target !== 'kv');
+      document.getElementById('tut-net-panel-lb').classList.toggle('hidden', target!=='lb');
+      document.getElementById('tut-net-panel-kv').classList.toggle('hidden', target!=='kv');
     });
   });
 
   function renderLb() {
     var list = document.getElementById('tut-lb-list');
-    if (!lbData.length) {
-      list.innerHTML = '<div class="tut-lb-empty">no scores yet - add one below</div>';
-      return;
-    }
-    var sorted = lbData.slice().sort(function(a, b) { return b.score - a.score; }).slice(0, 5);
+    if (!lbData.length) { list.innerHTML='<div class="tut-lb-empty">no scores yet — add one below</div>'; return; }
+    var sorted = lbData.slice().sort(function(a,b){ return b.score-a.score; }).slice(0,5);
     list.innerHTML = '';
-    sorted.forEach(function(entry, i) {
+    sorted.forEach(function(entry,i) {
       var row = document.createElement('div');
       row.className = 'tut-lb-row';
-      row.innerHTML = '<span class="tut-lb-rank">' + (i + 1) + '.</span>'
-        + '<span class="tut-lb-name">' + entry.name + '</span>'
-        + '<span class="tut-lb-score">' + entry.score + '</span>';
+      row.innerHTML = '<span class="tut-lb-rank">'+(i+1)+'.</span>'
+        +'<span class="tut-lb-name">'+hlEsc(entry.name)+'</span>'
+        +'<span class="tut-lb-score">'+entry.score+'</span>';
       list.appendChild(row);
-      setTimeout(function(r) { r.classList.add('show'); }, 30 + i * 60, row);
+      setTimeout(function(r){ r.classList.add('show'); }, 30+i*60, row);
     });
   }
 
   document.getElementById('tut-lb-add').addEventListener('click', function() {
     var nameEl = document.getElementById('tut-lb-name');
-    var name = nameEl.value.trim() || ('player' + (lbData.length + 1));
-    var score = Math.floor(Math.random() * 80) + 20;
-    lbData.push({ name: name, score: score });
+    var name = nameEl.value.trim() || ('player'+(lbData.length+1));
+    var score = Math.floor(Math.random()*80)+20;
+    lbData.push({name:name, score:score});
     nameEl.value = '';
     renderLb();
     var r = this.getBoundingClientRect();
-    burst(r.left + r.width / 2, r.top + r.height / 2, 8);
+    burst(r.left+r.width/2, r.top+r.height/2, 8);
   });
 
-  document.getElementById('tut-snet-next').addEventListener('click', function() { goTo(7); });
+  document.getElementById('tut-snet-next').addEventListener('click', function() { goTo(9); });
 
-  // SCREEN 7: edit code
+  // ── SCREEN 9: edit code + docs ────────────────────────────────────────────────
   document.getElementById('tut-editcode-copy-demo').addEventListener('click', function() {
     var btn = this;
-    var code = document.getElementById('tut-editcode-demo').textContent;
-    navigator.clipboard.writeText(code).then(function() {
-      btn.textContent = 'copied!';
-      setTimeout(function() { btn.textContent = 'copy'; }, 1800);
-    }).catch(function() {});
+    navigator.clipboard.writeText(document.getElementById('tut-editcode-demo').textContent).then(function() {
+      btn.textContent='copied!';
+      setTimeout(function(){ btn.textContent='copy'; }, 1800);
+    }).catch(function(){});
     var r = btn.getBoundingClientRect();
-    burst(r.left + r.width / 2, r.top + r.height / 2, 10);
+    burst(r.left+r.width/2, r.top+r.height/2, 10);
   });
-
   document.getElementById('tut-s6-next').addEventListener('click', function() { goTo(IDX_START); });
 
-  // skip button
-  skipBtn.addEventListener('click', function(e) {
+  // ── skip button ───────────────────────────────────────────────────────────────
+  skipBtn.addEventListener('click', function() {
     var r = this.getBoundingClientRect();
-    burst(r.left + r.width / 2, r.top + r.height / 2, 8);
+    burst(r.left+r.width/2, r.top+r.height/2, 8);
     goTo(IDX_START);
   });
 
-  // SCREEN 7: starter cards + animated previews
+  // ── SCREEN 10: starter picker ─────────────────────────────────────────────────
   var previewIntervals = [];
 
   var STARTER_CODES = {
@@ -1593,37 +1773,31 @@
   };
 
   function startScreen7() {
-    // stop any running intervals
     previewIntervals.forEach(clearInterval);
     previewIntervals = [];
 
-    var accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
-
     // dice preview
     var diceEl = document.getElementById('tut-prev-dice');
-    var diceFaces = ['1', '2', '3', '4', '5', '6'];
     previewIntervals.push(setInterval(function() {
-      diceEl.innerHTML = '<span style="color:var(--muted);font-size:0.75rem">rolling...</span>';
-      setTimeout(function() {
-        var face = diceFaces[Math.floor(Math.random() * 6)];
-        diceEl.innerHTML = '<span style="font-size:1.8rem;font-weight:700;color:var(--accent)">' + face + '</span>';
+      diceEl.innerHTML='<span style="color:var(--muted);font-size:0.75rem">rolling...</span>';
+      setTimeout(function(){
+        diceEl.innerHTML='<span style="font-size:1.8rem;font-weight:700;color:var(--accent)">'+Math.ceil(Math.random()*6)+'</span>';
       }, 400);
     }, 1400));
 
     // guesser preview
     var guessEl = document.getElementById('tut-prev-guesser');
-    var guesserState = 0;
-    var guesserNum = Math.floor(Math.random() * 10) + 1;
+    var guesserState = 0, guesserNum = Math.floor(Math.random()*10)+1;
     previewIntervals.push(setInterval(function() {
-      if (guesserState === 0) {
-        guessEl.innerHTML = 'guess: <span style="color:var(--accent);font-weight:700">' + guesserNum + '</span>';
-      } else if (guesserState === 1) {
-        var dir = Math.random() > 0.5 ? 'too high &uarr;' : 'too low &darr;';
-        var col = dir.indexOf('high') >= 0 ? 'var(--code-num,#e0af68)' : '#7dcfff';
-        guessEl.innerHTML = '<span style="color:' + col + '">' + dir + '</span>';
-        guesserNum = Math.floor(Math.random() * 10) + 1;
+      if (guesserState===0) {
+        guessEl.innerHTML='guess: <span style="color:var(--accent);font-weight:700">'+guesserNum+'</span>';
+      } else {
+        var dir=Math.random()>0.5?'too high &uarr;':'too low &darr;';
+        var col=dir.indexOf('high')>=0?'var(--code-num,#e0af68)':'#7dcfff';
+        guessEl.innerHTML='<span style="color:'+col+'">'+dir+'</span>';
+        guesserNum=Math.floor(Math.random()*10)+1;
       }
-      guesserState = (guesserState + 1) % 2;
+      guesserState=(guesserState+1)%2;
     }, 1200));
 
     // story preview
@@ -1637,40 +1811,39 @@
     ];
     storyEl.innerHTML = storyTexts[0];
     previewIntervals.push(setInterval(function() {
-      storyState = (storyState + 1) % storyTexts.length;
-      storyEl.innerHTML = storyTexts[storyState];
+      storyState=(storyState+1)%storyTexts.length;
+      storyEl.innerHTML=storyTexts[storyState];
     }, 1600));
 
     // countdown preview
     var cdEl = document.getElementById('tut-prev-countdown');
     var cdNum = 5;
-    var cdColors = ['var(--code-err,#f7768e)', 'var(--code-num,#e0af68)', 'var(--code-num,#e0af68)', 'var(--accent)', 'var(--accent)'];
+    var cdColors = ['var(--code-err,#f7768e)','var(--code-num,#e0af68)','var(--code-num,#e0af68)','var(--accent)','var(--accent)'];
     previewIntervals.push(setInterval(function() {
-      if (cdNum > 0) {
-        var col = cdColors[cdNum - 1] || 'var(--accent)';
-        cdEl.innerHTML = '<span style="font-size:2rem;font-weight:700;color:' + col + '">' + cdNum + '</span>';
+      if (cdNum>0) {
+        cdEl.innerHTML='<span style="font-size:2rem;font-weight:700;color:'+(cdColors[cdNum-1]||'var(--accent)')+'">'+cdNum+'</span>';
         cdNum--;
       } else {
-        cdEl.innerHTML = '<span style="font-size:1.4rem;font-weight:700;color:var(--accent)">GO!</span>';
-        cdNum = 5;
+        cdEl.innerHTML='<span style="font-size:1.4rem;font-weight:700;color:var(--accent)">GO!</span>';
+        cdNum=5;
       }
     }, 700));
   }
 
-  // starter card clicks
   document.querySelectorAll('.tut-starter-card').forEach(function(card) {
-    card.addEventListener('click', function(e) {
+    card.addEventListener('click', function() {
       var starter = this.getAttribute('data-starter');
       var code = STARTER_CODES[starter] || '';
       var r = this.getBoundingClientRect();
-      burst(r.left + r.width / 2, r.top + r.height / 2, 20);
+      burst(r.left+r.width/2, r.top+r.height/2, 20);
       this.style.transform = 'scale(1.02)';
       var launching = document.getElementById('tut-launching');
       launching.style.display = 'flex';
       setTimeout(function() {
         previewIntervals.forEach(clearInterval);
-        try { localStorage.setItem('arcade_intro', 'done'); } catch(ex) {}
-        try { sessionStorage.setItem('arcade_prefill_code', code); } catch(ex) {}
+        try { localStorage.setItem('arcade_intro','done'); } catch(ex){}
+        try { sessionStorage.setItem('arcade_prefill_code', code); } catch(ex){}
+        try { sessionStorage.setItem('arcade_show_docs','1'); } catch(ex){}
         window.location.href = '/arcade/editor/';
       }, 450);
     });

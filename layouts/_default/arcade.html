@@ -1,17 +1,27 @@
 {{ define "main" }}
 <style>
-  body { max-width: min(900px, 92vw) !important; }
+  body { max-width: min(960px, 92vw) !important; }
 </style>
 
 <div class="arc-bg-dots" aria-hidden="true"></div>
 
-<div class="arc-banner">
-  <span class="arc-banner-tag">ekanshgoenka.com / arcade</span>
-  <h1 class="arc-title-big" data-text="ARCADE">ARCADE</h1>
-  <p class="arc-banner-tagline">visitor-submitted lua games that run in the terminal</p>
-  <div class="arc-stat-line" id="arc-stat-line"></div>
+<!-- ── HERO ── -->
+<div class="arc-hero">
+  <div class="arc-hero-scanlines" aria-hidden="true"></div>
+  <div class="arc-hero-inner">
+    <span class="arc-banner-tag">ekanshgoenka.com / arcade</span>
+    <h1 class="arc-title-big" data-text="ARCADE">ARCADE</h1>
+    <p class="arc-banner-tagline">visitor-submitted lua games · runs in the terminal</p>
+    <div class="arc-stat-line" id="arc-stat-line"></div>
+    <div class="arc-hero-coins" aria-hidden="true">
+      <span class="arc-coin">✦</span>
+      <span class="arc-coin">✦</span>
+      <span class="arc-coin">✦</span>
+    </div>
+  </div>
 </div>
 
+<!-- ── INFO TABLE ── -->
 <div class="arc-intro">
   <div class="arc-intro-row">
     <span class="arc-intro-key">what</span>
@@ -31,12 +41,26 @@
   </div>
 </div>
 
-<div id="arc-games"><div class="arc-loading-state">fetching games...</div></div>
+<!-- ── GAMES GRID ── -->
+<div class="arc-games-section">
+  <div class="arc-games-header">
+    <span class="arc-games-label">— games —</span>
+  </div>
+  <div id="arc-games"><div class="arc-loading-state">fetching games...</div></div>
+</div>
 
-<button id="arc-write-btn" class="arc-editor-cta" style="width:100%;text-align:left;cursor:pointer;background:transparent;font-family:inherit;border:1px solid var(--border);">
-  <span class="arc-editor-cta-label">write a game →</span>
-  <span class="arc-editor-cta-sub">syntax highlighting · run &amp; submit in one place · guided intro for beginners</span>
-</button>
+<!-- ── WRITE A GAME CTA ── -->
+<div class="arc-cta-section">
+  <div class="arc-cta-glow" aria-hidden="true"></div>
+  <div class="arc-cta-inner">
+    <div class="arc-cta-eyebrow">INSERT COIN</div>
+    <div class="arc-cta-title">write a game</div>
+    <div class="arc-cta-desc">syntax highlighting · run &amp; submit in one place · guided intro for beginners · no experience required</div>
+    <button id="arc-write-btn" class="arc-cta-btn">
+      <span class="arc-cta-btn-arrow">▶</span> start writing →
+    </button>
+  </div>
+</div>
 <script>
 document.getElementById('arc-write-btn').addEventListener('click', function() {
   var pref = localStorage.getItem('arcade_intro');
@@ -44,11 +68,13 @@ document.getElementById('arc-write-btn').addEventListener('click', function() {
 });
 </script>
 
+<!-- ── SNIPPETS ── -->
 <details class="arc-docs-details">
   <summary class="arc-section-header arc-docs-summary">snippets</summary>
   <div id="arc-snippets" class="arc-snippets"></div>
 </details>
 
+<!-- ── LUA REFERENCE ── -->
 <details class="arc-docs-details">
   <summary class="arc-section-header arc-docs-summary">lua reference</summary>
   <pre id="arc-docs-code" class="arc-source-block" style="font-size:0.82rem;line-height:1.7;"></pre>
@@ -541,6 +567,7 @@ document.getElementById('arc-write-btn').addEventListener('click', function() {
         + '<span class="arc-card-meta">by ' + esc(g.author) + ' &middot; ' + fmt(g.date) + '</span>'
         + (g.desc ? '<span class="arc-card-desc">' + esc(g.desc) + '</span>' : '')
         + '</div>'
+        + '<span class="arc-card-play">▶ play</span>'
         + '</a>';
     }).join('');
   }

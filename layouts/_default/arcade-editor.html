@@ -207,13 +207,6 @@
   .ae-snip-info { min-width: 0; }
   .ae-snip-name { font-size: 0.72rem; font-weight: 700; color: var(--accent); display: block; }
   .ae-snip-note { font-size: 0.65rem; color: var(--muted); }
-  .ae-snip-btn {
-    font-family: inherit; font-size: 0.65rem;
-    background: transparent; border: 1px solid var(--border);
-    color: var(--muted); padding: 2px 7px; cursor: pointer;
-    transition: border-color 0.15s, color 0.15s; flex-shrink: 0; margin-left: 8px;
-  }
-  .ae-snip-btn:hover { border-color: var(--accent); color: var(--accent); }
   .ae-snip-preview {
     padding: 6px 10px; font-size: 0.68rem;
     line-height: 1.55; color: var(--muted);
@@ -223,19 +216,51 @@
     mask-image: linear-gradient(to bottom, black 60%, transparent);
   }
 
+  /* snippet button group */
+  .ae-snip-btns { display: flex; gap: 5px; flex-shrink: 0; margin-left: 8px; }
+  .ae-snip-btn {
+    font-family: inherit; font-size: 0.65rem;
+    background: transparent; border: 1px solid var(--border);
+    color: var(--muted); padding: 2px 7px; cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .ae-snip-btn:hover { border-color: var(--accent); color: var(--accent); }
+
   /* reference tab */
   .ae-ref {
-    white-space: pre; font-size: 0.68rem;
-    line-height: 1.65; color: var(--muted);
+    font-size: 0.68rem;
+    line-height: 1.65;
     overflow-x: auto;
+    margin-bottom: 4px;
   }
   .ae-ref-section {
     color: var(--accent); font-weight: 700;
-    margin-top: 12px; margin-bottom: 2px;
+    margin-top: 14px; margin-bottom: 4px;
     font-size: 0.65rem; letter-spacing: 0.08em;
     text-transform: uppercase;
+    border-bottom: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+    padding-bottom: 3px;
   }
   .ae-ref-section:first-child { margin-top: 0; }
+  .ae-ref-line { display: block; padding: 1px 0; }
+  .ae-ref-line .cm-keyword  { color: var(--code-kw); }
+  .ae-ref-line .cm-string   { color: var(--code-str); }
+  .ae-ref-line .cm-number   { color: var(--code-num); }
+  .ae-ref-line .cm-comment  { color: var(--code-cmt); font-style: italic; }
+  .ae-ref-line .cm-arcade   { color: var(--accent); }
+  .ae-ref-line .cm-builtin  { color: var(--code-type); }
+  .ae-ref-line .cm-def      { color: var(--code-fn); }
+  .ae-ref-line .cm-muted    { color: var(--muted); }
+
+  /* docs pulse animation for new users */
+  @keyframes ae-pulse-glow {
+    0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent); border-color: var(--border); color: var(--muted); }
+    40%  { box-shadow: 0 0 8px 2px color-mix(in srgb, var(--accent) 45%, transparent); border-color: var(--accent); color: var(--accent); }
+    100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 0%, transparent); border-color: var(--border); color: var(--muted); }
+  }
+  .ae-docs-pulse {
+    animation: ae-pulse-glow 0.9s ease-out 3;
+  }
 
   /* ── action bar ── */
   .ae-actions {
@@ -666,26 +691,174 @@
     { name: 'story game', note: 'branching choices', code: 'print(colored("THE CAVE", color.yellow))\nprint("you stand at the entrance.")\nlocal c = io.read("[i]nside or [l]eave? ")\nif c == "i" then\n  print(colored("you venture in...", color.cyan))\n  sleep(1000)\n  if math.random(1,2) == 1 then\n    print(colored("you find treasure!", color.yellow))\n    sound.win()\n  else\n    print(colored("a bat! you run.", color.red))\n    sound.lose()\n  end\nelse\n  print("wise choice.") sound.click()\nend' },
     { name: 'countdown', note: 'animation', code: 'print(colored("get ready...", color.yellow))\nsleep(800)\nfor i = 5, 1, -1 do\n  clear()\n  print(colored("  " .. i, color.yellow))\n  sound.click()\n  sleep(700)\nend\nclear()\nprint(colored("  GO!", color.green))\nsound.win()' },
     { name: 'leaderboard', note: 'net API - saves scores', code: 'local name = io.read("your name: ")\nlocal score = math.random(100, 999)\nnet.rank(name, score)\nprint("score: " .. colored(tostring(score), color.yellow))\nlocal top = net.top(5)\nprint(colored("-- top 5 --", color.cyan))\nfor i, e in ipairs(top) do\n  print(i .. ". " .. e.name .. "  " .. e.score)\nend' },
+    { name: 'bouncing ball', note: 'frame animation', code: 'local x=0;local dir=1\nfor f=1,60 do\n  clear()\n  print(colored(string.rep(" ",x).."●",color.cyan))\n  x=x+dir\n  if x>=30 then dir=-1 elseif x<=0 then dir=1 end\n  sleep(40)\nend' },
+    { name: 'quiz game', note: 'ask 3 questions, keep score', code: 'local score = 0\nlocal qs = {\n  {q="capital of France? ", a="paris"},\n  {q="2 + 2 = ? ", a="4"},\n  {q="color of sky? ", a="blue"},\n}\nprint(colored("QUIZ TIME", color.yellow))\nfor i, item in ipairs(qs) do\n  local ans = io.read(i .. ". " .. item.q)\n  if ans:lower() == item.a then\n    print(colored("correct!", color.green))\n    sound.coin()\n    score = score + 1\n  else\n    print(colored("nope! answer: " .. item.a, color.red))\n    sound.blip()\n  end\nend\nprint("")\nprint(colored("score: " .. score .. "/3", color.cyan))\nif score == 3 then sound.win() else sound.lose() end' },
+    { name: 'loading bar', note: 'progress bar animation', code: 'local total = 20\nprint(colored("loading...", color.yellow))\nfor i = 0, total do\n  clear()\n  local filled = string.rep("█", i)\n  local empty  = string.rep("░", total - i)\n  local pct    = math.floor(i / total * 100)\n  print(colored("[" .. filled .. empty .. "] " .. pct .. "%", color.cyan))\n  sleep(80)\nend\nprint(colored("done!", color.green))\nsound.win()' },
+    { name: 'shared counter', note: 'net API - counts plays', code: 'local raw = net.get("plays")\nlocal plays = tonumber(raw) or 0\nplays = plays + 1\nnet.set("plays", tostring(plays))\nprint(colored("▶ play #" .. plays, color.yellow))\nif plays == 1 then\n  print("you are the first player!")\n  sound.win()\nelseif plays % 10 == 0 then\n  print(colored("milestone: " .. plays .. " total plays!", color.green))\n  sound.coin()\nelse\n  print("total plays so far: " .. plays)\n  sound.blip()\nend' },
   ];
 
   var REF_SECTIONS = [
-    { title: 'output', lines: ['print("text")          -- print a line', 'print("a" .. "b")      -- join strings with ..'] },
-    { title: 'input', lines: ['local x = io.read("prompt: ")  -- wait for enter', 'local n = tonumber(x)          -- string to number'] },
-    { title: 'variables', lines: ['local score = 0     -- number', 'local name  = "alice" -- text (use quotes)', 'local alive = true    -- boolean'] },
-    { title: 'if / else', lines: ['if score > 10 then', '  print("win!")', 'elseif score > 5 then', '  print("close")', 'else', '  print("try again")', 'end'] },
-    { title: 'loops', lines: ['for i = 1, 5 do print(i) end', '', 'while score < 100 do', '  score = score + 10', 'end'] },
-    { title: 'random', lines: ['math.random(1, 6)   -- 1 to 6', 'math.random(0, 1)   -- coin flip'] },
-    { title: 'colors', lines: ['colored("text", color.red)', 'colored("text", color.green)', 'colored("text", color.yellow)', 'colored("text", color.cyan)', 'colored("text", color.bold)'] },
-    { title: 'arcade API', lines: ['sleep(500)        -- wait 500ms', 'clear()            -- wipe terminal', 'sound.win()        -- victory', 'sound.lose()       -- defeat', 'sound.coin()       -- pickup', 'sound.beep(440, 0.2) -- custom tone'] },
-    { title: 'net (persistence)', lines: ['net.set("key", "value")', 'local v = net.get("key")  -- "" if unset', 'net.rank("name", score)', 'local top = net.top(10)'] },
+    { title: 'printing', lines: [
+      'print("text")              -- print a line',
+      'print("a" .. "b")          -- join strings with ..',
+      'print(tostring(42))        -- convert number to string',
+    ]},
+    { title: 'variables', lines: [
+      'local score = 0            -- number',
+      'local name  = "alice"      -- text (use quotes)',
+      'local alive = true         -- boolean (true/false)',
+      'local x = nil              -- no value',
+    ]},
+    { title: 'if / else', lines: [
+      'if score > 10 then',
+      '  print("win!")',
+      'elseif score > 5 then',
+      '  print("close")',
+      'else',
+      '  print("try again")',
+      'end',
+    ]},
+    { title: 'loops', lines: [
+      'for i = 1, 5 do            -- count 1 to 5',
+      '  print(i)',
+      'end',
+      '',
+      'while score < 100 do       -- loop until condition',
+      '  score = score + 10',
+      'end',
+      '',
+      'for i = 10, 1, -1 do       -- count down',
+      '  print(i)',
+      'end',
+    ]},
+    { title: 'functions', lines: [
+      'local function greet(name)',
+      '  print("hello " .. name)',
+      'end',
+      'greet("world")',
+      '',
+      'local function add(a, b)   -- return a value',
+      '  return a + b',
+      'end',
+      'local sum = add(3, 4)',
+    ]},
+    { title: 'colors', lines: [
+      'colored("text", color.red)',
+      'colored("text", color.green)',
+      'colored("text", color.yellow)',
+      'colored("text", color.cyan)',
+      'colored("text", color.blue)',
+      'colored("text", color.magenta)',
+      'colored("text", color.bold)',
+      'colored("text", color.dim)',
+    ]},
+    { title: 'sounds', lines: [
+      'sound.win()                -- victory fanfare',
+      'sound.lose()               -- defeat',
+      'sound.coin()               -- pickup / collect',
+      'sound.blip()               -- neutral blip',
+      'sound.click()              -- UI click',
+      'sound.beep(440, 0.2)       -- tone: freq(Hz), dur(s)',
+    ]},
+    { title: 'sleep / clear', lines: [
+      'sleep(500)                 -- pause 500ms',
+      'sleep(1000)                -- pause 1 second',
+      'clear()                    -- wipe terminal output',
+    ]},
+    { title: 'lists / tables', lines: [
+      'local t = {10, 20, 30}     -- array',
+      'print(t[1])                -- first item (index from 1)',
+      'table.insert(t, 40)        -- add to end',
+      'print(#t)                  -- length',
+      '',
+      'local m = {hp=100,mp=50}   -- map / object',
+      'print(m.hp)                -- access by key',
+      '',
+      'for i, v in ipairs(t) do   -- iterate array',
+      '  print(i, v)',
+      'end',
+    ]},
+    { title: 'input', lines: [
+      'local x = io.read("name: ")   -- wait for enter',
+      'local n = tonumber(x)         -- string to number',
+      'if n == nil then print("not a number") end',
+    ]},
+    { title: 'net api', lines: [
+      '-- persistent key-value store (per game)',
+      'net.set("key", "value")    -- save a string',
+      'local v = net.get("key")   -- load ("" if unset)',
+      '',
+      '-- leaderboard',
+      'net.rank("alice", 500)     -- submit score',
+      'local top = net.top(10)    -- get top N entries',
+      'for i, e in ipairs(top) do',
+      '  print(i, e.name, e.score)',
+      'end',
+    ]},
   ];
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // lightweight Lua highlighter for the reference panel (no CodeMirror instance needed)
+  function highlightLua(line) {
+    if (!line.trim()) return '<span class="ae-ref-line">&nbsp;</span>';
+    var KW_CTL = /\b(if|then|else|elseif|end|while|do|for|in|return|break|repeat|until)\b/g;
+    var KW_DEF = /\b(local|function)\b/g;
+    var KW_VAL = /\b(true|false|nil)\b/g;
+    var FN_ARC = /\b(sleep|clear|colored|color|sound|net)\b/g;
+    var FN_BLT = /\b(print|tostring|tonumber|type|pairs|ipairs|pcall|error|select|assert|math|string|table|io)\b/g;
+    var out = '';
+    var rest = line;
+    // handle comment suffix
+    var cmtIdx = rest.indexOf('--');
+    var code = cmtIdx >= 0 ? rest.slice(0, cmtIdx) : rest;
+    var cmt  = cmtIdx >= 0 ? rest.slice(cmtIdx)    : '';
+    // tokenise: strings first, then keywords
+    var tokens = [];
+    var strRe = /("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')/g;
+    var lastIdx = 0;
+    var m;
+    strRe.lastIndex = 0;
+    while ((m = strRe.exec(code)) !== null) {
+      if (m.index > lastIdx) tokens.push({ t: 'code', v: code.slice(lastIdx, m.index) });
+      tokens.push({ t: 'str', v: m[0] });
+      lastIdx = strRe.lastIndex;
+    }
+    if (lastIdx < code.length) tokens.push({ t: 'code', v: code.slice(lastIdx) });
+
+    function highlightCode(s) {
+      // numbers
+      s = s.replace(/\b(\d+\.?\d*)\b/g, '<span style="color:var(--code-num)">$1</span>');
+      s = s.replace(KW_DEF, '<span class="cm-def">$1</span>');
+      s = s.replace(KW_CTL, '<span class="cm-keyword">$1</span>');
+      s = s.replace(KW_VAL, '<span class="cm-atom">$1</span>');
+      s = s.replace(FN_ARC, '<span class="cm-arcade">$1</span>');
+      s = s.replace(FN_BLT, '<span class="cm-builtin">$1</span>');
+      return s;
+    }
+
+    tokens.forEach(function(tok) {
+      if (tok.t === 'str') {
+        out += '<span style="color:var(--code-str)">' + escHtml(tok.v) + '</span>';
+      } else {
+        out += highlightCode(escHtml(tok.v));
+      }
+    });
+    if (cmt) out += '<span style="color:var(--code-cmt);font-style:italic">' + escHtml(cmt) + '</span>';
+    return '<span class="ae-ref-line">' + (out || '&nbsp;') + '</span>';
+  }
 
   function renderSnippets() {
     return SNIPPETS.map(function(s, i) {
       return '<div class="ae-snip">'
         + '<div class="ae-snip-head">'
         + '<div class="ae-snip-info"><span class="ae-snip-name">' + s.name + '</span><span class="ae-snip-note">' + s.note + '</span></div>'
-        + '<button class="ae-snip-btn" data-idx="' + i + '">insert</button>'
+        + '<div class="ae-snip-btns">'
+        + '<button class="ae-snip-btn" data-idx="' + i + '" data-action="insert">insert</button>'
+        + '<button class="ae-snip-btn" data-idx="' + i + '" data-action="copy">copy</button>'
+        + '</div>'
         + '</div>'
         + '<div class="ae-snip-preview">' + escHtml(s.code) + '</div>'
         + '</div>';
@@ -694,13 +867,12 @@
 
   function renderRef() {
     return REF_SECTIONS.map(function(sec) {
-      return '<div class="ae-ref-section">' + sec.title + '</div>'
-        + '<div class="ae-ref">' + escHtml(sec.lines.join('\n')) + '</div>';
+      var highlighted = sec.lines.map(function(line) {
+        return highlightLua(line);
+      }).join('');
+      return '<div class="ae-ref-section">' + escHtml(sec.title) + '</div>'
+        + '<div class="ae-ref">' + highlighted + '</div>';
     }).join('');
-  }
-
-  function escHtml(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
   var docsOpen = false;
@@ -736,11 +908,23 @@
   document.getElementById('ae-docs-body').addEventListener('click', function(e) {
     var btn = e.target.closest('.ae-snip-btn');
     if (!btn) return;
-    var idx = parseInt(btn.getAttribute('data-idx'));
-    var code = SNIPPETS[idx].code;
+    var idx    = parseInt(btn.getAttribute('data-idx'));
+    var action = btn.getAttribute('data-action');
+    var code   = SNIPPETS[idx].code;
+
+    if (action === 'copy') {
+      navigator.clipboard.writeText(code).then(function() {
+        btn.textContent = 'copied!';
+        setTimeout(function() { btn.textContent = 'copy'; }, 1400);
+      }).catch(function() {
+        btn.textContent = 'err';
+        setTimeout(function() { btn.textContent = 'copy'; }, 1400);
+      });
+      return;
+    }
+
     // insert at cursor or append
-    var doc = editor.getDoc();
-    var cursor = doc.getCursor();
+    var doc      = editor.getDoc();
     var existing = editor.getValue();
     if (!existing.trim() || existing.trim() === 'print("hello!")') {
       editor.setValue(code + '\n');
@@ -868,6 +1052,24 @@
       window.location.replace('/arcade/tutorial/');
     }
   }
+
+  // ── docs panel pulse for new users ──
+  // Trigger if sessionStorage flag is set (tutorial sets this) OR user is not 'expert'
+  (function() {
+    var docsBtn = document.getElementById('ae-docs-btn');
+    var showDocs = false;
+    try { showDocs = !!sessionStorage.getItem('arcade_show_docs'); } catch(e) {}
+    if (!showDocs) {
+      var intro = localStorage.getItem('arcade_intro');
+      showDocs = (intro !== 'expert');
+    }
+    if (showDocs && docsBtn) {
+      docsBtn.classList.add('ae-docs-pulse');
+      docsBtn.addEventListener('animationend', function() {
+        docsBtn.classList.remove('ae-docs-pulse');
+      }, { once: true });
+    }
+  })();
 
   editor.focus();
 })();
