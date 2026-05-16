@@ -85,13 +85,14 @@ module.exports = async (req, res) => {
 
     // ── POST: submit a game ───────────────────────────────────────────────────
     if (req.method === 'POST') {
-      const { title, author, desc, code, hp } = req.body || {};
+      const { title, author, desc, code, lbMode, hp } = req.body || {};
       if (hp) return res.status(200).json({ ok: true });
 
       const t = (title  || '').trim().slice(0, MAX_TITLE);
       const a = (author || '').trim().slice(0, MAX_AUTHOR);
       const d = (desc   || '').trim().slice(0, MAX_DESC);
       const c = (code   || '').trim().slice(0, MAX_CODE);
+      const lb = lbMode === 'asc' ? 'asc' : 'desc';
       if (!t || !a || !c) return res.status(400).json({ error: 'title, author, and code are all required' });
 
       const newId = slugify(t);
@@ -100,7 +101,7 @@ module.exports = async (req, res) => {
         return res.status(409).json({ error: `a game called "${newId}" already exists, pick a different title` });
 
       const editCode = genCode();
-      const entry = { id: newId, title: t, author: a, desc: d, code: c, date: new Date().toISOString(), codeHash: hashCode(editCode) };
+      const entry = { id: newId, title: t, author: a, desc: d, code: c, lbMode: lb, date: new Date().toISOString(), codeHash: hashCode(editCode) };
 
       await kv([
         ['lpush', 'arcade', JSON.stringify(entry)],
@@ -128,9 +129,9 @@ module.exports = async (req, res) => {
     // ── PATCH: update a game's code ───────────────────────────────────────────
     if (req.method === 'PATCH') {
       if (!id) return res.status(400).json({ error: 'id required' });
-      const { code, newCode, newTitle, newDesc } = await getBody(req);
+      const { code, newCode, newTitle, newDesc, lbMode } = await getBody(req);
       if (!code) return res.status(400).json({ error: 'edit code required' });
-      if (!newCode && !newTitle && newDesc === undefined) return res.status(400).json({ error: 'nothing to update' });
+      if (!newCode && !newTitle && newDesc === undefined && !lbMode) return res.status(400).json({ error: 'nothing to update' });
 
       const all = await fetchAll();
       const game = all.find(g => g.id === id);
@@ -152,6 +153,7 @@ module.exports = async (req, res) => {
         }
       }
       if (newDesc !== undefined) patch.desc  = newDesc.trim().slice(0, MAX_DESC);
+      if (lbMode === 'asc' || lbMode === 'desc') patch.lbMode = lbMode;
 
       const newIdVal = patch.id;
       const updated = all.map(g => g.id === id ? { ...g, ...patch } : g);

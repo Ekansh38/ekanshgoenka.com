@@ -392,6 +392,13 @@
           <span class="ae-meta-lbl">description <span class="ae-meta-lbl-opt">(optional)</span></span>
           <input id="ae-desc" type="text" placeholder="what does your game do?" maxlength="200" autocomplete="off" spellcheck="false">
         </div>
+        <div class="ae-meta-field" style="max-width:140px">
+          <span class="ae-meta-lbl">leaderboard <span class="ae-meta-lbl-opt">(optional)</span></span>
+          <select id="ae-lbmode" style="background:var(--code-bg);border:1px solid var(--border);color:var(--fg);font-family:inherit;font-size:0.82rem;padding:4px 6px;outline:none;width:100%">
+            <option value="desc">higher is better</option>
+            <option value="asc">lower is better</option>
+          </select>
+        </div>
       </div>
       <div class="ae-slug-hint" id="ae-slug" style="display:none"></div>
     </div>
@@ -406,6 +413,13 @@
         <div class="ae-meta-field ae-field-desc">
           <span class="ae-meta-lbl">description</span>
           <input id="ae-upd-desc" type="text" placeholder="leave blank to keep" maxlength="200" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="ae-meta-field" style="max-width:140px">
+          <span class="ae-meta-lbl">leaderboard</span>
+          <select id="ae-upd-lbmode" style="background:var(--code-bg);border:1px solid var(--border);color:var(--fg);font-family:inherit;font-size:0.82rem;padding:4px 6px;outline:none;width:100%">
+            <option value="desc">higher is better</option>
+            <option value="asc">lower is better</option>
+          </select>
         </div>
         <div class="ae-meta-field ae-field-code">
           <span class="ae-meta-lbl">edit code</span>
@@ -699,6 +713,7 @@
         modeEl.innerHTML = 'editing &nbsp;<strong>' + game.title + '</strong>';
         document.getElementById('ae-upd-title').placeholder = game.title;
         document.getElementById('ae-upd-desc').placeholder  = game.desc || '(no description)';
+        if (game.lbMode) { var sel = document.getElementById('ae-upd-lbmode'); if (sel) sel.value = game.lbMode; }
         if (!hadDraft) { setCode(game.code || ''); updateCharCount(); }
       })
       .catch(function() { modeEl.textContent = 'error loading game'; });
@@ -1272,7 +1287,7 @@
     btn.disabled = true; btn.textContent = 'submitting...'; setStatus('', '');
     fetch('/api/games', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: title, author: author, desc: desc, code: code }),
+      body: JSON.stringify({ title: title, author: author, desc: desc, code: code, lbMode: (document.getElementById('ae-lbmode') || {}).value || 'desc' }),
     }).then(function(r) { return r.json(); }).then(function(data) {
       if (data.ok) {
         try { localStorage.removeItem('arcade_v1'); } catch(e) {}
@@ -1301,6 +1316,7 @@
     if (code)              payload.newCode  = code;
     if (newTitle)          payload.newTitle = newTitle;
     if (newDesc !== undefined && newDesc !== '') payload.newDesc = newDesc.trim();
+    payload.lbMode = (document.getElementById('ae-upd-lbmode') || {}).value || 'desc';
     fetch('/api/games?id=' + encodeURIComponent(editId), {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),

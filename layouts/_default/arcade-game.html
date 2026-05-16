@@ -25,6 +25,91 @@
     max-height: 200px;
     overflow-y: auto;
   }
+
+  /* ── leaderboard ── */
+  .ag-lb {
+    margin-top: 32px;
+  }
+  .ag-lb-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    gap: 10px;
+  }
+  .ag-lb-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .ag-lb-mode {
+    font-size: 0.68rem;
+    color: var(--muted);
+    opacity: 0.6;
+  }
+  .ag-lb-search {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    color: var(--fg);
+    font-family: inherit;
+    font-size: 0.75rem;
+    padding: 3px 8px;
+    outline: none;
+    width: 140px;
+    transition: border-color 0.15s;
+  }
+  .ag-lb-search:focus { border-color: var(--accent); }
+  .ag-lb-search::placeholder { color: var(--muted); opacity: 0.5; }
+  .ag-lb-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+  .ag-lb-table th {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    text-align: left;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .ag-lb-table th:first-child { width: 36px; text-align: right; padding-right: 12px; }
+  .ag-lb-table th:last-child { text-align: right; }
+  .ag-lb-table td {
+    padding: 5px 8px;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
+  }
+  .ag-lb-table td:first-child {
+    text-align: right;
+    padding-right: 12px;
+    color: var(--muted);
+    opacity: 0.6;
+    font-size: 0.75rem;
+  }
+  .ag-lb-table td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+  .ag-lb-table tr:last-child td { border-bottom: none; }
+  .ag-lb-table .ag-lb-gold td:first-child { color: #e0af68; opacity: 1; font-weight: 700; }
+  .ag-lb-table .ag-lb-gold td:nth-child(2) { color: var(--accent); font-weight: 700; }
+  .ag-lb-table .ag-lb-silver td:first-child { color: var(--muted); opacity: 0.8; font-weight: 700; }
+  .ag-lb-table .ag-lb-bronze td:first-child { color: #c0a080; opacity: 0.8; font-weight: 700; }
+  .ag-lb-table .ag-lb-highlight td:nth-child(2) { color: var(--accent); }
+  .ag-lb-empty {
+    font-size: 0.78rem;
+    color: var(--muted);
+    opacity: 0.5;
+    padding: 16px 0;
+  }
+  .ag-lb-count {
+    font-size: 0.65rem;
+    color: var(--muted);
+    opacity: 0.5;
+    margin-top: 6px;
+  }
 </style>
 <div class="arc-bg-dots" aria-hidden="true"></div>
 <div class="ag-back"><a href="/arcade">← arcade</a></div>
@@ -89,6 +174,16 @@
     </div>
   </div>
 
+  <div id="ag-lb" class="ag-lb" style="display:none">
+    <div class="ag-lb-header">
+      <span class="ag-lb-title">leaderboard</span>
+      <span class="ag-lb-mode" id="ag-lb-mode"></span>
+      <input type="text" class="ag-lb-search" id="ag-lb-search" placeholder="search player..." autocomplete="off" spellcheck="false">
+    </div>
+    <div id="ag-lb-body"></div>
+    <div class="ag-lb-count" id="ag-lb-count"></div>
+  </div>
+
   <div class="ag-edit-link-row">
     <a id="ag-edit-link" href="#" class="ag-edit-link">edit in editor →</a>
   </div>
@@ -96,9 +191,8 @@
   <details class="ag-del-section">
     <summary class="ag-del-summary">wipe game data</summary>
     <div class="ag-del-form">
-      <p style="font-size:0.72rem;color:var(--muted);margin:0 0 8px">clears all saved key-value data and leaderboard scores for this game.</p>
       <input type="password" id="ag-wipe-code" class="arc-code-inp" placeholder="edit code (xxxxx-xxxxx)">
-      <button id="ag-wipe-confirm" class="arc-del-confirm" style="background:var(--accent)">wipe data</button>
+      <button id="ag-wipe-confirm" class="arc-del-confirm">wipe data</button>
       <span id="ag-wipe-status" class="arc-del-status"></span>
     </div>
   </details>
@@ -343,6 +437,58 @@
 
       // wire edit-in-editor link
       document.getElementById('ag-edit-link').href = '/arcade/editor/?edit=' + encodeURIComponent(id);
+
+      // ── leaderboard ──
+      var lbMode = game.lbMode || 'desc';
+      var lbOp = lbMode === 'asc' ? 'bottom' : 'top';
+      var allEntries = [];
+
+      function renderLb(entries, query) {
+        var body = document.getElementById('ag-lb-body');
+        var filtered = entries;
+        if (query) {
+          var q = query.toLowerCase();
+          filtered = entries.filter(function(e) { return e.name.toLowerCase().indexOf(q) >= 0; });
+        }
+        if (filtered.length === 0) {
+          body.innerHTML = '<div class="ag-lb-empty">' + (query ? 'no matches' : 'no scores yet — be the first!') + '</div>';
+          document.getElementById('ag-lb-count').textContent = '';
+          return;
+        }
+        var html = '<table class="ag-lb-table"><thead><tr><th>#</th><th>player</th><th>score</th></tr></thead><tbody>';
+        for (var i = 0; i < filtered.length; i++) {
+          var e = filtered[i];
+          var rank = query ? '' : (i + 1);
+          var cls = '';
+          if (!query) {
+            if (i === 0) cls = 'ag-lb-gold';
+            else if (i === 1) cls = 'ag-lb-silver';
+            else if (i === 2) cls = 'ag-lb-bronze';
+          }
+          if (query) cls = 'ag-lb-highlight';
+          var scoreStr = e.score % 1 === 0 ? String(Math.round(e.score)) : e.score.toFixed(2);
+          html += '<tr class="' + cls + '"><td>' + rank + '</td><td>' + hlEsc(e.name) + '</td><td>' + scoreStr + '</td></tr>';
+        }
+        html += '</tbody></table>';
+        body.innerHTML = html;
+        document.getElementById('ag-lb-count').textContent = entries.length + ' player' + (entries.length === 1 ? '' : 's') + ' total';
+      }
+
+      fetch('/api/net?op=' + lbOp + '&game=' + encodeURIComponent(id) + '&n=100')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          allEntries = data.entries || [];
+          if (allEntries.length > 0) {
+            document.getElementById('ag-lb').style.display = 'block';
+            document.getElementById('ag-lb-mode').textContent = lbMode === 'asc' ? 'lower is better' : 'higher is better';
+            renderLb(allEntries, '');
+          }
+        })
+        .catch(function() {});
+
+      document.getElementById('ag-lb-search').addEventListener('input', function() {
+        renderLb(allEntries, this.value.trim());
+      });
 
       // wipe game data
       document.getElementById('ag-wipe-confirm').addEventListener('click', function() {
