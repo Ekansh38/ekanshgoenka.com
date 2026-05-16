@@ -1266,6 +1266,8 @@ body.page #bg-canvas { opacity: 0.25; }
   z-index: 998;
   cursor: crosshair;
   background: rgba(0,0,0,0.22);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
 }
 #spawn-overlay.active { display: block; }
 
@@ -1299,7 +1301,9 @@ body.page #bg-canvas { opacity: 0.25; }
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.35);
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   z-index: 999;
   align-items: flex-end;
   justify-content: center;
@@ -1422,7 +1426,9 @@ body.page #bg-canvas { opacity: 0.25; }
     bottom: calc(100% + 8px);
     right: 0;
     min-width: 200px;
-    background: var(--bg);
+    background: color-mix(in srgb, var(--bg) 85%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--border);
     box-shadow: 0 4px 20px var(--shadow);
   }
@@ -1457,7 +1463,9 @@ body.page #bg-canvas { opacity: 0.25; }
     bottom: calc(100% + 8px);
     right: 0;
     min-width: 200px;
-    background: var(--bg);
+    background: color-mix(in srgb, var(--bg) 85%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--border);
     box-shadow: 0 4px 20px var(--shadow);
   }
