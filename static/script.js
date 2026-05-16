@@ -1929,6 +1929,11 @@ function toggleTheme() {
     var sandbox = [
       'local _os_time=os.time; local _os_clock=os.clock; os={time=_os_time,clock=_os_clock}',
       'require=nil; load=nil; dofile=nil; loadfile=nil; collectgarbage=nil',
+      // task state must be declared before io/print/sound closures reference _in_task
+      'local _tasks={}',
+      'local _task_active=false',
+      'local _in_task=false',
+      'local _PREEMPT={}',
       'io={',
       '  read =function(prompt) if type(prompt)=="string" then _setprompt(prompt) end return coroutine.yield() end,',
       '  getkey=function() _setprompt("__getkey__") return coroutine.yield() end,',
@@ -1970,10 +1975,6 @@ function toggleTheme() {
       '  top =function(n) coroutine.yield("\\0net\\0top\\1"..tostring(math.floor(tonumber(n) or 10))) return _net_collect() end,',
       '}',
       // tasks: scheduler with auto-yield on pollkey + debug.sethook fallback
-      'local _tasks={}',
-      'local _task_active=false',
-      'local _in_task=false',
-      'local _PREEMPT={}',
       'tasks={',
       '  spawn=function(fn) _tasks[#_tasks+1]={co=coroutine.create(fn),wake=0} end,',
       '  stop=function() _task_active=false end,',
