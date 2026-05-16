@@ -41,12 +41,18 @@
   .CodeMirror-linenumber { color: var(--muted) !important; opacity: 0.7; }
   .CodeMirror-cursor { border-left: 2px solid var(--accent) !important; }
   .CodeMirror-secondarycursor { border-left: 1px solid var(--muted) !important; }
+  /* vim block cursor - adapts to theme */
+  .cm-fat-cursor .CodeMirror-cursor {
+    background: color-mix(in srgb, var(--accent) 50%, transparent) !important;
+    border: none !important; width: auto !important;
+  }
+  .cm-fat-cursor-mark { background: color-mix(in srgb, var(--accent) 40%, transparent) !important; }
   .CodeMirror-selected,
   .CodeMirror-line::selection,
   .CodeMirror-line > span::selection,
-  .CodeMirror-line > span > span::selection { background: rgba(122,162,247,0.22) !important; }
-  .CodeMirror-focused .CodeMirror-selected  { background: rgba(122,162,247,0.25) !important; }
-  .CodeMirror-activeline-background { background: rgba(127,127,127,0.055) !important; }
+  .CodeMirror-line > span > span::selection { background: color-mix(in srgb, var(--accent) 22%, transparent) !important; }
+  .CodeMirror-focused .CodeMirror-selected  { background: color-mix(in srgb, var(--accent) 25%, transparent) !important; }
+  .CodeMirror-activeline-background { background: color-mix(in srgb, var(--fg) 5%, transparent) !important; }
   .CodeMirror-matchingbracket { outline: 1px solid var(--accent) !important; color: inherit !important; }
   .CodeMirror-nonmatchingbracket { color: var(--code-err) !important; }
 

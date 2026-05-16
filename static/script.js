@@ -1846,6 +1846,19 @@ function toggleTheme() {
     lua.lua_pushcfunction(L, function(Ls) { iobuf = ''; output.innerHTML = ''; return 0; });
     lua.lua_setglobal(L, toLua('clear'));
 
+    // _setprompt(s) — flush pending io.write, then set iobuf for JS step function
+    lua.lua_pushcfunction(L, function(Ls) {
+      flushIoBuf();
+      if (lua.lua_type(Ls, 1) === lua.LUA_TSTRING) {
+        var r = lua.lua_tostring(Ls, 1);
+        iobuf = r ? toJS(r) : '';
+      } else {
+        iobuf = '';
+      }
+      return 0;
+    });
+    lua.lua_setglobal(L, toLua('_setprompt'));
+
     // _net_collect() — called by net.top() after yield to read JS result table
     lua.lua_pushcfunction(L, function(Ls) {
       var buf = window._netBuf || [];
@@ -1868,8 +1881,8 @@ function toggleTheme() {
     var sandbox = [
       'os=nil; require=nil; load=nil; dofile=nil; loadfile=nil; collectgarbage=nil',
       'io={',
-      '  read =function(prompt) if type(prompt)=="string" then iobuf=prompt end return coroutine.yield() end,',
-      '  getkey=function() iobuf="__getkey__" return coroutine.yield() end,',
+      '  read =function(prompt) if type(prompt)=="string" then _setprompt(prompt) end return coroutine.yield() end,',
+      '  getkey=function() _setprompt("__getkey__") return coroutine.yield() end,',
       '  write=function(...) local s="" for i=1,select("#",...)do s=s..tostring(select(i,...))end _iowrite(s) end,',
       '}',
       // io.choice: numbered menu (pure Lua, calls io.read internally)

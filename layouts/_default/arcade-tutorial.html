@@ -1499,18 +1499,47 @@ greet("player")</textarea>
       <div class="tut-step-tag">arcade APIs</div>
       <div class="tut-heading" style="font-size:clamp(1.3rem,3vw,1.8rem)">what the arcade adds</div>
       <div class="tut-body">games run in a Lua sandbox. beyond standard Lua, you get these. click each to see what it does:</div>
+      <div style="font-size:0.82rem;color:var(--muted);margin-bottom:18px;line-height:1.6">
+        the arcade has 4 types of input. use whichever fits your game:
+      </div>
       <div class="tut-api-grid">
         <div class="tut-api-row" data-eapi="io">
           <div class="tut-api-col">
             <div class="tut-api-name">io.read("prompt")</div>
-            <div class="tut-api-desc">blocks until player hits Enter. returns a string.</div>
+            <div class="tut-api-desc">shows prompt in the input bar, waits for Enter. returns the typed text as a string. use for names, answers, commands.</div>
             <div class="tut-api-demo-out" id="eapi-io-out">name: <span style="color:var(--accent)">ekansh</span><br>hello, ekansh!</div>
           </div>
         </div>
+        <div class="tut-api-row" data-eapi="getkey">
+          <div class="tut-api-col">
+            <div class="tut-api-name">io.getkey()</div>
+            <div class="tut-api-desc">waits for a single keypress. no Enter needed. returns the key name: "a", "space", "up", "down", "left", "right". use for real-time controls, movement, menus.</div>
+            <div class="tut-api-demo-out" id="eapi-getkey-out">pressed: <span style="color:var(--accent)">up</span></div>
+          </div>
+        </div>
+        <div class="tut-api-row" data-eapi="choice">
+          <div class="tut-api-col">
+            <div class="tut-api-name">io.choice(prompt, options)</div>
+            <div class="tut-api-desc">shows a numbered menu. player picks a number, returns the chosen string. clean way to handle branching choices.</div>
+            <div class="tut-api-demo-out" id="eapi-choice-out"><span style="color:var(--code-type)">[1]</span> sword &nbsp;<span style="color:var(--code-type)">[2]</span> bow &nbsp;<span style="color:var(--code-type)">[3]</span> staff</div>
+          </div>
+        </div>
+        <div class="tut-api-row" data-eapi="confirm">
+          <div class="tut-api-col">
+            <div class="tut-api-name">io.confirm("sure?")</div>
+            <div class="tut-api-desc">asks a yes/no question. returns true or false. player types y or n.</div>
+            <div class="tut-api-demo-out" id="eapi-confirm-out">sure? (y/n) <span style="color:var(--accent)">y</span> -> true</div>
+          </div>
+        </div>
+      </div>
+      <div style="font-size:0.82rem;color:var(--muted);margin-bottom:8px;line-height:1.6;margin-top:16px">
+        you also get these utilities:
+      </div>
+      <div class="tut-api-grid">
         <div class="tut-api-row" data-eapi="sleep">
           <div class="tut-api-col">
-            <div class="tut-api-name">sleep(ms)</div>
-            <div class="tut-api-desc">async pause via coroutines, doesn't block the browser.</div>
+            <div class="tut-api-name">sleep(ms) / clear()</div>
+            <div class="tut-api-desc">pause execution for N milliseconds (async, doesn't freeze the browser). clear() wipes the terminal output.</div>
             <div class="tut-api-demo-out" id="eapi-sleep-out">3... 2... 1... GO!</div>
           </div>
         </div>
@@ -1530,13 +1559,18 @@ greet("player")</textarea>
         </div>
         <div class="tut-api-row" data-eapi="net">
           <div class="tut-api-col">
-            <div class="tut-api-name">net.rank(name, score)</div>
-            <div class="tut-api-desc">save to a persistent leaderboard scoped to your game. net.top(n) retrieves it. net.get/set for key-value storage.</div>
+            <div class="tut-api-name">net.rank(name, score) / net.get/set</div>
+            <div class="tut-api-desc">persistent leaderboard + key-value storage, scoped to your game. net.top(n) gets top entries.</div>
             <div class="tut-api-demo-out" id="eapi-net-out">1. ekansh  99<br>2. guest   42</div>
           </div>
         </div>
       </div>
-      <div style="font-size:0.78rem;color:var(--muted);margin-bottom:18px">full reference is in the <strong style="color:var(--fg)">docs panel</strong> inside the editor (right side)</div>
+      <div style="font-size:0.82rem;color:var(--muted);margin-bottom:8px;line-height:1.6;margin-top:16px">
+        the editor has a <strong style="color:var(--fg)">docs</strong> button in the top bar. click it to open a panel with snippets you can insert and a full Lua reference. it pulses when you first open the editor.
+      </div>
+      <div style="font-size:0.82rem;color:var(--muted);margin-bottom:18px;line-height:1.6">
+        vim keybindings are available too. toggle with the <strong style="color:var(--fg)">vim</strong> button. :w saves, :wq saves and exits.
+      </div>
       <div class="tut-editcode-box" style="margin-top:6px">
         <span class="tut-editcode-val">a3f9b-2c81d</span>
         <button class="tut-editcode-copy" id="tut-expert-editcode-copy">copy</button>
