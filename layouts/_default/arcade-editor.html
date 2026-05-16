@@ -617,6 +617,11 @@
 
   editor.on('change', function() { updateCharCount(); scheduleSave(); });
 
+  // clear vim search highlights on Escape (return to normal mode)
+  editor.on('vim-mode-change', function(e) {
+    if (e.mode === 'normal') { editor.execCommand('clearSearch'); }
+  });
+
   // ── prefill: sessionStorage snippet → then draft → then default ──
   var loaded = false;
   try {

@@ -1,44 +1,20 @@
 {{ define "main" }}
 <style>
-  .ag-source-code .ag-line-active {
-    background: color-mix(in srgb, var(--accent) 15%, transparent);
-    display: inline-block;
-    width: 100%;
-  }
-  .ag-preview-panel {
-    border: 1px solid var(--border);
-    margin-top: 8px;
-    background: var(--code-bg, #1a1b26);
-  }
-  .ag-preview-bar {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 6px 12px;
-    border-bottom: 1px solid var(--border);
-    font-size: 0.72rem;
-    color: var(--muted);
-  }
-  .ag-preview-out {
-    padding: 10px 14px;
-    font-size: 0.82rem;
-    line-height: 1.7;
-    min-height: 40px;
-    max-height: 200px;
-    overflow-y: auto;
-  }
-
   /* ── leaderboard ── */
   .ag-lb {
-    margin-top: 32px;
+    margin-top: 28px;
+    border: 1px solid var(--border);
+    background: var(--code-bg);
   }
   .ag-lb-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
     gap: 10px;
   }
   .ag-lb-title {
-    font-size: 0.78rem;
+    font-size: 0.75rem;
     font-weight: 700;
     color: var(--muted);
     letter-spacing: 0.1em;
@@ -46,69 +22,87 @@
     white-space: nowrap;
   }
   .ag-lb-mode {
-    font-size: 0.68rem;
-    color: var(--muted);
-    opacity: 0.6;
-  }
-  .ag-lb-search {
-    background: var(--code-bg);
-    border: 1px solid var(--border);
-    color: var(--fg);
-    font-family: inherit;
-    font-size: 0.75rem;
-    padding: 3px 8px;
-    outline: none;
-    width: 140px;
-    transition: border-color 0.15s;
-  }
-  .ag-lb-search:focus { border-color: var(--accent); }
-  .ag-lb-search::placeholder { color: var(--muted); opacity: 0.5; }
-  .ag-lb-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.82rem;
-  }
-  .ag-lb-table th {
-    font-size: 0.68rem;
-    font-weight: 700;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    text-align: left;
-    padding: 6px 8px;
-    border-bottom: 1px solid var(--border);
-  }
-  .ag-lb-table th:first-child { width: 36px; text-align: right; padding-right: 12px; }
-  .ag-lb-table th:last-child { text-align: right; }
-  .ag-lb-table td {
-    padding: 5px 8px;
-    border-bottom: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
-  }
-  .ag-lb-table td:first-child {
-    text-align: right;
-    padding-right: 12px;
-    color: var(--muted);
-    opacity: 0.6;
-    font-size: 0.75rem;
-  }
-  .ag-lb-table td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
-  .ag-lb-table tr:last-child td { border-bottom: none; }
-  .ag-lb-table .ag-lb-gold td:first-child { color: #e0af68; opacity: 1; font-weight: 700; }
-  .ag-lb-table .ag-lb-gold td:nth-child(2) { color: var(--accent); font-weight: 700; }
-  .ag-lb-table .ag-lb-silver td:first-child { color: var(--muted); opacity: 0.8; font-weight: 700; }
-  .ag-lb-table .ag-lb-bronze td:first-child { color: #c0a080; opacity: 0.8; font-weight: 700; }
-  .ag-lb-table .ag-lb-highlight td:nth-child(2) { color: var(--accent); }
-  .ag-lb-empty {
-    font-size: 0.78rem;
-    color: var(--muted);
-    opacity: 0.5;
-    padding: 16px 0;
-  }
-  .ag-lb-count {
     font-size: 0.65rem;
     color: var(--muted);
     opacity: 0.5;
-    margin-top: 6px;
+    flex: 1;
+  }
+  .ag-lb-search {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--fg);
+    font-family: inherit;
+    font-size: 0.72rem;
+    padding: 3px 8px;
+    outline: none;
+    width: 130px;
+    transition: border-color 0.15s;
+  }
+  .ag-lb-search:focus { border-color: var(--accent); }
+  .ag-lb-search::placeholder { color: var(--muted); opacity: 0.4; }
+  .ag-lb-body {
+    max-height: 340px;
+    overflow-y: auto;
+  }
+  .ag-lb-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+  }
+  .ag-lb-table th {
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    text-align: left;
+    padding: 7px 14px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--code-bg);
+  }
+  .ag-lb-table th:first-child { width: 40px; text-align: center; }
+  .ag-lb-table th:last-child { text-align: right; }
+  .ag-lb-table td {
+    padding: 6px 14px;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 30%, transparent);
+    color: var(--fg);
+  }
+  .ag-lb-table td:first-child {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.72rem;
+    width: 40px;
+  }
+  .ag-lb-table td:last-child {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    color: var(--muted);
+  }
+  .ag-lb-table tr:last-child td { border-bottom: none; }
+  .ag-lb-table tr:hover td { background: color-mix(in srgb, var(--accent) 5%, transparent); }
+  .ag-lb-gold td:first-child { color: #e0af68 !important; font-weight: 700; }
+  .ag-lb-gold td:nth-child(2) { color: var(--accent); font-weight: 600; }
+  .ag-lb-gold td:last-child { color: var(--fg); font-weight: 600; }
+  .ag-lb-silver td:first-child { color: var(--fg) !important; opacity: 0.7; font-weight: 600; }
+  .ag-lb-bronze td:first-child { color: #c0a080 !important; font-weight: 600; }
+  .ag-lb-highlight td:nth-child(2) { color: var(--accent); }
+  .ag-lb-empty {
+    font-size: 0.75rem;
+    color: var(--muted);
+    opacity: 0.4;
+    padding: 24px 14px;
+    text-align: center;
+  }
+  .ag-lb-footer {
+    font-size: 0.62rem;
+    color: var(--muted);
+    opacity: 0.4;
+    padding: 6px 14px;
+    border-top: 1px solid color-mix(in srgb, var(--border) 30%, transparent);
+    display: flex;
+    justify-content: space-between;
   }
 </style>
 <div class="arc-bg-dots" aria-hidden="true"></div>
@@ -147,10 +141,22 @@
     <button id="ag-remix" class="ag-action-btn">remix →</button>
   </div>
 
+  <div id="ag-lb" class="ag-lb" style="display:none">
+    <div class="ag-lb-header">
+      <span class="ag-lb-title">leaderboard</span>
+      <span class="ag-lb-mode" id="ag-lb-mode"></span>
+      <input type="text" class="ag-lb-search" id="ag-lb-search" placeholder="search player..." autocomplete="off" spellcheck="false">
+    </div>
+    <div class="ag-lb-body" id="ag-lb-body"></div>
+    <div class="ag-lb-footer" id="ag-lb-footer" style="display:none">
+      <span id="ag-lb-count"></span>
+      <span id="ag-lb-refresh" style="cursor:pointer;color:var(--accent);opacity:0.7">refresh</span>
+    </div>
+  </div>
+
   <div class="ag-source-section">
     <div class="ag-source-header">
       <span class="ag-source-title">source</span>
-      <button id="ag-preview" class="ag-copy-btn">▶ preview</button>
       <button id="ag-copy" class="ag-copy-btn">copy</button>
     </div>
     <div class="ag-source-window">
@@ -165,23 +171,6 @@
         <pre id="ag-source" class="ag-source-code"></pre>
       </div>
     </div>
-    <div id="ag-preview-panel" class="ag-preview-panel" style="display:none">
-      <div class="ag-preview-bar">
-        <span>preview output</span>
-        <button id="ag-preview-close" class="ag-copy-btn" style="font-size:0.68rem">close</button>
-      </div>
-      <div id="ag-preview-out" class="ag-preview-out"></div>
-    </div>
-  </div>
-
-  <div id="ag-lb" class="ag-lb" style="display:none">
-    <div class="ag-lb-header">
-      <span class="ag-lb-title">leaderboard</span>
-      <span class="ag-lb-mode" id="ag-lb-mode"></span>
-      <input type="text" class="ag-lb-search" id="ag-lb-search" placeholder="search player..." autocomplete="off" spellcheck="false">
-    </div>
-    <div id="ag-lb-body"></div>
-    <div class="ag-lb-count" id="ag-lb-count"></div>
   </div>
 
   <div class="ag-edit-link-row">
@@ -251,12 +240,8 @@
       var lines = (game.code || '').split('\n').length;
       document.getElementById('ag-lines').textContent = lines;
 
-      // source with line numbers (wrap each line in a span for preview highlighting)
-      var highlighted = highlightLua(game.code || '');
-      var hlLines = highlighted.split('\n');
-      document.getElementById('ag-source').innerHTML = hlLines.map(function(l, i) {
-        return '<span class="ag-src-line" data-line="' + i + '">' + l + '</span>';
-      }).join('\n');
+      // source with line numbers
+      document.getElementById('ag-source').innerHTML = highlightLua(game.code || '');
       document.getElementById('ag-filename').textContent = id + '.lua';
       var lineCount = (game.code || '').split('\n').length;
       document.getElementById('ag-line-nums').textContent = Array.from({length: lineCount}, function(_, i) { return i + 1; }).join('\n');
@@ -294,147 +279,6 @@
         });
       });
 
-      // preview
-      var COLORS = {
-        'color.red': '#f7768e', 'color.green': '#9ece6a', 'color.yellow': '#e0af68',
-        'color.cyan': '#7dcfff', 'color.blue': '#7aa2f7', 'color.purple': '#bb9af7',
-        'color.white': '#c0caf5', 'color.bold': '#c0caf5'
-      };
-
-      var previewRunning = false;
-      var previewAbort = false;
-
-      function previewCleanup() {
-        previewRunning = false;
-        previewAbort = false;
-        var allLines = document.querySelectorAll('.ag-src-line');
-        for (var i = 0; i < allLines.length; i++) {
-          allLines[i].classList.remove('ag-line-active');
-        }
-        var btn = document.getElementById('ag-preview');
-        btn.textContent = '\u25b6 preview';
-      }
-
-      function previewClose() {
-        previewAbort = true;
-        document.getElementById('ag-preview-panel').style.display = 'none';
-        previewCleanup();
-      }
-
-      function evalColoredStr(s) {
-        // parse colored("text", color.X) and return {text, color}
-        var m = s.match(/^colored\(\s*"([^"]*)"\s*,\s*(color\.\w+)\s*\)$/);
-        if (m) return { text: m[1], color: COLORS[m[2]] || null };
-        m = s.match(/^colored\(\s*'([^']*)'\s*,\s*(color\.\w+)\s*\)$/);
-        if (m) return { text: m[1], color: COLORS[m[2]] || null };
-        return null;
-      }
-
-      function evalPrintArg(arg) {
-        // handle concatenation with ..
-        var parts = arg.split('..');
-        var result = [];
-        for (var i = 0; i < parts.length; i++) {
-          var p = parts[i].trim();
-          // string literal
-          var sm = p.match(/^"([^"]*)"$/) || p.match(/^'([^']*)'$/);
-          if (sm) { result.push({ text: sm[1], color: null }); continue; }
-          // colored()
-          var c = evalColoredStr(p);
-          if (c) { result.push(c); continue; }
-          // skip variables/expressions - show placeholder
-          result.push({ text: '...', color: null });
-        }
-        return result;
-      }
-
-      function parsePrintLine(raw) {
-        // match print(...) call
-        var m = raw.match(/^\s*print\((.+)\)\s*$/);
-        if (!m) return null;
-        var inner = m[1].trim();
-        // print("") or print('')  -> empty line
-        if (inner === '""' || inner === "''") return [];
-        return evalPrintArg(inner);
-      }
-
-      function isSkipLine(raw) {
-        var t = raw.trim();
-        if (!t || t.indexOf('--') === 0) return true;
-        if (/^\s*(local\s+\w+\s*=\s*)?io\.(read|getkey|choice|confirm)\b/.test(t)) return true;
-        if (/^\s*net\./.test(t)) return true;
-        if (/^\s*(while|for|repeat)\b/.test(t)) return true;
-        if (/^\s*sleep\s*\(/.test(t)) return true;
-        if (/^\s*(if|elseif|else|end|do|then|break|return|until)\b/.test(t)) return true;
-        if (/^\s*local\s+/.test(t) && !parsePrintLine(t)) return true;
-        if (/^\s*sound\./.test(t)) return true;
-        if (/^\s*clear\s*\(/.test(t)) return true;
-        return false;
-      }
-
-      function runPreview() {
-        if (previewRunning) { previewClose(); return; }
-        previewRunning = true;
-        previewAbort = false;
-        var btn = document.getElementById('ag-preview');
-        btn.textContent = '\u25a0 stop';
-
-        var panel = document.getElementById('ag-preview-panel');
-        var outEl = document.getElementById('ag-preview-out');
-        panel.style.display = 'block';
-        outEl.innerHTML = '';
-
-        var rawLines = (game.code || '').split('\n');
-        var srcLines = document.querySelectorAll('.ag-src-line');
-        var idx = 0;
-
-        function step() {
-          if (previewAbort || idx >= rawLines.length) { previewCleanup(); return; }
-
-          // clear previous highlight
-          for (var j = 0; j < srcLines.length; j++) srcLines[j].classList.remove('ag-line-active');
-
-          // highlight current line
-          if (srcLines[idx]) {
-            srcLines[idx].classList.add('ag-line-active');
-            srcLines[idx].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-          }
-
-          var raw = rawLines[idx];
-          var printed = parsePrintLine(raw);
-
-          if (printed !== null) {
-            // it's a print statement
-            var div = document.createElement('div');
-            if (printed.length === 0) {
-              div.innerHTML = '&nbsp;';
-            } else {
-              for (var p = 0; p < printed.length; p++) {
-                var span = document.createElement('span');
-                span.textContent = printed[p].text;
-                if (printed[p].color) span.style.color = printed[p].color;
-                div.appendChild(span);
-              }
-            }
-            outEl.appendChild(div);
-            outEl.scrollTop = outEl.scrollHeight;
-            idx++;
-            setTimeout(step, 300);
-          } else if (isSkipLine(raw)) {
-            idx++;
-            setTimeout(step, 80);
-          } else {
-            idx++;
-            setTimeout(step, 150);
-          }
-        }
-
-        step();
-      }
-
-      document.getElementById('ag-preview').addEventListener('click', runPreview);
-      document.getElementById('ag-preview-close').addEventListener('click', previewClose);
-
       // wire edit-in-editor link
       document.getElementById('ag-edit-link').href = '/arcade/editor/?edit=' + encodeURIComponent(id);
 
@@ -445,14 +289,15 @@
 
       function renderLb(entries, query) {
         var body = document.getElementById('ag-lb-body');
+        var footer = document.getElementById('ag-lb-footer');
         var filtered = entries;
         if (query) {
           var q = query.toLowerCase();
           filtered = entries.filter(function(e) { return e.name.toLowerCase().indexOf(q) >= 0; });
         }
         if (filtered.length === 0) {
-          body.innerHTML = '<div class="ag-lb-empty">' + (query ? 'no matches' : 'no scores yet — be the first!') + '</div>';
-          document.getElementById('ag-lb-count').textContent = '';
+          body.innerHTML = '<div class="ag-lb-empty">' + (query ? 'no matches for "' + hlEsc(query) + '"' : 'no scores yet') + '</div>';
+          footer.style.display = 'none';
           return;
         }
         var html = '<table class="ag-lb-table"><thead><tr><th>#</th><th>player</th><th>score</th></tr></thead><tbody>';
@@ -471,24 +316,32 @@
         }
         html += '</tbody></table>';
         body.innerHTML = html;
-        document.getElementById('ag-lb-count').textContent = entries.length + ' player' + (entries.length === 1 ? '' : 's') + ' total';
+        footer.style.display = 'flex';
+        var countEl = document.getElementById('ag-lb-count');
+        if (query) {
+          countEl.textContent = filtered.length + ' of ' + entries.length + ' players';
+        } else {
+          countEl.textContent = entries.length + ' player' + (entries.length === 1 ? '' : 's');
+        }
       }
 
-      fetch('/api/net?op=' + lbOp + '&game=' + encodeURIComponent(id) + '&n=100')
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-          allEntries = data.entries || [];
-          if (allEntries.length > 0) {
+      function fetchLb() {
+        fetch('/api/net?op=' + lbOp + '&game=' + encodeURIComponent(id) + '&n=100')
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            allEntries = data.entries || [];
             document.getElementById('ag-lb').style.display = 'block';
             document.getElementById('ag-lb-mode').textContent = lbMode === 'asc' ? 'lower is better' : 'higher is better';
-            renderLb(allEntries, '');
-          }
-        })
-        .catch(function() {});
+            renderLb(allEntries, (document.getElementById('ag-lb-search').value || '').trim());
+          })
+          .catch(function() {});
+      }
+      fetchLb();
 
       document.getElementById('ag-lb-search').addEventListener('input', function() {
         renderLb(allEntries, this.value.trim());
       });
+      document.getElementById('ag-lb-refresh').addEventListener('click', fetchLb);
 
       // wipe game data
       document.getElementById('ag-wipe-confirm').addEventListener('click', function() {
