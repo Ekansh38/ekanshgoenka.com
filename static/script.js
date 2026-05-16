@@ -210,6 +210,25 @@ function toggleTheme() {
       if (b.y < MARGIN)   fy += TURN*(1-b.y/MARGIN);
       if (b.y > H-MARGIN) fy -= TURN*(1-(H-b.y)/MARGIN);
 
+      // cursor interaction: gentle attract from afar, scatter when close
+      if (_mouseActive) {
+        dx = _mouseX - b.x; dy = _mouseY - b.y;
+        d2 = dx*dx + dy*dy;
+        if (d2 > 1) {
+          d = Math.sqrt(d2);
+          if (d < CURSOR_REPEL_R) {
+            var repel = (1 - d / CURSOR_REPEL_R);
+            repel = repel * repel;  // quadratic falloff
+            fx -= (dx/d) * repel * CURSOR_REPEL_W;
+            fy -= (dy/d) * repel * CURSOR_REPEL_W;
+          } else if (d < CURSOR_ATTRACT_R) {
+            var attract = (1 - (d - CURSOR_REPEL_R) / (CURSOR_ATTRACT_R - CURSOR_REPEL_R));
+            fx += (dx/d) * attract * CURSOR_ATTRACT_W;
+            fy += (dy/d) * attract * CURSOR_ATTRACT_W;
+          }
+        }
+      }
+
       b.wa += (Math.random() - 0.5) * b.wd * 14;  // per-boid wander drift rate
       b.vx += fx + Math.cos(b.wa) * WANDER;
       b.vy += fy + Math.sin(b.wa) * WANDER;
@@ -222,6 +241,20 @@ function toggleTheme() {
       if (b.y < -20) b.y = H+20; else if (b.y > H+20) b.y = -20;
     }
   }
+
+  // ── cursor interaction ──
+  var _mouseX = -9999, _mouseY = -9999, _mouseActive = false, _mouseTimer = 0;
+  var CURSOR_ATTRACT_R = 200, CURSOR_REPEL_R = 60;
+  var CURSOR_ATTRACT_W = 0.0004, CURSOR_REPEL_W = 0.08;
+  var CURSOR_IDLE_MS = 2000;
+
+  document.addEventListener('mousemove', function(e) {
+    _mouseX = e.clientX; _mouseY = e.clientY;
+    _mouseActive = true;
+    clearTimeout(_mouseTimer);
+    _mouseTimer = setTimeout(function() { _mouseActive = false; }, CURSOR_IDLE_MS);
+  });
+  document.addEventListener('mouseleave', function() { _mouseActive = false; });
 
   function isHome() { return window.location.pathname === '/'; }
 
@@ -2827,6 +2860,15 @@ function toggleTheme() {
     },
   };
 
+  // ── game ID list for tab completion (prefetch silently) ─────
+  function _gameIds() { return _gCache ? _gCache.map(function(g) { return g.id; }) : []; }
+  (function prefetchGames() {
+    if (_gCache) return;
+    fetch('/api/games').then(function(r) { return r.json(); }).then(function(gs) {
+      _gCache = gs; _gCacheAt = Date.now();
+    }).catch(function() {});
+  })();
+
   // ── tab completion ──────────────────────────────────────────
   var CMD_NAMES = Object.keys(CMDS);
 
@@ -2885,6 +2927,9 @@ function toggleTheme() {
       which:       function (p) { return p === 0 ? CMD_NAMES : []; },
       curl:        function (p) { return p === 0 ? ['-L'] : p === 1 ? ['ekanshgoenka.com'] : []; },
       rm:          function ()  { return completePath(typed); },
+      play:        function (p) { return p === 0 ? _gameIds() : []; },
+      source:      function (p) { return p === 0 ? _gameIds() : []; },
+      delete:      function (p) { return p === 0 ? _gameIds() : []; },
     };
     var fn = CMAP[cmd];
     if (fn) return fn(pos).filter(function (s) { return s.indexOf(typed) === 0; });
@@ -2936,6 +2981,7 @@ function toggleTheme() {
     overlay.classList.add('open');
     inp.focus();
     isOpen = true;
+    arcadeSound('click');
   }
   function close() {
     overlay.classList.remove('open');
