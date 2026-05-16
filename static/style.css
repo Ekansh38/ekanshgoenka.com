@@ -1344,6 +1344,16 @@ body.page #bg-canvas { opacity: 0.25; }
 .term-line-err  { color: #f7768e; }
 .term-line-ok   { color: var(--accent); }
 .term-line-pre  { white-space: pre; font-family: inherit; margin: 0; }
+.term-io-inline {
+  display: flex; align-items: center;
+  font-family: inherit; font-size: inherit;
+  color: var(--fg); line-height: 1.65;
+}
+.term-io-input {
+  flex: 1; background: none; border: none; outline: none;
+  color: var(--fg); font: inherit; caret-color: var(--accent);
+  padding: 0; margin: 0;
+}
 
 
 /* ── PRESET PICKER (desktop only) ───────────────────────────── */

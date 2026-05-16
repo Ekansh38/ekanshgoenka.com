@@ -175,13 +175,6 @@ document.getElementById('arc-write-btn').addEventListener('click', function() {
     'local key = io.getkey()                   -- wait for single keypress',
     '-- returns: "a", "space", "up", "down", "left", "right", "enter", etc.',
     '',
-    '-- NUMBERED MENU',
-    'local pick = io.choice("choose:", {"sword", "bow", "staff"})',
-    '-- shows [1] sword  [2] bow  [3] staff, returns chosen string',
-    '',
-    '-- YES / NO',
-    'local ok = io.confirm("are you sure?")',
-    '-- shows prompt (y/n), returns true or false',
     '',
     '-- STORING VALUES IN VARIABLES',
     'local score = 0           -- number',
@@ -578,7 +571,7 @@ document.getElementById('arc-write-btn').addEventListener('click', function() {
       var line = lines[i].trim();
 
       // detect interactive lines
-      if (/\bio\.read\b/.test(line) || /\bio\.getkey\b/.test(line) || /\bio\.choice\b/.test(line) || /\bio\.confirm\b/.test(line) || /\bnet\./.test(line) || /^while\b/.test(line) || /^for\b/.test(line)) {
+      if (/\bio\.read\b/.test(line) || /\bio\.getkey\b/.test(line) || /\bnet\./.test(line) || /^while\b/.test(line) || /^for\b/.test(line)) {
         hasInteractive = true;
         continue;
       }

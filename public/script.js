@@ -128,86 +128,20 @@ function toggleTheme() {
   // Each boid is a concave arrow pointing in its velocity direction.
 
   var N          = 120;
-  var MAX_SPEED  = 1.8,  MIN_SPEED  = 0.6;
-  var PERCEPTION = 55,   SEP_DIST   = 50;
-  var SEP_W      = 0.28, ALI_W      = 0.06, COH_W = 0.003;
-  var MAX_FORCE  = 0.15;
-  var MARGIN     = 100,  TURN       = 0.22;
-  var SPREAD_R   = 180,  SPREAD_W   = 0.03;
-  var WANDER     = 0.07;
+  var MAX_SPEED  = 1.0,  MIN_SPEED  = 0.3;
+  var PERCEPTION = 52,   SEP_DIST   = 38;
+  var SEP_W      = 0.16, ALI_W      = 0.05, COH_W = 0.003;
+  var MAX_FORCE  = 0.03;
+  var SEP_FORCE  = 0.10;  // separation gets a higher cap to prevent overlap
+  var MARGIN     = 100,  TURN       = 0.10;
+  var SPREAD_R   = 140,  SPREAD_W   = 0.04;
+  var WANDER     = 0.018;
   var BOID_LEN     = 14;
   var BOID_HALF    = 5.5;
   var BOID_OPACITY = 0.14;
   var BOID_GLOW    = 0;
 
   var boids = [];
-  var _blast = 0;  // decays each frame; multiplies position step for scatter effect
-
-  var mouseX = -9999, mouseY = -9999;
-  var MOUSE_R    = 280;   // px radius of mouse influence
-  var MOUSE_PULL = 0.05;  // force toward cursor per frame
-  document.addEventListener('mousemove', function(e) { mouseX = e.clientX; mouseY = e.clientY; });
-  document.addEventListener('mouseleave', function()  { mouseX = -9999;    mouseY = -9999; });
-
-  // click on background → blast boids outward with glow + sound
-  function _scatterBoids(cx, cy) {
-    _blast = 28;
-    for (var i = 0; i < boids.length; i++) {
-      var b = boids[i];
-      var dx = b.x - cx, dy = b.y - cy;
-      var d = Math.sqrt(dx*dx + dy*dy) || 1;
-      var angle = Math.atan2(dy, dx) + (Math.random() - 0.5) * 0.9;
-      b.vx = Math.cos(angle) * MAX_SPEED;
-      b.vy = Math.sin(angle) * MAX_SPEED;
-    }
-    _blastGlow(cx, cy);
-    _blastSound();
-  }
-
-  function _blastGlow(cx, cy) {
-    var hex = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#7aa2f7';
-    var r = parseInt(hex.slice(1,3),16)||122, g = parseInt(hex.slice(3,5),16)||162, bv = parseInt(hex.slice(5,7),16)||247;
-    var el = document.createElement('div');
-    el.style.cssText = 'position:fixed;left:'+cx+'px;top:'+cy+'px;width:0;height:0;border-radius:50%;pointer-events:none;z-index:999;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba('+r+','+g+','+bv+',0.28) 0%,transparent 70%);opacity:1;transition:width 0.5s ease-out,height 0.5s ease-out,opacity 0.5s ease-out;';
-    document.body.appendChild(el);
-    requestAnimationFrame(function() { el.style.width='450px'; el.style.height='450px'; el.style.opacity='0'; });
-    setTimeout(function() { el.parentNode && el.parentNode.removeChild(el); }, 600);
-  }
-
-  function _blastSound() {
-    try {
-      var A = window.AudioContext || window.webkitAudioContext;
-      if (!A) return;
-      var actx = new A();
-      // noise whoosh
-      var bufLen = Math.floor(actx.sampleRate * 0.22);
-      var buf = actx.createBuffer(1, bufLen, actx.sampleRate);
-      var data = buf.getChannelData(0);
-      for (var i = 0; i < bufLen; i++) data[i] = (Math.random()*2-1) * Math.pow(1 - i/bufLen, 2);
-      var noise = actx.createBufferSource(); noise.buffer = buf;
-      var filt = actx.createBiquadFilter(); filt.type = 'bandpass'; filt.frequency.value = 700; filt.Q.value = 0.7;
-      var ng = actx.createGain(); ng.gain.setValueAtTime(0.05, actx.currentTime); ng.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.22);
-      noise.connect(filt); filt.connect(ng); ng.connect(actx.destination); noise.start();
-      // low thud
-      var osc = actx.createOscillator(); var og = actx.createGain();
-      osc.connect(og); og.connect(actx.destination);
-      osc.frequency.setValueAtTime(160, actx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(28, actx.currentTime + 0.28);
-      og.gain.setValueAtTime(0.08, actx.currentTime);
-      og.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.28);
-      osc.start(); osc.stop(actx.currentTime + 0.28);
-      setTimeout(function() { try { actx.close(); } catch(_) {} }, 450);
-    } catch(_) {}
-  }
-
-  document.addEventListener('click', function(e) {
-    // only fire on true empty background (body or html element)
-    var t = e.target;
-    if (t !== document.body && t !== document.documentElement) return;
-    // don't fire if user just selected text
-    if (window.getSelection && window.getSelection().toString().length > 0) return;
-    _scatterBoids(e.clientX, e.clientY);
-  });
 
   function clamp2(vx, vy, max) {
     var m2 = vx*vx + vy*vy;
@@ -221,14 +155,17 @@ function toggleTheme() {
       var a = Math.random() * Math.PI * 2;
       var s = MIN_SPEED + Math.random() * (MAX_SPEED - MIN_SPEED);
       boids.push({ x: Math.random()*W, y: Math.random()*H,
-                   vx: Math.cos(a)*s,  vy: Math.sin(a)*s });
+                   vx: Math.cos(a)*s,  vy: Math.sin(a)*s,
+                   op: 0.13 + Math.random() * 0.18,       // per-boid opacity 0.13–0.31
+                   wa: Math.random() * Math.PI * 2,        // wander angle, drifts slowly
+                   pr: PERCEPTION * (0.55 + Math.random() * 0.9),  // per-boid perception radius
+                   ms: MAX_SPEED  * (0.7  + Math.random() * 0.6),  // per-boid max speed
+                   wd: 0.015 + Math.random() * 0.012 });            // per-boid wander drift rate
     }
   }
 
   function updateBoids() {
-    if (_blast > 0) _blast--;
-    var _blastMult = _blast > 0 ? (1 + _blast) : 1;
-    var P2 = PERCEPTION*PERCEPTION, S2 = SEP_DIST*SEP_DIST, SP2 = SPREAD_R*SPREAD_R;
+    var S2 = SEP_DIST*SEP_DIST, SP2 = SPREAD_R*SPREAD_R;
     var sp = (1 + boidsCurrentSpeed / 100 * 19) / 5;
     var i, j, b, o, dx, dy, d2, d, spd, tmp;
 
@@ -248,7 +185,7 @@ function toggleTheme() {
           rpx -= dx/d; rpy -= dy/d; rpc++;
         }
 
-        if (d2 < P2) {
+        if (d2 < b.pr*b.pr) {
           cx += o.x; cy += o.y; cc++;
           ax += o.vx; ay += o.vy; ac++;
           if (d2 < S2 && d2 > 0) {
@@ -259,9 +196,9 @@ function toggleTheme() {
         }
       }
 
-      if (sc  > 0) { tmp = clamp2(sx*SEP_W,  sy*SEP_W,  MAX_FORCE); fx += tmp[0]; fy += tmp[1]; }
+      if (sc  > 0) { tmp = clamp2(sx*SEP_W,  sy*SEP_W,  SEP_FORCE); fx += tmp[0]; fy += tmp[1]; }
       if (ac  > 0) {
-        tmp = clamp2(ax/ac, ay/ac, MAX_SPEED);
+        tmp = clamp2(ax/ac, ay/ac, b.ms);
         tmp = clamp2((tmp[0]-b.vx)*ALI_W, (tmp[1]-b.vy)*ALI_W, MAX_FORCE);
         fx += tmp[0]; fy += tmp[1];
       }
@@ -273,22 +210,14 @@ function toggleTheme() {
       if (b.y < MARGIN)   fy += TURN*(1-b.y/MARGIN);
       if (b.y > H-MARGIN) fy -= TURN*(1-(H-b.y)/MARGIN);
 
-      // mouse attraction — boids within MOUSE_R steer gently toward cursor
-      var mdx = mouseX - b.x, mdy = mouseY - b.y;
-      var md2 = mdx*mdx + mdy*mdy;
-      if (md2 < MOUSE_R*MOUSE_R && md2 > 1) {
-        var md = Math.sqrt(md2);
-        fx += (mdx/md) * MOUSE_PULL;
-        fy += (mdy/md) * MOUSE_PULL;
-      }
-
-      b.vx += fx + (Math.random()-0.5)*WANDER;
-      b.vy += fy + (Math.random()-0.5)*WANDER;
+      b.wa += (Math.random() - 0.5) * b.wd * 14;  // per-boid wander drift rate
+      b.vx += fx + Math.cos(b.wa) * WANDER;
+      b.vy += fy + Math.sin(b.wa) * WANDER;
       spd = Math.sqrt(b.vx*b.vx + b.vy*b.vy);
-      if (spd > MAX_SPEED) { b.vx = b.vx/spd*MAX_SPEED; b.vy = b.vy/spd*MAX_SPEED; }
+      if (spd > b.ms) { b.vx = b.vx/spd*b.ms; b.vy = b.vy/spd*b.ms; }
       else if (spd < MIN_SPEED && spd > 1e-4) { b.vx = b.vx/spd*MIN_SPEED; b.vy = b.vy/spd*MIN_SPEED; }
 
-      b.x += b.vx * sp * _blastMult; b.y += b.vy * sp * _blastMult;
+      b.x += b.vx * sp; b.y += b.vy * sp;
       if (b.x < -20) b.x = W+20; else if (b.x > W+20) b.x = -20;
       if (b.y < -20) b.y = H+20; else if (b.y > H+20) b.y = -20;
     }
@@ -314,13 +243,13 @@ function toggleTheme() {
     } else {
       ctx.shadowBlur = 0;
     }
-    ctx.fillStyle = accentRgba(BOID_OPACITY);
     for (var i = 0; i < N; i++) {
       var b   = boids[i];
       var spd = Math.sqrt(b.vx*b.vx + b.vy*b.vy);
       if (spd < 1e-4) continue;
       var nx = b.vx/spd, ny = b.vy/spd;  // forward unit vector
       var px = -ny,      py = nx;          // perpendicular unit vector
+      ctx.fillStyle = accentRgba(b.op !== undefined ? b.op : BOID_OPACITY);
       // Concave arrow shape (tip → left wing → notch → right wing)
       ctx.beginPath();
       ctx.moveTo(b.x + nx*BOID_LEN*0.65,                  b.y + ny*BOID_LEN*0.65);
@@ -904,13 +833,18 @@ function toggleTheme() {
   // ── presets ──────────────────────────────────────────────────
   // All speeds (lspeed/bspeed) are 0–100%. Opacity/glow/autofill params also 0–100%.
   var PRESETS = {
-    // default — exact site defaults, read from code
-    'default':  { sim:'combo', lspeed:15, bspeed:15, desc:'site defaults',
+    // default — exact site defaults + tokyo-night
+    'default':  { sim:'combo', lspeed:15, bspeed:15, theme:'tokyo-night', desc:'site defaults',
       params:{'life.cell':7,  'life.opacity':9,  'life.glow':0,  'life.autofill':50, 'life.rainbow':0,
               'boids.n':120, 'boids.size':14, 'boids.tick':1.8, 'boids.opacity':14, 'boids.glow':0,
               'trail.on':0,  'trail.size':2,  'trail.glow':12, 'trail.decay':80} },
-    // life
-    ghost:     { sim:'life',  lspeed:12, bspeed:null,
+    // ghost — same as default, any theme
+    ghost:     { sim:'combo', lspeed:15, bspeed:15, desc:'any theme',
+      params:{'life.cell':7,  'life.opacity':9,  'life.glow':0,  'life.autofill':50, 'life.rainbow':0,
+              'boids.n':120, 'boids.size':14, 'boids.tick':1.8, 'boids.opacity':14, 'boids.glow':0,
+              'trail.on':0,  'trail.size':2,  'trail.glow':12, 'trail.decay':80} },
+    // mist — barely there life
+    mist:      { sim:'life',  lspeed:12, bspeed:null,
       desc:'barely there',
       params:{'life.cell':8,  'life.opacity':6,  'life.glow':0,  'life.autofill':40, 'life.rainbow':0,
               'trail.on':0} },
@@ -959,6 +893,15 @@ function toggleTheme() {
   };
 
   // ── preset picker — shows all presets; applying one switches mode automatically ─
+  var THEME_ACCENTS = {
+    'tokyo-night':      '#7aa2f7',
+    'gruvbox':          '#d79921',
+    'dracula':          '#bd93f9',
+    'rose-pine':        '#b4637a',
+    'github-light':     '#0969da',
+    'papercolor-light': '#005f87'
+  };
+
   function rebuildPresetPicker() {
     var menu = document.getElementById('preset-picker-menu');
     if (!menu) return;
@@ -972,7 +915,10 @@ function toggleTheme() {
       var p = PRESETS[name];
       var btn = document.createElement('button');
       btn.className = 'tp-item' + (activePreset === name ? ' active' : '');
-      btn.innerHTML = '<span class="tp-arrow">▶</span>' + name;
+      var themeTag = p.theme && THEME_ACCENTS[p.theme]
+        ? '<span class="tp-swatch" style="background:' + THEME_ACCENTS[p.theme] + '" title="' + p.theme + '"></span>'
+        : '<span class="tp-variant">any</span>';
+      btn.innerHTML = '<span class="tp-arrow">▶</span>' + name + themeTag;
       btn.addEventListener('click', function () {
         window.applyPreset(name);
         document.getElementById('preset-picker-menu').classList.remove('open');
@@ -1036,30 +982,47 @@ function toggleTheme() {
 // HIDDEN TERMINAL — press ':' or click [:] to open
 // ================================================================
 (function () {
-  var overlay = document.getElementById('term-overlay');
-  var output  = document.getElementById('term-output');
-  var inp     = document.getElementById('term-input');
+  var overlay    = document.getElementById('term-overlay');
+  var output     = document.getElementById('term-output');
+  var inp        = document.getElementById('term-input');
+  var inpRow     = document.getElementById('term-input-row');
+  var termPrompt = document.getElementById('term-prompt');
   if (!overlay || !output || !inp) return;
+  var DEFAULT_PROMPT = termPrompt ? termPrompt.innerHTML : '~$&nbsp;';
 
   var hist = [], histIdx = -1, isOpen = false;
   var PAGE_START = Date.now();
+  var _gameMode = false, _gameResume = null;
+  var _gCache = null, _gCacheAt = 0, _gById = {}, G_TTL = 300000; // 5 min
+
+  function _renderGames(gs) {
+    if (!gs.length) { line('no games yet. visit /arcade to submit one.', 'term-line-ok'); return; }
+    var W = 22;
+    var rows = gs.map(function(g) {
+      var t = g.title.length > W ? g.title.slice(0, W - 1) + '\u2026' : g.title;
+      while (t.length < W) t += ' ';
+      var a = 'by ' + g.author; if (a.length > 18) a = a.slice(0, 17) + '\u2026'; while (a.length < 18) a += ' ';
+      return '  ' + t + '  ' + a + '  \u2192  play ' + g.id;
+    });
+    line(['', 'community arcade'].concat(rows).concat(['', 'play <id> to start  \u00b7  /arcade to submit']).join('\n'), 'term-line-pre');
+  }
 
   var QUOTES = [
-    '"the best code is no code at all."  — jeff atwood',
-    '"walking on water and developing software from a spec are easy if both are frozen."  — e.v. berard',
-    '"first, solve the problem. then, write the code."  — john johnson',
-    '"make it work, make it right, make it fast."  — kent beck',
-    '"any fool can write code a computer understands. good programmers write code humans understand."  — fowler',
-    '"debugging is twice as hard as writing the code in the first place."  — brian kernighan',
-    '"the most dangerous phrase: \'we\'ve always done it this way\'."  — grace hopper',
-    '"talk is cheap. show me the code."  — linus torvalds',
-    '"programs must be written for people to read, and only incidentally for machines to execute."  — abelson',
-    '"simplicity is the soul of efficiency."  — austin freeman',
-    '"it works on my machine."  — every developer',
-    '"weeks of coding can save you hours of planning."  — unknown',
-    '"a language that doesn\'t affect the way you think about programming is not worth knowing."  — alan perlis',
-    '"the computer was born to solve problems that did not exist before."  — bill gates',
-    '"software is like entropy: it is difficult to grasp, weighs nothing, and obeys the second law of thermodynamics."  — norman augustine',
+    '"the best code is no code at all."  (jeff atwood)',
+    '"walking on water and developing software from a spec are easy if both are frozen."  (e.v. berard)',
+    '"first, solve the problem. then, write the code."  (john johnson)',
+    '"make it work, make it right, make it fast."  (kent beck)',
+    '"any fool can write code a computer understands. good programmers write code humans understand."  (fowler)',
+    '"debugging is twice as hard as writing the code in the first place."  (brian kernighan)',
+    '"the most dangerous phrase: \'we\'ve always done it this way\'."  (grace hopper)',
+    '"talk is cheap. show me the code."  (linus torvalds)',
+    '"programs must be written for people to read, and only incidentally for machines to execute."  (abelson)',
+    '"simplicity is the soul of efficiency."  (austin freeman)',
+    '"it works on my machine."  (every developer)',
+    '"weeks of coding can save you hours of planning."  (unknown)',
+    '"a language that doesn\'t affect the way you think about programming is not worth knowing."  (alan perlis)',
+    '"the computer was born to solve problems that did not exist before."  (bill gates)',
+    '"software is like entropy: it is difficult to grasp, weighs nothing, and obeys the second law of thermodynamics."  (norman augustine)',
   ];
 
   // ── filesystem — populated by Hugo via baseof.html ─────────────────────────
@@ -1126,6 +1089,7 @@ function toggleTheme() {
     '  look   colorscheme  color',
     '  sys    neofetch  top  ps  df  env  history  whoami',
     '  fun    cowsay  curl',
+    '  arcade games  play  scores  source  delete',
     '',
     '  :     open   ·   esc   close   ·   tab   autocomplete',
   ].join('\n');
@@ -1143,6 +1107,7 @@ function toggleTheme() {
       '  help look      colorschemes',
       '  help sys       system commands',
       '  help fun       misc commands',
+      '  help arcade    arcade commands',
       '  help <cmd>     usage for any command',
     ].join('\n'),
 
@@ -1163,7 +1128,7 @@ function toggleTheme() {
     ].join('\n'),
 
     bg: [
-      'bg — simulation overview',
+      'bg (simulation overview)',
       '',
       '  bg [life|boids|combo|off]    get/set mode',
       '  speed [life|boids] [0-100]   get/set speed (%)',
@@ -1172,7 +1137,7 @@ function toggleTheme() {
       '  params                       all params + current values',
       '  set <param> <val>            change a param',
       '',
-      'presets:  default  ghost  bloom  ember  chromatic  paper',
+      'presets:  default  ghost  mist  bloom  ember  chromatic  paper',
       '          flock  midnight  dusk  soft  swarm',
       '',
       '  help life    life sim params + commands',
@@ -1181,7 +1146,7 @@ function toggleTheme() {
     ].join('\n'),
 
     life: [
-      'life — conway\'s game of life',
+      'life (conway\'s game of life)',
       '',
       '  wipe                     clear grid, stop autofill',
       '  fill                     re-enable autofill',
@@ -1202,7 +1167,7 @@ function toggleTheme() {
     ].join('\n'),
 
     boids: [
-      'boids — flocking simulation',
+      'boids (flocking simulation)',
       '',
       'params:',
       '  boids.n           1–1000   default 120',
@@ -1218,7 +1183,7 @@ function toggleTheme() {
     ].join('\n'),
 
     trail: [
-      'trail — mouse trail (life/combo mode only)',
+      'trail (mouse trail, life/combo mode only)',
       '',
       '  move the cursor over the canvas to plant live cells',
       '  trail cells glow bright and fade back to base opacity',
@@ -1268,6 +1233,29 @@ function toggleTheme() {
       '',
       '  sudo   rm -rf /   vim',
     ].join('\n'),
+
+    arcade: [
+      'arcade (lua game platform)',
+      '',
+      '  games                   list all games',
+      '  play <game-id>          run a game in terminal',
+      '  source <game-id>        view source code',
+      '  scores <game-id> [n]    leaderboard (default top 10)',
+      '  delete <game-id> <code> delete (requires edit code)',
+      '',
+      '  open arcade             browse arcade',
+      '  open arcade/editor      write / edit a game',
+      '',
+      'input:',
+      '  io.read("prompt")       wait for Enter, return text',
+      '  io.getkey()             single keypress, no Enter',
+      '                          arrows: "up" "down" "left" "right"',
+      '                          other: "space" "enter" or the char',
+      '  wasd / arrows            "w" "a" "s" "d" / "up" "down" "left" "right"',
+      '',
+      'while a game is running:',
+      '  esc   stop game',
+    ].join('\n'),
   };
 
   var HELP_CMDS = {
@@ -1307,6 +1295,8 @@ function toggleTheme() {
       '  open projects          /projects/',
       '  open projects/geno     project page',
       '  open music/btop        album page',
+      '  open arcade            arcade home',
+      '  open arcade/editor     write / edit a game',
     ].join('\n'),
 
     bg: [
@@ -1339,8 +1329,9 @@ function toggleTheme() {
       'each preset switches mode automatically.',
       'some also change the colorscheme.',
       '',
-      '  default    combo  · site defaults',
-      '  ghost      life   · barely there',
+      '  default    combo  · site defaults         (tokyo-night)',
+      '  ghost      combo  · any theme',
+      '  mist       life   · barely there',
       '  bloom      life   · glow + trail            (tokyo-night)',
       '  ember      life   · warm glow               (gruvbox)',
       '  chromatic  life   · rainbow',
@@ -1351,6 +1342,38 @@ function toggleTheme() {
       '  soft       boids  · slow drift              (rose-pine)',
       '  swarm      boids  · fast dense              (gruvbox)',
     ].join('\n'),
+
+    play: [
+      'play <game-id>',
+      '',
+      '  play dungeon-strike   run by id',
+      '  games                 list all game ids',
+      '',
+      '  esc   stop game',
+    ].join('\n'),
+
+    scores: [
+      'scores <game-id> [n]',
+      '',
+      '  scores dungeon-strike      top 10',
+      '  scores dungeon-strike 25   top 25  (max 50)',
+    ].join('\n'),
+
+    source: [
+      'source <game-id>',
+      '',
+      '  print game source code',
+      '  open arcade/editor?edit=<id>   edit in browser',
+    ].join('\n'),
+
+    delete: [
+      'delete <game-id> <edit-code>',
+      '',
+      '  delete dungeon-strike xxxxx-xxxxx',
+      '  edit code was given when you submitted the game',
+    ].join('\n'),
+
+    games: 'games\n  list all games in the arcade',
 
     reset:   'reset\n  reinit sim',
 
@@ -1662,6 +1685,397 @@ function toggleTheme() {
   function tooMany(name) { line(name + ': too many arguments', 'term-line-err'); }
   function needArg(name, usage) { line(name + ': missing argument\nusage: ' + usage, 'term-line-err'); }
 
+  // ── Lua arcade ───────────────────────────────────────────────
+  var _fengariReady = false, _fengariLoading = false, _fengariQueue = [];
+
+  function loadFengari(cb) {
+    if (_fengariReady) { cb(); return; }
+    _fengariQueue.push(cb);
+    if (_fengariLoading) return;
+    _fengariLoading = true;
+    line('loading lua runtime...', 'term-line-ok');
+    var s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/fengari-web@0.1.4/dist/fengari-web.js';
+    s.onload = function() {
+      _fengariReady = true; _fengariLoading = false;
+      _fengariQueue.forEach(function(fn) { fn(); }); _fengariQueue = [];
+    };
+    s.onerror = function() {
+      _fengariLoading = false; _fengariQueue = [];
+      line('failed to load lua runtime', 'term-line-err');
+    };
+    document.head.appendChild(s);
+  }
+
+  // exposed for arcade page: check lua syntax without running
+  window.luaCheck = function(code, cb) {
+    loadFengari(function() {
+      var fx = window.fengari;
+      if (!fx) { cb(null); return; }
+      var lua = fx.lua, lauxlib = fx.lauxlib;
+      var L = lauxlib.luaL_newstate();
+      var st = lauxlib.luaL_loadstring(L, fx.to_luastring(code));
+      var err = null;
+      if (st !== lua.LUA_OK) {
+        var raw = lua.lua_tostring(L, -1);
+        err = (raw ? fx.to_jsstring(raw) : 'syntax error')
+          .replace(/^\[string "[^"]*"\]:(\d+):\s*/, 'line $1: ');
+      }
+      lua.lua_close(L);
+      cb(err);
+    });
+  };
+
+  // ── web audio sound effects ───────────────────────────────────────────────
+  function arcadeSound(preset, dur, wave) {
+    try {
+      var ctx = new (window.AudioContext || window.webkitAudioContext)();
+      function tone(f, d, w, delay) {
+        var osc = ctx.createOscillator(), g = ctx.createGain();
+        osc.connect(g); g.connect(ctx.destination);
+        osc.type = w || 'sine'; osc.frequency.value = f;
+        var t0 = ctx.currentTime + (delay || 0);
+        g.gain.setValueAtTime(0.22, t0);
+        g.gain.exponentialRampToValueAtTime(0.001, t0 + d);
+        osc.start(t0); osc.stop(t0 + d);
+      }
+      if (preset === 'win')   { tone(523,.10,'sine',0); tone(659,.10,'sine',.11); tone(784,.25,'sine',.23); }
+      else if (preset === 'lose')  { tone(300,.15,'sawtooth',0); tone(200,.30,'sawtooth',.16); }
+      else if (preset === 'blip')  { tone(880,.06,'sine'); }
+      else if (preset === 'buzz')  { tone(110,.30,'square'); }
+      else if (preset === 'click') { tone(1200,.03,'sine'); }
+      else if (preset === 'coin')  { tone(987,.05,'sine',0); tone(1319,.12,'sine',.06); }
+      else { tone(typeof preset === 'number' ? preset : 440, dur || 0.15, wave || 'sine'); }
+      setTimeout(function() { try { ctx.close(); } catch(e) {} }, 1200);
+    } catch(e) {}
+  }
+
+  // ── ansi → html (for colored game output) ────────────────────────────────
+  function ansiToHtml(text) {
+    var s = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    var ANSI = {31:'#f7768e',32:'#9ece6a',33:'#e0af68',34:'#7aa2f7',35:'#bb9af7',36:'#73daca',37:'#c0caf5'};
+    var open = 0;
+    s = s.replace(/\x1b\[([0-9;]*)m/g, function(_, code) {
+      if (!code || code === '0') { var c = '</span>'.repeat(open); open = 0; return c; }
+      if (code === '1') { open++; return '<span style="font-weight:700">'; }
+      var n = parseInt(code.split(';')[0]);
+      if (ANSI[n]) { open++; return '<span style="color:' + ANSI[n] + '">'; }
+      return '';
+    });
+    return s + '</span>'.repeat(open);
+  }
+
+  function runLuaGame(game) {
+    var fx = window.fengari;
+    if (!fx) { line('lua runtime not available', 'term-line-err'); return; }
+    var lua = fx.lua, lauxlib = fx.lauxlib, lualib = fx.lualib;
+    var toLua = fx.to_luastring, toJS = fx.to_jsstring;
+
+    _gameMode = true;
+    output.innerHTML = '';
+
+    // game header bar
+    var ghdr = document.createElement('div');
+    ghdr.className = 'term-game-header';
+    ghdr.innerHTML = '<span>▶ ' + (game.title || 'game') + '</span>'
+      + '<span class="term-game-header-id">' + (game.id || '') + '</span>';
+    output.appendChild(ghdr);
+
+    var L = lauxlib.luaL_newstate();
+    lualib.luaL_openlibs(L);
+
+    // game print → colored terminal output
+    var iobuf = '';
+    function lineHtml(text) {
+      var el = document.createElement('pre');
+      el.className = 'term-line-pre';
+      el.innerHTML = ansiToHtml(text);
+      output.appendChild(el);
+      output.scrollTop = output.scrollHeight;
+    }
+    function flushIoBuf() { if (iobuf) { lineHtml(iobuf); iobuf = ''; } }
+
+    // print() — flushes io.write buffer first, then prints with newline
+    lua.lua_pushcfunction(L, function(Ls) {
+      flushIoBuf();
+      var n = lua.lua_gettop(Ls), parts = [];
+      for (var i = 1; i <= n; i++) {
+        var t = lua.lua_type(Ls, i), s;
+        if (t === lua.LUA_TSTRING) { var raw = lua.lua_tostring(Ls, i); s = raw ? toJS(raw) : ''; }
+        else if (t === lua.LUA_TNUMBER) { s = String(lua.lua_tonumber(Ls, i)); }
+        else if (t === lua.LUA_TBOOLEAN) { s = lua.lua_toboolean(Ls, i) ? 'true' : 'false'; }
+        else if (t === lua.LUA_TNIL) { s = 'nil'; }
+        else { var tn = lua.lua_typename(Ls, t); s = tn ? toJS(tn) : '?'; }
+        parts.push(s);
+      }
+      lineHtml(parts.join('\t'));
+      return 0;
+    });
+    lua.lua_setglobal(L, toLua('print'));
+
+    // _iowrite() — write without newline; flushes on embedded \n
+    lua.lua_pushcfunction(L, function(Ls) {
+      var n = lua.lua_gettop(Ls), s = '';
+      for (var i = 1; i <= n; i++) {
+        var t = lua.lua_type(Ls, i);
+        if (t === lua.LUA_TSTRING) { var r = lua.lua_tostring(Ls, i); s += r ? toJS(r) : ''; }
+        else if (t === lua.LUA_TNUMBER) { s += String(lua.lua_tonumber(Ls, i)); }
+        else if (t === lua.LUA_TBOOLEAN) { s += lua.lua_toboolean(Ls, i) ? 'true' : 'false'; }
+      }
+      var lines = (iobuf + s).split('\n');
+      for (var j = 0; j < lines.length - 1; j++) lineHtml(lines[j]);
+      iobuf = lines[lines.length - 1];
+      return 0;
+    });
+    lua.lua_setglobal(L, toLua('_iowrite'));
+
+    // _sound(preset_or_freq, dur?, wave?)
+    lua.lua_pushcfunction(L, function(Ls) {
+      var a1 = lua.lua_type(Ls, 1) === lua.LUA_TNUMBER
+        ? lua.lua_tonumber(Ls, 1)
+        : (lua.lua_type(Ls, 1) === lua.LUA_TSTRING ? toJS(lua.lua_tostring(Ls, 1)) : 440);
+      var dur  = lua.lua_type(Ls, 2) === lua.LUA_TNUMBER ? lua.lua_tonumber(Ls, 2) : undefined;
+      var wave = lua.lua_type(Ls, 3) === lua.LUA_TSTRING ? toJS(lua.lua_tostring(Ls, 3)) : undefined;
+      arcadeSound(a1, dur, wave);
+      return 0;
+    });
+    lua.lua_setglobal(L, toLua('_sound'));
+
+    // clear() — wipe game output (also flushes iobuf)
+    lua.lua_pushcfunction(L, function(Ls) { iobuf = ''; output.innerHTML = ''; return 0; });
+    lua.lua_setglobal(L, toLua('clear'));
+
+    // _setprompt(s) — flush pending io.write, then set iobuf for JS step function
+    lua.lua_pushcfunction(L, function(Ls) {
+      flushIoBuf();
+      if (lua.lua_type(Ls, 1) === lua.LUA_TSTRING) {
+        var r = lua.lua_tostring(Ls, 1);
+        iobuf = r ? toJS(r) : '';
+      } else {
+        iobuf = '';
+      }
+      return 0;
+    });
+    lua.lua_setglobal(L, toLua('_setprompt'));
+
+    // _net_collect() — called by net.top() after yield to read JS result table
+    lua.lua_pushcfunction(L, function(Ls) {
+      var buf = window._netBuf || [];
+      window._netBuf = null;
+      lua.lua_createtable(Ls, buf.length, 0);
+      for (var i = 0; i < buf.length; i++) {
+        lua.lua_createtable(Ls, 0, 2);
+        lua.lua_pushstring(Ls, toLua(String(buf[i].name || '')));
+        lua.lua_setfield(Ls, -2, toLua('name'));
+        lua.lua_pushnumber(Ls, Number(buf[i].score) || 0);
+        lua.lua_setfield(Ls, -2, toLua('score'));
+        lua.lua_rawseti(Ls, -2, i + 1);
+      }
+      return 1;
+    });
+    lua.lua_setglobal(L, toLua('_net_collect'));
+
+    var co = lua.lua_newthread(L);
+
+    var sandbox = [
+      'os=nil; require=nil; load=nil; dofile=nil; loadfile=nil; collectgarbage=nil',
+      'io={',
+      '  read =function(prompt) if type(prompt)=="string" then _setprompt(prompt) end return coroutine.yield() end,',
+      '  getkey=function() _setprompt("__getkey__") return coroutine.yield() end,',
+      '  write=function(...) local s="" for i=1,select("#",...)do s=s..tostring(select(i,...))end _iowrite(s) end,',
+      '}',
+      // color: ANSI escape constants
+      'color={',
+      '  red="\\27[31m", green="\\27[32m", yellow="\\27[33m",',
+      '  blue="\\27[34m", purple="\\27[35m", cyan="\\27[36m",',
+      '  white="\\27[37m", bold="\\27[1m", reset="\\27[0m"',
+      '}',
+      'function colored(text, col) return col .. tostring(text) .. color.reset end',
+      // sound: named presets + raw beep
+      'sound={',
+      '  beep =function(freq,dur) _sound(freq or 440, dur or 0.15, "sine") end,',
+      '  blip =function() _sound("blip") end,',
+      '  buzz =function() _sound("buzz") end,',
+      '  win  =function() _sound("win")  end,',
+      '  lose =function() _sound("lose") end,',
+      '  click=function() _sound("click") end,',
+      '  coin =function() _sound("coin") end,',
+      '}',
+      // sleep(ms): yields with sentinel, resumed by setTimeout
+      'function sleep(ms) coroutine.yield("\\0sleep\\0"..tostring(math.floor(ms or 100))) end',
+      // net: key-value store + leaderboard, scoped to this game
+      'net={',
+      '  set =function(key,value) coroutine.yield("\\0net\\0set\\1"..tostring(key).."\\1"..tostring(value~=nil and value or "")) end,',
+      '  get =function(key) return coroutine.yield("\\0net\\0get\\1"..tostring(key)) end,',
+      '  rank=function(name,score) coroutine.yield("\\0net\\0rank\\1"..tostring(name).."\\1"..tostring(tonumber(score) or 0)) end,',
+      '  top =function(n) coroutine.yield("\\0net\\0top\\1"..tostring(math.floor(tonumber(n) or 10))) return _net_collect() end,',
+      '}',
+    ].join('\n');
+
+    var status = lauxlib.luaL_loadstring(co, toLua(sandbox + '\n\n' + game.code));
+    var SANDBOX_LINES = sandbox.split('\n').length + 2;
+
+    function cleanErr(raw) {
+      return raw.replace(/^\[string "[^"]*"\]:(\d+):\s*/, function(_, n) {
+        var userLine = Math.max(1, parseInt(n) - SANDBOX_LINES);
+        return 'line ' + userLine + ': ';
+      });
+    }
+
+    if (status !== lua.LUA_OK) {
+      var errStr = lua.lua_tostring(co, -1);
+      line('error: ' + cleanErr(errStr ? toJS(errStr) : 'unknown'), 'term-line-err');
+      _gameMode = false; return;
+    }
+
+    function exitGame() {
+      flushIoBuf();
+      _gameMode = false; _gameResume = null;
+      if (termPrompt) termPrompt.innerHTML = DEFAULT_PROMPT;
+    }
+
+    function step(inputStr) {
+      var nargs = 0;
+      if (inputStr !== undefined) { lua.lua_pushstring(co, toLua(String(inputStr))); nargs = 1; }
+      var st = lua.lua_resume(co, null, nargs);
+      if (st === lua.LUA_YIELD) {
+        if (lua.lua_type(co, -1) === lua.LUA_TSTRING) {
+          var raw = lua.lua_tostring(co, -1);
+          var sv = raw ? toJS(raw) : '';
+          if (sv.charAt(0) === '\0') {
+            // sleep sentinel: "\0sleep\0<ms>"
+            if (sv.slice(0, 7) === '\0sleep\0') {
+              var ms = parseInt(sv.slice(7)) || 100;
+              setTimeout(function() { if (_gameMode) step(); }, ms);
+              return;
+            }
+            // net sentinel: "\0net\0<op>\1<arg1>\1<arg2>..."
+            if (sv.slice(0, 5) === '\0net\0') {
+              var parts = sv.slice(5).split('\x01');
+              var op = parts[0];
+              var gid = encodeURIComponent(game.id || '_test_');
+              if (op === 'get') {
+                fetch('/api/net?op=get&game=' + gid + '&key=' + encodeURIComponent(parts[1] || ''))
+                  .then(function(r) { return r.json(); })
+                  .then(function(d) { if (_gameMode) step(d.value !== null && d.value !== undefined ? String(d.value) : ''); })
+                  .catch(function() { if (_gameMode) step(''); });
+                return;
+              }
+              if (op === 'set') {
+                fetch('/api/net?game=' + gid, { method:'POST', headers:{'Content-Type':'application/json'},
+                  body: JSON.stringify({op:'set', key: parts[1] || '', value: parts[2] || ''}) })
+                  .then(function(r) { return r.json(); })
+                  .then(function(d) { if (_gameMode) step(d.ok ? 'ok' : 'err:' + (d.error || '?')); })
+                  .catch(function() { if (_gameMode) step('err:network'); });
+                return;
+              }
+              if (op === 'rank') {
+                fetch('/api/net?game=' + gid, { method:'POST', headers:{'Content-Type':'application/json'},
+                  body: JSON.stringify({op:'rank', name: parts[1] || '', score: parseFloat(parts[2]) || 0}) })
+                  .then(function(r) { return r.json(); })
+                  .then(function(d) { if (_gameMode) step(d.ok ? 'ok' : 'err:' + (d.error || '?')); })
+                  .catch(function() { if (_gameMode) step('err:network'); });
+                return;
+              }
+              if (op === 'top') {
+                var n = parseInt(parts[1]) || 10;
+                fetch('/api/net?op=top&game=' + gid + '&n=' + n)
+                  .then(function(r) { return r.json(); })
+                  .then(function(d) { window._netBuf = d.entries || []; if (_gameMode) step('\x01'); })
+                  .catch(function() { window._netBuf = []; if (_gameMode) step('\x01'); });
+                return;
+              }
+              if (_gameMode) step('err:unknown_op');
+              return;
+            }
+          }
+        }
+        // io.getkey() — single keypress, no Enter required
+        if (iobuf === '__getkey__') {
+          iobuf = '';
+          // show indicator inline in output area
+          var gkEl = document.createElement('div');
+          gkEl.className = 'term-io-inline';
+          gkEl.innerHTML = '<i style="color:var(--muted)">[press any key]</i>';
+          output.appendChild(gkEl);
+          inp.blur();
+          var handler = function(e) {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            e.preventDefault();
+            e.stopPropagation(); // prevent Escape from closing terminal during getkey
+            document.removeEventListener('keydown', handler, true);
+            var k = e.key;
+            if (k === 'ArrowUp') k = 'up';
+            else if (k === 'ArrowDown') k = 'down';
+            else if (k === 'ArrowLeft') k = 'left';
+            else if (k === 'ArrowRight') k = 'right';
+            else if (k === ' ') k = 'space';
+            else if (k === 'Enter') k = 'enter';
+            else if (k === 'Escape') k = 'escape';
+            else if (k.length === 1) k = k.toLowerCase();
+            else k = k.toLowerCase();
+            if (gkEl.parentNode) gkEl.parentNode.removeChild(gkEl);
+            if (_gameMode) step(k);
+          };
+          document.addEventListener('keydown', handler, true);
+          output.scrollTop = output.scrollHeight;
+          return;
+        }
+        // io.read() — render prompt + input inline in the output area
+        var ioPrompt = iobuf; iobuf = '';
+        var localResume = step;
+        var ioRow = document.createElement('div');
+        ioRow.className = 'term-io-inline';
+        if (ioPrompt) {
+          var ps = document.createElement('span');
+          ps.innerHTML = ansiToHtml(ioPrompt);
+          ioRow.appendChild(ps);
+        }
+        var ioInp = document.createElement('input');
+        ioInp.className = 'term-io-input';
+        ioInp.type = 'text';
+        ioInp.autocomplete = 'off';
+        ioInp.spellcheck = false;
+        ioRow.appendChild(ioInp);
+        output.appendChild(ioRow);
+        output.scrollTop = output.scrollHeight;
+        ioInp.focus();
+        // click on output area should refocus inline input
+        var _ioFocusClick = function() { if (ioInp.parentNode) ioInp.focus(); };
+        output.addEventListener('click', _ioFocusClick);
+        ioInp.addEventListener('keydown', function(ie) {
+          if (ie.key !== 'Enter') return;
+          var v = ioInp.value;
+          output.removeEventListener('click', _ioFocusClick);
+          // replace inline row with static echo
+          var staticEl = document.createElement('pre');
+          staticEl.className = 'term-line-pre';
+          var safeVal = v.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+          staticEl.innerHTML = (ioPrompt ? ansiToHtml(ioPrompt) : '') + safeVal;
+          if (ioRow.parentNode) ioRow.parentNode.replaceChild(staticEl, ioRow);
+          if (v.trim() === 'quit' || v.trim() === 'exit' || v.trim() === 'q') {
+            _gameMode = false; _gameResume = null;
+            if (termPrompt) termPrompt.innerHTML = DEFAULT_PROMPT;
+            line('─────────────────────────────────────────', 'term-line-pre');
+            line('game exited.', 'term-line-ok');
+          } else if (_gameMode && localResume) {
+            localResume(v);
+          }
+        });
+        _gameResume = null; // bottom bar cannot resume; only inline input can
+
+      } else {
+        if (st !== lua.LUA_OK) {
+          var e = lua.lua_tostring(co, -1);
+          line('error: ' + cleanErr(e ? toJS(e) : 'unknown error'), 'term-line-err');
+        }
+        exitGame();
+      }
+    }
+
+    step();
+  }
+
   // ── commands ────────────────────────────────────────────────
   var CMDS = {
     help: function (args) {
@@ -1669,7 +2083,7 @@ function toggleTheme() {
       if (!t)                    { line(HELP_INDEX,        'term-line-pre'); return; }
       if (HELP_TOPICS[t])        { line(HELP_TOPICS[t],    'term-line-pre'); return; }
       if (HELP_CMDS[t])          { line(HELP_CMDS[t],      'term-line-pre'); return; }
-      line('no help for "' + t + '"  —  try: help', 'term-line-err');
+      line('no help for "' + t + '". try: help', 'term-line-err');
     },
 
     ls: function (args) {
@@ -1985,7 +2399,7 @@ function toggleTheme() {
         if (isNaN(val)) { line('usage: set <param> <value>   (see: params)', 'term-line-err'); return; }
       }
       if (!window.setParam || !window.setParam(key, val))
-        line('unknown param "' + key + '"  —  see: params', 'term-line-err');
+        line('unknown param "' + key + '". see: params', 'term-line-err');
       else
         line(key + ' = ' + val, 'term-line-ok');
     },
@@ -2102,7 +2516,7 @@ function toggleTheme() {
     'default': function (args) {
       if (args.length) { tooMany('default'); return; }
       localStorage.clear();
-      line('all settings cleared — reloading…', 'term-line-ok');
+      line('all settings cleared, reloading…', 'term-line-ok');
       setTimeout(function () { location.reload(); }, 700);
     },
     exit:   function (args) { if (args.length) { tooMany('exit'); return; } close(); },
@@ -2197,6 +2611,73 @@ function toggleTheme() {
     true:   function ()  { /* exits 0, outputs nothing, as god intended */ },
     false:  function ()  { line('false: exited with status 1', 'term-line-err'); },
     ':':    function ()  { /* the shell builtin : always succeeds */ },
+
+    // ── arcade ──────────────────────────────────────────────────
+    games: function(args) {
+      if (args.length) { tooMany('games'); return; }
+      var now = Date.now();
+      if (_gCache && now - _gCacheAt < G_TTL) { _renderGames(_gCache); return; }
+      line('fetching games...', 'term-line-ok');
+      fetch('/api/games').then(function(r) { return r.json(); }).then(function(gs) {
+        _gCache = gs; _gCacheAt = Date.now(); _renderGames(gs);
+      }).catch(function() { line('could not fetch games', 'term-line-err'); });
+    },
+
+    source: function(args) {
+      if (!args[0]) { needArg('source', 'source <game-id>'); return; }
+      var id = args[0];
+      var cached = _gById[id];
+      if (cached) { line('── ' + cached.title + ' by ' + cached.author + ' ──\n\n' + cached.code, 'term-line-pre'); return; }
+      fetch('/api/games?id=' + encodeURIComponent(id)).then(function(r) { return r.json(); }).then(function(g) {
+        if (g.error) { line('game not found: ' + id, 'term-line-err'); return; }
+        _gById[id] = g;
+        line('── ' + g.title + ' by ' + g.author + ' ──\n\n' + g.code, 'term-line-pre');
+      }).catch(function() { line('could not fetch source', 'term-line-err'); });
+    },
+
+    scores: function(args) {
+      if (!args[0]) { needArg('scores', 'scores <game-id> [n]'); return; }
+      var id = args[0], n = Math.min(parseInt(args[1]) || 10, 50);
+      line('fetching scores for ' + id + '...', 'term-line-ok');
+      fetch('/api/net?op=top&game=' + encodeURIComponent(id) + '&n=' + n)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var entries = data.entries || [];
+          if (!entries.length) { line('no scores for ' + id, 'term-line-ok'); return; }
+          line('\x1b[36m── ' + id + ' leaderboard ──\x1b[0m', 'term-line-pre');
+          entries.forEach(function(e, i) {
+            var rank = ('  ' + (i + 1) + '.').slice(-4);
+            var nm   = (e.name + '                ').slice(0, 16);
+            line(rank + ' ' + nm + '\x1b[33m' + e.score + '\x1b[0m', 'term-line-pre');
+          });
+        })
+        .catch(function() { line('network error', 'term-line-err'); });
+    },
+
+    delete: function(args) {
+      if (!args[0] || !args[1]) { needArg('delete', 'delete <game-id> <edit-code>'); return; }
+      var id = args[0], code = args[1];
+      fetch('/api/games?id=' + encodeURIComponent(id), {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: code })
+      }).then(function(r) { return r.json(); }).then(function(data) {
+        if (data.ok) { _gCache = null; delete _gById[id]; line('deleted: ' + id, 'term-line-ok'); }
+        else line(data.error || 'delete failed', 'term-line-err');
+      }).catch(function() { line('network error', 'term-line-err'); });
+    },
+
+    play: function(args) {
+      if (!args[0]) { needArg('play', 'play <game-id>  (see: games)'); return; }
+      var id = args[0];
+      if (_gById[id]) { loadFengari(function() { runLuaGame(_gById[id]); }); return; }
+      line('fetching ' + id + '...', 'term-line-ok');
+      fetch('/api/games?id=' + encodeURIComponent(id)).then(function(r) { return r.json(); }).then(function(game) {
+        if (game.error) { line('game not found: ' + id + '  (see: games)', 'term-line-err'); return; }
+        _gById[id] = game;
+        loadFengari(function() { runLuaGame(game); });
+      }).catch(function() { line('could not load game', 'term-line-err'); });
+    },
   };
 
   // ── tab completion ──────────────────────────────────────────
@@ -2312,7 +2793,17 @@ function toggleTheme() {
   function close() {
     overlay.classList.remove('open');
     isOpen = false;
+    if (termPrompt) termPrompt.innerHTML = DEFAULT_PROMPT;
+    // clean up any inline game input
+    var inl = output.querySelector('.term-io-inline');
+    if (inl) inl.parentNode.removeChild(inl);
+    _gameMode = false; _gameResume = null;
   }
+
+  // expose for arcade page buttons
+  window.termOpen   = open;
+  window.termRun    = function(cmd) { output.innerHTML = ''; open(); setTimeout(function() { run(cmd); }, 80); };
+  window.termRunLua = function(code) { output.innerHTML = ''; open(); setTimeout(function() { loadFengari(function() { runLuaGame({ id: '_test_', title: 'test run', author: 'you', code: code }); }); }, 80); };
 
   // ── run a command ───────────────────────────────────────────
   function run(raw) {
@@ -2346,7 +2837,19 @@ function toggleTheme() {
 
   inp.addEventListener('keydown', function (e) {
     if (e.key === 'Enter') {
-      var v = inp.value; inp.value = ''; run(v);
+      var v = inp.value; inp.value = '';
+      if (_gameMode) {
+        if (v.trim() === 'quit' || v.trim() === 'exit' || v.trim() === 'q') {
+          _gameMode = false; _gameResume = null;
+          // remove any inline input
+          var inl = output.querySelector('.term-io-inline');
+          if (inl) inl.parentNode.removeChild(inl);
+          if (termPrompt) termPrompt.innerHTML = DEFAULT_PROMPT;
+          line('─────────────────────────────────────────', 'term-line-pre');
+          line('game exited.', 'term-line-ok');
+        }
+        // all other game input handled by inline input in output area
+      } else { run(v); }
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       if (histIdx < hist.length - 1) inp.value = hist[++histIdx] || '';

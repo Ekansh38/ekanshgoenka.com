@@ -2,9 +2,6 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://ekanshgoenka.com/projects/rl-driver/local-authenticated-laptimes/</loc>
-    <lastmod>2026-03-26T00:00:00+00:00</lastmod>
-  </url><url>
     <loc>https://ekanshgoenka.com/projects/f1-driver/f1-driver-the-story/</loc>
     <lastmod>2026-03-26T00:00:00+00:00</lastmod>
   </url><url>
@@ -32,9 +29,6 @@
     <loc>https://ekanshgoenka.com/projects/f1-driver/</loc>
     <lastmod>2026-03-26T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://ekanshgoenka.com/projects/rl-driver/</loc>
-    <lastmod>2026-03-26T00:00:00+00:00</lastmod>
-  </url><url>
     <loc>https://ekanshgoenka.com/</loc>
     <lastmod>2026-03-26T00:00:00+00:00</lastmod>
   </url><url>
@@ -56,9 +50,17 @@
     <loc>https://ekanshgoenka.com/games/starlight-odyssey/</loc>
     <lastmod>2025-07-20T00:00:00+00:00</lastmod>
   </url><url>
+    <loc>https://ekanshgoenka.com/arcade/</loc>
+  </url><url>
     <loc>https://ekanshgoenka.com/music/btop/</loc>
   </url><url>
     <loc>https://ekanshgoenka.com/categories/</loc>
+  </url><url>
+    <loc>https://ekanshgoenka.com/arcade/editor/</loc>
+  </url><url>
+    <loc>https://ekanshgoenka.com/arcade/game/</loc>
+  </url><url>
+    <loc>https://ekanshgoenka.com/guestbook/</loc>
   </url><url>
     <loc>https://ekanshgoenka.com/music/</loc>
   </url><url>
@@ -69,6 +71,8 @@
     <loc>https://ekanshgoenka.com/tags/</loc>
   </url><url>
     <loc>https://ekanshgoenka.com/tools/</loc>
+  </url><url>
+    <loc>https://ekanshgoenka.com/arcade/tutorial/</loc>
   </url><url>
     <loc>https://ekanshgoenka.com/work/</loc>
   </url><url>

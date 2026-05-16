@@ -1251,8 +1251,7 @@ function toggleTheme() {
       '  io.getkey()             single keypress, no Enter',
       '                          arrows: "up" "down" "left" "right"',
       '                          other: "space" "enter" or the char',
-      '  io.choice(prompt, {})   numbered menu, return selection',
-      '  io.confirm("sure?")     y/n, return true/false',
+      '  wasd / arrows            "w" "a" "s" "d" / "up" "down" "left" "right"',
       '',
       'while a game is running:',
       '  esc   stop game',
@@ -1885,29 +1884,6 @@ function toggleTheme() {
       '  getkey=function() _setprompt("__getkey__") return coroutine.yield() end,',
       '  write=function(...) local s="" for i=1,select("#",...)do s=s..tostring(select(i,...))end _iowrite(s) end,',
       '}',
-      // io.choice: numbered menu (pure Lua, calls io.read internally)
-      'io.choice = function(prompt, options)',
-      '  if type(options) ~= "table" then return "" end',
-      '  if type(prompt) == "string" then print(prompt) end',
-      '  for i, opt in ipairs(options) do',
-      '    print(colored("[" .. i .. "]", color.cyan) .. " " .. tostring(opt))',
-      '  end',
-      '  while true do',
-      '    local r = io.read("choice (1-" .. #options .. "): ")',
-      '    local n = tonumber(r)',
-      '    if n and n >= 1 and n <= #options then return options[n] end',
-      '    print("pick 1-" .. #options)',
-      '  end',
-      'end',
-      // io.confirm: y/n prompt (pure Lua, calls io.read internally)
-      'io.confirm = function(prompt)',
-      '  while true do',
-      '    local r = io.read((prompt or "") .. " (y/n) ")',
-      '    r = string.lower(r)',
-      '    if r == "y" or r == "yes" then return true end',
-      '    if r == "n" or r == "no" then return false end',
-      '  end',
-      'end',
       // color: ANSI escape constants
       'color={',
       '  red="\\27[31m", green="\\27[32m", yellow="\\27[33m",',
@@ -2017,13 +1993,17 @@ function toggleTheme() {
         // io.getkey() — single keypress, no Enter required
         if (iobuf === '__getkey__') {
           iobuf = '';
-          if (termPrompt) termPrompt.innerHTML = '<i style="color:var(--muted)">[press any key]</i>';
-          inp.style.display = 'none';
+          // show indicator inline in output area
+          var gkEl = document.createElement('div');
+          gkEl.className = 'term-io-inline';
+          gkEl.innerHTML = '<i style="color:var(--muted)">[press any key]</i>';
+          output.appendChild(gkEl);
+          inp.blur();
           var handler = function(e) {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
             e.preventDefault();
+            e.stopPropagation(); // prevent Escape from closing terminal during getkey
             document.removeEventListener('keydown', handler, true);
-            inp.style.display = '';
-            if (termPrompt) termPrompt.innerHTML = DEFAULT_PROMPT;
             var k = e.key;
             if (k === 'ArrowUp') k = 'up';
             else if (k === 'ArrowDown') k = 'down';
@@ -2034,22 +2014,55 @@ function toggleTheme() {
             else if (k === 'Escape') k = 'escape';
             else if (k.length === 1) k = k.toLowerCase();
             else k = k.toLowerCase();
+            if (gkEl.parentNode) gkEl.parentNode.removeChild(gkEl);
             if (_gameMode) step(k);
           };
           document.addEventListener('keydown', handler, true);
           output.scrollTop = output.scrollHeight;
           return;
         }
-        // game is waiting for io.read() — show prompt in bottom bar, user types there
-        _gameResume = step;
+        // io.read() — render prompt + input inline in the output area
         var ioPrompt = iobuf; iobuf = '';
-        // show the io.read prompt in the bottom prompt span
-        if (termPrompt) {
-          termPrompt.innerHTML = ioPrompt ? ansiToHtml(ioPrompt) : '';
+        var localResume = step;
+        var ioRow = document.createElement('div');
+        ioRow.className = 'term-io-inline';
+        if (ioPrompt) {
+          var ps = document.createElement('span');
+          ps.innerHTML = ansiToHtml(ioPrompt);
+          ioRow.appendChild(ps);
         }
-        inp.value = '';
-        inp.focus();
+        var ioInp = document.createElement('input');
+        ioInp.className = 'term-io-input';
+        ioInp.type = 'text';
+        ioInp.autocomplete = 'off';
+        ioInp.spellcheck = false;
+        ioRow.appendChild(ioInp);
+        output.appendChild(ioRow);
         output.scrollTop = output.scrollHeight;
+        ioInp.focus();
+        // click on output area should refocus inline input
+        var _ioFocusClick = function() { if (ioInp.parentNode) ioInp.focus(); };
+        output.addEventListener('click', _ioFocusClick);
+        ioInp.addEventListener('keydown', function(ie) {
+          if (ie.key !== 'Enter') return;
+          var v = ioInp.value;
+          output.removeEventListener('click', _ioFocusClick);
+          // replace inline row with static echo
+          var staticEl = document.createElement('pre');
+          staticEl.className = 'term-line-pre';
+          var safeVal = v.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+          staticEl.innerHTML = (ioPrompt ? ansiToHtml(ioPrompt) : '') + safeVal;
+          if (ioRow.parentNode) ioRow.parentNode.replaceChild(staticEl, ioRow);
+          if (v.trim() === 'quit' || v.trim() === 'exit' || v.trim() === 'q') {
+            _gameMode = false; _gameResume = null;
+            if (termPrompt) termPrompt.innerHTML = DEFAULT_PROMPT;
+            line('─────────────────────────────────────────', 'term-line-pre');
+            line('game exited.', 'term-line-ok');
+          } else if (_gameMode && localResume) {
+            localResume(v);
+          }
+        });
+        _gameResume = null; // bottom bar cannot resume; only inline input can
 
       } else {
         if (st !== lua.LUA_OK) {
@@ -2780,8 +2793,10 @@ function toggleTheme() {
   function close() {
     overlay.classList.remove('open');
     isOpen = false;
-    // if a game was mid-input, restore the prompt
     if (termPrompt) termPrompt.innerHTML = DEFAULT_PROMPT;
+    // clean up any inline game input
+    var inl = output.querySelector('.term-io-inline');
+    if (inl) inl.parentNode.removeChild(inl);
     _gameMode = false; _gameResume = null;
   }
 
@@ -2824,28 +2839,16 @@ function toggleTheme() {
     if (e.key === 'Enter') {
       var v = inp.value; inp.value = '';
       if (_gameMode) {
-        // echo what was shown in prompt + typed value, then restore ~$ prompt
-        var echoPrompt = termPrompt ? termPrompt.innerHTML : '';
-        if (termPrompt) termPrompt.innerHTML = DEFAULT_PROMPT;
-        if (echoPrompt && echoPrompt !== DEFAULT_PROMPT) {
-          // show "prompt value" as one output line
-          var echoEl = document.createElement('pre');
-          echoEl.className = 'term-line-pre';
-          echoEl.innerHTML = echoPrompt + v;
-          output.appendChild(echoEl);
-        } else {
-          line('> ' + v, 'term-line-cmd');
-        }
         if (v.trim() === 'quit' || v.trim() === 'exit' || v.trim() === 'q') {
           _gameMode = false; _gameResume = null;
+          // remove any inline input
+          var inl = output.querySelector('.term-io-inline');
+          if (inl) inl.parentNode.removeChild(inl);
           if (termPrompt) termPrompt.innerHTML = DEFAULT_PROMPT;
           line('─────────────────────────────────────────', 'term-line-pre');
           line('game exited.', 'term-line-ok');
-        } else if (_gameResume) {
-          var resume = _gameResume;
-          _gameResume = null;
-          resume(v);
         }
+        // all other game input handled by inline input in output area
       } else { run(v); }
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();

@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="tokyo-night">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  
+
+  <title>Ekansh Goenka</title>
+  <meta name="description" content="developer, builder, learner">
+
+  <meta property="og:type"        content="article">
+  <meta property="og:url"         content="https://ekanshgoenka.com/arcade/game/">
+  <meta property="og:title"       content="Ekansh Goenka">
+  <meta property="og:description" content="developer, builder, learner">
+  <meta property="og:site_name"   content="Ekansh Goenka">
+
+  <meta name="twitter:card"        content="summary">
+  <meta name="twitter:title"       content="Ekansh Goenka">
+  <meta name="twitter:description" content="developer, builder, learner">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="section arcade">
+
+  
+  <canvas id="bg-canvas"></canvas>
+
+  <header>
+  <div class="header-top">
+    <h1><a href="/" style="color:var(--fg);text-decoration:none;">Ekansh Goenka</a></h1>
+    <div class="header-controls">
+      <button class="toggle" id="term-btn">[:]</button>
+      <button class="toggle" id="t" onclick="toggleTheme()">[dark]</button>
+    </div>
+  </div>
+  <div class="tagline">helly · belly · shmelly</div>
+  <nav class="nav">
+    <a href="/projects">projects</a>
+    <a href="/writing">writing</a>
+    <a href="/music">music</a>
+    <a href="/games">games</a>
+    <a href="/tools">tools</a>
+    <a href="/arcade">arcade</a>
+  </nav>
+  <div class="social">
+    <a href="https://github.com/ekansh38" target="_blank" rel="noopener noreferrer">github ↗</a>
+    <a href="https://www.youtube.com/@byte_colony" target="_blank" rel="noopener noreferrer" title="bytecolony">youtube ↗</a>
+    <a href="https://byte-colony.itch.io/" target="_blank" rel="noopener noreferrer">itch.io ↗</a>
+  </div>
+  <hr style="margin-top: 28px;">
+</header>
+
+
+  
+<style>
+  .ag-source-code .ag-line-active {
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+    display: inline-block;
+    width: 100%;
+  }
+  .ag-preview-panel {
+    border: 1px solid var(--border);
+    margin-top: 8px;
+    background: var(--code-bg, #1a1b26);
+  }
+  .ag-preview-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+  .ag-preview-out {
+    padding: 10px 14px;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    min-height: 40px;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+</style>
+<div class="arc-bg-dots" aria-hidden="true"></div>
+<div class="ag-back"><a href="/arcade">← arcade</a></div>
+
+<div id="ag-loading" class="ag-loading-state">loading<span class="arc-cursor">_</span></div>
+
+<div id="ag-content" class="ag-content" style="display:none">
+
+  <div class="ag-title-area">
+    <h1 id="ag-title" class="ag-title"></h1>
+    <p id="ag-desc" class="ag-desc" style="display:none"></p>
+  </div>
+
+  <div class="ag-meta-panel">
+    <div class="ag-meta-item">
+      <span class="ag-meta-lbl">author</span>
+      <span id="ag-author" class="ag-meta-val"></span>
+    </div>
+    <div class="ag-meta-item">
+      <span class="ag-meta-lbl">submitted</span>
+      <span id="ag-date" class="ag-meta-val"></span>
+    </div>
+    <div class="ag-meta-item">
+      <span class="ag-meta-lbl">id</span>
+      <span id="ag-id" class="ag-meta-val ag-meta-val-muted"></span>
+    </div>
+    <div class="ag-meta-item">
+      <span class="ag-meta-lbl">lines</span>
+      <span id="ag-lines" class="ag-meta-val ag-meta-val-accent"></span>
+    </div>
+  </div>
+
+  <div class="ag-actions">
+    <button id="ag-play" class="ag-play-btn"><span class="ag-play-btn-inner">▶&nbsp; play in terminal</span></button>
+    <button id="ag-remix" class="ag-action-btn">remix →</button>
+  </div>
+
+  <div class="ag-source-section">
+    <div class="ag-source-header">
+      <span class="ag-source-title">source</span>
+      <button id="ag-preview" class="ag-copy-btn">▶ preview</button>
+      <button id="ag-copy" class="ag-copy-btn">copy</button>
+    </div>
+    <div class="ag-source-window">
+      <div class="ag-source-window-bar">
+        <span class="ag-window-dot ag-dot-red"></span>
+        <span class="ag-window-dot ag-dot-yellow"></span>
+        <span class="ag-window-dot ag-dot-green"></span>
+        <span class="ag-window-filename" id="ag-filename"></span>
+      </div>
+      <div class="ag-source-body">
+        <div class="ag-line-nums" id="ag-line-nums"></div>
+        <pre id="ag-source" class="ag-source-code"></pre>
+      </div>
+    </div>
+    <div id="ag-preview-panel" class="ag-preview-panel" style="display:none">
+      <div class="ag-preview-bar">
+        <span>preview output</span>
+        <button id="ag-preview-close" class="ag-copy-btn" style="font-size:0.68rem">close</button>
+      </div>
+      <div id="ag-preview-out" class="ag-preview-out"></div>
+    </div>
+  </div>
+
+  <div class="ag-edit-link-row">
+    <a id="ag-edit-link" href="#" class="ag-edit-link">edit in editor →</a>
+  </div>
+
+  <details class="ag-del-section">
+    <summary class="ag-del-summary">delete this game</summary>
+    <div class="ag-del-form">
+      <input type="text" id="ag-code-inp" class="arc-code-inp" placeholder="edit code (xxxxx-xxxxx)">
+      <button id="ag-del-confirm" class="arc-del-confirm">confirm delete</button>
+      <span id="ag-del-status" class="arc-del-status"></span>
+    </div>
+  </details>
+
+</div>
+
+<div id="ag-error" class="ag-error" style="display:none">game not found.</div>
+
+<script>
+(function() {
+  function hlEsc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function highlightLua(code) {
+    var KW_CTL=/^(if|then|else|elseif|end|while|do|for|in|return|break|repeat|until)$/,KW_DEF=/^(local|function)$/,KW_VAL=/^(true|false|nil)$/,KW_OP=/^(and|or|not)$/,FN_STD=/^(math|string|table|io|os|coroutine)$/,FN_BLT=/^(print|tostring|tonumber|type|pairs|ipairs|pcall|xpcall|error|select|assert|next|rawget|rawset|setmetatable|getmetatable)$/,FN_ARC=/^(sleep|clear|colored|color|sound|net)$/,MOPS=['~=','<=','>=','==','..','//'];
+    function tok(src){var out='',i=0;while(i<src.length){var c=src[i];if(c==='"'||c==="'"){var j=i+1;while(j<src.length){if(src[j]==='\\'){j+=2;}else if(src[j]===c){j++;break;}else j++;}out+='<span class="lh-str">'+hlEsc(src.slice(i,j))+'</span>';i=j;continue;}if(/[0-9]/.test(c)||(c==='.'&&/[0-9]/.test(src[i+1]||''))){var j=i;if(src[j]==='0'&&/[xX]/.test(src[j+1]||'')){j+=2;while(/[0-9a-fA-F]/.test(src[j]||''))j++;}else{while(/[0-9]/.test(src[j]||''))j++;if(src[j]==='.'){j++;while(/[0-9]/.test(src[j]||''))j++;}if(/[eE]/.test(src[j]||'')){j++;if(/[+-]/.test(src[j]||''))j++;while(/[0-9]/.test(src[j]||''))j++;}}out+='<span class="lh-num">'+hlEsc(src.slice(i,j))+'</span>';i=j;continue;}if(/[a-zA-Z_]/.test(c)){var j=i;while(/[a-zA-Z0-9_]/.test(src[j]||''))j++;var w=src.slice(i,j),rest=src.slice(j).replace(/^[ \t]*/,''),call=rest[0]==='('||rest[0]==='{'||rest[0]==='"'||rest[0]==="'";var cl=KW_CTL.test(w)?'lh-kw':KW_DEF.test(w)?'lh-kw2':KW_VAL.test(w)?'lh-val':KW_OP.test(w)?'lh-op':FN_ARC.test(w)?'lh-arcade':FN_STD.test(w)?'lh-std':(FN_BLT.test(w)&&call)?'lh-builtin':call?'lh-fn':null;out+=cl?'<span class="'+cl+'">'+hlEsc(w)+'</span>':hlEsc(w);i=j;continue;}if(/[+\-*\/%^#&|~<>=]/.test(c)){var m='';for(var o=0;o<MOPS.length;o++){if(src.slice(i,i+MOPS[o].length)===MOPS[o]){m=MOPS[o];break;}}if(!m)m=c;out+='<span class="lh-op">'+hlEsc(m)+'</span>';i+=m.length;continue;}out+=hlEsc(c);i++;}return out;}
+    return code.split('\n').map(function(line){var comment='',ci=-1,inS=false,sq='';for(var k=0;k<line.length;k++){var ch=line[k];if(inS){if(ch==='\\')k++;else if(ch===sq)inS=false;}else{if(ch==='"'||ch==="'"){inS=true;sq=ch;}else if(ch==='-'&&line[k+1]==='-'){ci=k;break;}}}if(ci>=0){comment='<span class="lh-cmt">'+hlEsc(line.slice(ci))+'</span>';line=line.slice(0,ci);}return tok(line)+comment;}).join('\n');
+  }
+
+  function fmt(iso) { var d = new Date(iso); return d.toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}); }
+
+  var id = new URLSearchParams(window.location.search).get('id');
+  if (!id) {
+    document.getElementById('ag-loading').style.display = 'none';
+    document.getElementById('ag-error').style.display = 'block';
+    return;
+  }
+
+  fetch('/api/games?id=' + encodeURIComponent(id))
+    .then(function(r) { return r.json(); })
+    .then(function(game) {
+      document.getElementById('ag-loading').style.display = 'none';
+      if (game.error) { document.getElementById('ag-error').style.display = 'block'; return; }
+
+      document.title = game.title;
+
+      
+      document.getElementById('ag-title').textContent = game.title;
+      if (game.desc) {
+        var descEl = document.getElementById('ag-desc');
+        descEl.textContent = game.desc;
+        descEl.style.display = 'block';
+      }
+
+      
+      document.getElementById('ag-author').textContent = game.author;
+      document.getElementById('ag-date').textContent = fmt(game.date);
+      document.getElementById('ag-id').textContent = id;
+      var lines = (game.code || '').split('\n').length;
+      document.getElementById('ag-lines').textContent = lines;
+
+      
+      var highlighted = highlightLua(game.code || '');
+      var hlLines = highlighted.split('\n');
+      document.getElementById('ag-source').innerHTML = hlLines.map(function(l, i) {
+        return '<span class="ag-src-line" data-line="' + i + '">' + l + '</span>';
+      }).join('\n');
+      document.getElementById('ag-filename').textContent = id + '.lua';
+      var lineCount = (game.code || '').split('\n').length;
+      document.getElementById('ag-line-nums').textContent = Array.from({length: lineCount}, function(_, i) { return i + 1; }).join('\n');
+
+      document.getElementById('ag-content').style.display = 'block';
+
+      
+      document.getElementById('ag-play').addEventListener('click', function() {
+        var inner = this.querySelector('.ag-play-btn-inner');
+        if (window.termRun) {
+          inner.textContent = '▷  launching...';
+          var self = this;
+          setTimeout(function() { inner.textContent = '▶\u00a0 play in terminal'; }, 1400);
+          window.termRun('play ' + id);
+          return;
+        }
+        inner.textContent = 'open [:] → type: play ' + id;
+      });
+
+      
+      document.getElementById('ag-remix').addEventListener('click', function() {
+        window.location.href = '/arcade/?remix=' + encodeURIComponent(id);
+      });
+
+      
+      document.getElementById('ag-copy').addEventListener('click', function() {
+        var btn = this;
+        navigator.clipboard.writeText(game.code || '').then(function() {
+          btn.textContent = 'copied!';
+          btn.classList.add('copied');
+          setTimeout(function() { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 1800);
+        }).catch(function() {
+          btn.textContent = 'failed';
+          setTimeout(function() { btn.textContent = 'copy'; }, 1800);
+        });
+      });
+
+      
+      var COLORS = {
+        'color.red': '#f7768e', 'color.green': '#9ece6a', 'color.yellow': '#e0af68',
+        'color.cyan': '#7dcfff', 'color.blue': '#7aa2f7', 'color.purple': '#bb9af7',
+        'color.white': '#c0caf5', 'color.bold': '#c0caf5'
+      };
+
+      var previewRunning = false;
+      var previewAbort = false;
+
+      function previewCleanup() {
+        previewRunning = false;
+        previewAbort = false;
+        var allLines = document.querySelectorAll('.ag-src-line');
+        for (var i = 0; i < allLines.length; i++) {
+          allLines[i].classList.remove('ag-line-active');
+        }
+        var btn = document.getElementById('ag-preview');
+        btn.textContent = '\u25b6 preview';
+      }
+
+      function previewClose() {
+        previewAbort = true;
+        document.getElementById('ag-preview-panel').style.display = 'none';
+        previewCleanup();
+      }
+
+      function evalColoredStr(s) {
+        
+        var m = s.match(/^colored\(\s*"([^"]*)"\s*,\s*(color\.\w+)\s*\)$/);
+        if (m) return { text: m[1], color: COLORS[m[2]] || null };
+        m = s.match(/^colored\(\s*'([^']*)'\s*,\s*(color\.\w+)\s*\)$/);
+        if (m) return { text: m[1], color: COLORS[m[2]] || null };
+        return null;
+      }
+
+      function evalPrintArg(arg) {
+        
+        var parts = arg.split('..');
+        var result = [];
+        for (var i = 0; i < parts.length; i++) {
+          var p = parts[i].trim();
+          
+          var sm = p.match(/^"([^"]*)"$/) || p.match(/^'([^']*)'$/);
+          if (sm) { result.push({ text: sm[1], color: null }); continue; }
+          
+          var c = evalColoredStr(p);
+          if (c) { result.push(c); continue; }
+          
+          result.push({ text: '...', color: null });
+        }
+        return result;
+      }
+
+      function parsePrintLine(raw) {
+        
+        var m = raw.match(/^\s*print\((.+)\)\s*$/);
+        if (!m) return null;
+        var inner = m[1].trim();
+        
+        if (inner === '""' || inner === "''") return [];
+        return evalPrintArg(inner);
+      }
+
+      function isSkipLine(raw) {
+        var t = raw.trim();
+        if (!t || t.indexOf('--') === 0) return true;
+        if (/^\s*(local\s+\w+\s*=\s*)?io\.(read|getkey|choice|confirm)\b/.test(t)) return true;
+        if (/^\s*net\./.test(t)) return true;
+        if (/^\s*(while|for|repeat)\b/.test(t)) return true;
+        if (/^\s*sleep\s*\(/.test(t)) return true;
+        if (/^\s*(if|elseif|else|end|do|then|break|return|until)\b/.test(t)) return true;
+        if (/^\s*local\s+/.test(t) && !parsePrintLine(t)) return true;
+        if (/^\s*sound\./.test(t)) return true;
+        if (/^\s*clear\s*\(/.test(t)) return true;
+        return false;
+      }
+
+      function runPreview() {
+        if (previewRunning) { previewClose(); return; }
+        previewRunning = true;
+        previewAbort = false;
+        var btn = document.getElementById('ag-preview');
+        btn.textContent = '\u25a0 stop';
+
+        var panel = document.getElementById('ag-preview-panel');
+        var outEl = document.getElementById('ag-preview-out');
+        panel.style.display = 'block';
+        outEl.innerHTML = '';
+
+        var rawLines = (game.code || '').split('\n');
+        var srcLines = document.querySelectorAll('.ag-src-line');
+        var idx = 0;
+
+        function step() {
+          if (previewAbort || idx >= rawLines.length) { previewCleanup(); return; }
+
+          
+          for (var j = 0; j < srcLines.length; j++) srcLines[j].classList.remove('ag-line-active');
+
+          
+          if (srcLines[idx]) {
+            srcLines[idx].classList.add('ag-line-active');
+            srcLines[idx].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          }
+
+          var raw = rawLines[idx];
+          var printed = parsePrintLine(raw);
+
+          if (printed !== null) {
+            
+            var div = document.createElement('div');
+            if (printed.length === 0) {
+              div.innerHTML = '&nbsp;';
+            } else {
+              for (var p = 0; p < printed.length; p++) {
+                var span = document.createElement('span');
+                span.textContent = printed[p].text;
+                if (printed[p].color) span.style.color = printed[p].color;
+                div.appendChild(span);
+              }
+            }
+            outEl.appendChild(div);
+            outEl.scrollTop = outEl.scrollHeight;
+            idx++;
+            setTimeout(step, 300);
+          } else if (isSkipLine(raw)) {
+            idx++;
+            setTimeout(step, 80);
+          } else {
+            idx++;
+            setTimeout(step, 150);
+          }
+        }
+
+        step();
+      }
+
+      document.getElementById('ag-preview').addEventListener('click', runPreview);
+      document.getElementById('ag-preview-close').addEventListener('click', previewClose);
+
+      
+      document.getElementById('ag-edit-link').href = '/arcade/editor/?edit=' + encodeURIComponent(id);
+
+      
+      document.getElementById('ag-del-confirm').addEventListener('click', function() {
+        var code = document.getElementById('ag-code-inp').value.trim();
+        var status = document.getElementById('ag-del-status');
+        if (!code) { status.textContent = 'enter your edit code'; return; }
+        this.disabled = true; this.textContent = 'deleting...'; status.textContent = '';
+        fetch('/api/games?id=' + encodeURIComponent(id), {
+          method: 'DELETE', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({code: code})
+        }).then(function(r){return r.json();}).then(function(d){
+          if (d.ok) { try { localStorage.removeItem('arcade_v1'); } catch(e){} window.location.href = '/arcade/?r=1'; }
+          else {
+            status.textContent = d.error || 'error';
+            document.getElementById('ag-del-confirm').disabled = false;
+            document.getElementById('ag-del-confirm').textContent = 'confirm delete';
+          }
+        }).catch(function(){
+          status.textContent = 'network error';
+          document.getElementById('ag-del-confirm').disabled = false;
+          document.getElementById('ag-del-confirm').textContent = 'confirm delete';
+        });
+      });
+    })
+    .catch(function() {
+      document.getElementById('ag-loading').style.display = 'none';
+      document.getElementById('ag-error').style.display = 'block';
+    });
+})();
+</script>
+
+
+  <footer>
+  <div class="footer-meta">ekansh · 2026 · curl -L ekanshgoenka.com</div>
+</footer>
+
+
+  <div id="spawn-overlay"><div id="spawn-hint"></div></div>
+
+  <div id="term-overlay">
+    <div id="term-box">
+      <div id="term-bar">
+        <span id="term-path">ekansh@site:~</span>
+        <button id="term-close">✕</button>
+      </div>
+      <div id="term-output"></div>
+      <div id="term-input-row">
+        <span id="term-prompt" class="term-prompt">~$&nbsp;</span>
+        <input id="term-input" type="text" autocomplete="off" autocorrect="off" spellcheck="false">
+      </div>
+    </div>
+  </div>
+
+  <script>
+     
+    var SITE_LINKS = {
+      github:  "https:\/\/github.com\/ekansh38",
+      youtube: "https:\/\/www.youtube.com\/@byte_colony",
+      itchio:  "https:\/\/byte-colony.itch.io\/",
+      email:   "ekansh@ekanshgoenka.com"
+    };
+
+     
+    var TERMINAL_DATA = {
+      '': { type: 'dir' },
+      'contact.txt': { type: 'file', title: 'contact', body: 'ekansh goenka\n\nemail   ekansh@ekanshgoenka.com\ngithub  https:\/\/github.com\/ekansh38\n\nfeel free to reach out about anything.' },
+      'projects': { type: 'dir' },
+      "projects/byte-space": { type: "dir", desc: "Recreates the early 1980s internet in the terminal", stack: "Go", status: "active", url: "/projects/byte-space/" },
+      "projects/byte-space/Why-Im-Building-byte-space": { type: "file", title: "Why I'm Building Byte-space", body: " I am building byte-space, or have finished by the time you are reading this article. This article explains what byte-space is, why I want to build it, and what sparked the idea. Hope you enjoy the read! byte-space (all lowercase) is an internet simulator that boasts some pretty cool features. I think the most interesting and fun part about byte-space compared to other network simulators is that you can actually interact with the network like a user. Telnet onto machines, send email and do \"userly\" activities. ACTUALLY USE IT! That is what I find fun about it. Being able to transport myself into a 1980s academic network that I build, or a military one... \"Playing\" with others in the same network or geeking around alone (with others is more fun, if you have nerdy friends). That is what I find cool about byte-space. You are INSIDE the simulation not just observing it. That is the core feature of byte-space but of course it has other cool features. Some of them include (skip this list if you don't care): A whole interpreted shell programming language themed to the era and project: yep, this is for configuring and building cool stuff on servers, like for building a chat room server or BBS. Or heck a 1980s style X (Twitter) clone. Anything (almost) is possible with this language. The visualizer: you can observe the network topology in a graph format and see packets travel between machines. You can click on packets to open them mid flight and inspect the data. Networking in 4k. Custom protocol implementations: HTTP, SMTP, DNS, all from scratch. Hacking: arp poisoning, DNS spoofing, honeypots, no encryption... no consequences, real networking. A custom text based markup language and website browsing: I am aware other text-based markup languages exist, but making my own sounded interesting, and fun so... here we are. Emails: emails, I don't need to explain that... I don't really consider this a feature but: 1980s vibes: telnet, server profiles, browsing simple websites, hacking, The Cuckoo's Egg vibes. Now onto why I want to build it (not vibe-code, build). Building byte-space teaches me how the internet actually works, not from textbooks, but by implementing it all from scratch. I'll understand the INTERNET to a level most developers never reach. Plus, it's fun. Building complex systems is what I enjoy most. What sparked the idea? The Cuckoo's Egg by Clifford Stoll. This book is the sole reason for me building byte-space. The 1980s internet was so cool and I had to have it. Also, could AI build byte-space? Maybe. But I'll learn more building it myself, build stronger foundations for larger projects that AI can't do and its kinda fun. Anyway, hope you understand why I find this idea so interesting and check out the other articles. Everything from this point forward will get more nerdy and technical so buckle up and enjoy the ride! ", date: "2026-03-11", url: "/projects/byte-space/why-im-building-byte-space/" },
+      "projects/amh assistant": { type: "dir", desc: "AI assistant built for a 40-person company. Connects Trello, Gmail, Sheets, WhatsApp in one chat.", stack: "Python · Anthropic API · Composio MCP · Vercel", status: "live", url: "/projects/amh-assistant/" },
+      "projects/corntopia": { type: "dir", desc: "Virtual school economy. crypto exchange, marketplace, got shut down.", stack: "Django · Python · SQLite", status: "shutdown", url: "/projects/corntopia/" },
+      "projects/geno": { type: "dir", desc: "A genetic evolution simulator. genomes, natural selection, emergent behavior.", stack: "C", status: "in progress", url: "/projects/geno/" },
+      "projects/f1-driver": { type: "dir", desc: "Top-down F1 style racing game with custom maps, cryptographically authenticated laptimes, and easy installs.", stack: "Python · Pygame", status: "complete", url: "/projects/f1-driver/" },
+      "projects/f1-driver/f1-driver-the-story": { type: "file", title: "I Built a Racing Game, My Friends Started Cheating, So I Added Cryptography", body: "I really like F1. One day I was playing F1 25 on my PS5 and I was having a lot of fun. A part of me wondered, are there any local 2D F1 racing games that are actually fun? I couldn't find any that scratched that itch I had, some had obstacles and unrealistic turning and physics, some where just not fun. So I decided to scratch my own itch. On a Sunday afternoon I set out to build the racing game I always wanted! Custom maps, real F1 physics, laptimes, graphs, telemetry, all that jazz. I started in Pygame and Python because that was the only framework I was familiar with and I was pretty stupid at that time. I had this grand plan to add AI and reinforcement learning to the game, hence the first name, rl-driver.\nI started making it on and off, in school and at home (don't tell me teachers...) and I just loved playing, I got hooked by the game play and adding more features like custom tracks, physics, graphs and I completely forgot about the AI part of it. Thus the rename to f1-driver, boring I know.\nThe Cheating Problem Anyway I got my friends to install it and they loved it, they where playing tons and sending screenshots of there laptimes on our group chat. All was well and good until they found the \"params\" feature which let you adjust the physics of your car, more acceleration, easier turning, etc. They abused this, just a little and not enough to get caught. I had no idea how there laptimes where so quick, they said they made no changes to params and there was no way for me to prove them wrong with just a screenshot!\nThe Insight Anyway I let this thought sit in my brain for a few weeks while I went about with my life. I read Grokking Algorithms in this time and had some prior knowledge regarding Bitcoin and cryptocurrency and how it worked. One night, something just clicked. A concept from Grokking Algorithms, hash maps and hash functions came to me. This is the perfect fix I thought! I would use a hashing algorithm like SHA256 along with a secret key that was stored in the binary to \"locally\" authenticate laptimes.\nNow I will dive into my approach but I just want to preface it by saying, I am aware it can be cracked easily by anybody with more than 2 brain cells (hex editor) but my friends have no clue what they are doing and the concept is still valid if I was to host the authentication on a server. But anyway here is how it works.\nHow It Works The program, after the user completes a valid lap (default params), gets the lap data (laptime, track) as well as the secret key and hashes it all together. In an ideal scenario the client would send this data to a server and the server would return the hash but I am doing it all locally.\nFirst, the lap data and secret key are combined and hashed:\n\"1:32.851,monza\" + \"f1-driver-secret-key\" | v SHA256(\"1:32.851,monza f1-driver-secret-key\") | v \"a3f9c2...8b4e1d\" This is the certificate the user gets. Their proof to say: hey, this is my laptime!\nFinal laptime string: \"1:32.851,monza a3f9c2...8b4e1d\" If someone doesn't believe them and wants to verify, all they have to do is pass that string to the verifier. It splits out the data and the hash, recomputes the hash using the secret key, and checks if they match:\nInput: \"1:32.851,monza a3f9c2...8b4e1d\" | v Data = \"1:32.851,monza\" Hash = \"a3f9c2...8b4e1d\" | v if SHA256(Data + secret_key) == Hash: print(\"he want lying!\") else: print(\"Something is off...\") Wait, This Has a Name? After I built this I discovered that what I made is actually a well known cryptographic technique called HMAC (Hash-based Message Authentication Code). I just reinvented it without knowing it existed, which was a nice surprise.\nHere is why it works, even to a non-technical person. Think of it like a wax seal on a letter. Anyone can read the letter, but only the person with the original seal stamp can produce a seal that looks exactly right. In f1-driver, the \"stamp\" is the secret key baked into the binary. The seal is the hash. If you change the laptime even by one millisecond, the entire hash changes completely, and the seal breaks. You cannot fake a valid seal without the stamp, and the stamp is hidden inside the program.\nThe weakness is that someone could extract the key from the binary directly (a hex editor would do it). But for my friends, that is not happening. And if I moved the key to a server, it becomes genuinely unbreakable from the outside.\nWhere It Ended Up I kinda got bored of it and left it around here. You can download it right now via Homebrew or install from source. Checkout the Github for more details.\nbrew install Ekansh38/f1-driver/f1-driver github.com/Ekansh38/f1-driver\n", date: "2026-03-26", url: "/projects/f1-driver/f1-driver-the-story/" },
+      
+      'music': { type: 'dir' },
+      "music/btop": { type: "file", title: "btop", body: "Bitcrushed and degraded samples. Layered percussion and synths.\n\u0026ldquo;btop\u0026rdquo; spans 5 tracks:\n01 buFfer overflow someday 01:04\n02 chewing on copper wire 03:32\n03 soft reboot in the rain 05:35\n04 flUorescent rice water 08:55\n05 wet Concrete handshaKe 10:43\ntotal: 14:27\nListen on bandcamp.\nReleased on 23-03-2026.\n", status: "in production", url: "/music/btop/" },
+      
+      'games': { type: 'dir' },
+      "games/cropocalypse": { type: "file", title: "Cropocalypse", body: "Kill and cook sentient plants, master cooking, and blast bok choy with your arsenal of weapons!", engine: "Godot", url: "https://byte-colony.itch.io/cropocalypse" },
+      "games/starlight-odyssey": { type: "file", title: "Starlight Odyssey", body: "Explore space. Save your race. Eat yourself to survive. Can you reach Earth in time?", engine: "Godot", url: "https://byte-colony.itch.io/starlight-odyssey" },
+      
+      'arcade': { type: 'dir', url: '/arcade/' },
+      'arcade/editor': { type: 'dir', url: '/arcade/editor/' },
+      'writing': { type: 'dir' },
+      
+      'tools': { type: 'dir' },
+      "tools/wrkr": { type: "file", title: "wrkr", stack: "Go", status: "active", body: "bc doesn\u0026rsquo;t know what a megabyte is. Spotlight doesn\u0026rsquo;t remember your block size. This does.\nA terminal REPL for programmers doing filesystem math, bitwise work, and unit conversions. Type 2 tb / (4 * kb) and get 536870912 with a label. Set block = 4096, reuse it across expressions. Results copy to clipboard automatically.\nBuilt because python3 -c \u0026quot;print(128*1024*1024/4096)\u0026quot; is annoying to type and forgets everything the moment you close it.\n", url: "/tools/wrkr/" },
+      "tools/blokr": { type: "file", title: "blokr", stack: "Python", status: "active", body: "Blocks sites via /etc/hosts. To unblock, you have to type a 40-character code from a piece of paper kept somewhere physically inconvenient. No paste allowed. It reads keystrokes one at a time and rejects anything that arrives too fast. Then a 5-minute countdown. Then yes. Then YES SIR YES.\nThe code is never stored in plaintext, only its SHA-256 hash. Lose the paper, run setup again, write it down again.\nAlso includes blokr watch: download a YouTube video locally via yt-dlp and watch it without the algorithm, sidebar, or autoplay.\n", url: "/tools/blokr/" },
+      "tools/iris": { type: "file", title: "iris", stack: "Python", status: "active", body: "Every 20 minutes, look at something 20 feet away for 20 seconds. Iris puts a live countdown in your menu bar (👁 14:23) and plays an audio cue when it\u0026rsquo;s time. Pause or snooze from the menu. Starts automatically on login via a LaunchAgent.\nActually use this one.\n", url: "/tools/iris/" },
+      "tools/cx": { type: "file", title: "cx", stack: "Go", status: "in progress", body: "Terminal-based AI chat for developers. Bring your own API key, pick any model, conversations stay local. No account, no cloud sync, no dashboard.\n", url: "/tools/cx/" },
+      
+      
+     
+
+
+    };
+  </script>
+
+  <div id="preset-picker">
+    <button id="preset-picker-btn">:preset</button>
+    <div id="preset-picker-menu"></div>
+  </div>
+
+  <div id="theme-picker">
+    <button id="theme-picker-btn">:colorscheme</button>
+    <div id="theme-picker-menu">
+      <div class="tp-header">select colorscheme</div>
+      <button class="tp-item" data-t="tokyo-night">
+        <span class="tp-arrow">▶</span>tokyo-night<span class="tp-variant">dark</span>
+      </button>
+      <button class="tp-item" data-t="gruvbox">
+        <span class="tp-arrow">▶</span>gruvbox<span class="tp-variant">dark</span>
+      </button>
+      <button class="tp-item" data-t="dracula">
+        <span class="tp-arrow">▶</span>dracula<span class="tp-variant">dark</span>
+      </button>
+      <button class="tp-item" data-t="rose-pine">
+        <span class="tp-arrow">▶</span>rose-pine<span class="tp-variant">light</span>
+      </button>
+      <button class="tp-item" data-t="github-light">
+        <span class="tp-arrow">▶</span>github-light<span class="tp-variant">light</span>
+      </button>
+      <button class="tp-item" data-t="papercolor-light">
+        <span class="tp-arrow">▶</span>papercolor-light<span class="tp-variant">light</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="copy-toast">copied to clipboard</div>
+
+  <script src="/script.js"></script>
+</body>
+</html>

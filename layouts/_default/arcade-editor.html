@@ -702,7 +702,6 @@
     { name: 'leaderboard', note: 'submit score + display top players (net API)', code: 'local name  = io.read("your name: ")\nlocal score = math.random(100, 999)\n\nnet.rank(name, score)\nprint("submitted score: " .. colored(tostring(score), color.yellow))\nprint("")\n\nlocal top = net.top(5)\nif #top == 0 then\n  print("no scores yet!")\nelse\n  print(colored("── top scores ──", color.cyan))\n  for i, e in ipairs(top) do\n    local rank = i .. "."\n    local nm   = e.name .. string.rep(" ", math.max(0, 14 - #e.name))\n    print(colored(rank .. " ", color.blue) .. nm .. colored(tostring(e.score), color.yellow))\n  end\nend' },
     { name: 'shared counter', note: 'count how many times your game has been played (net API)', code: 'local count = (tonumber(net.get("plays")) or 0) + 1\nnet.set("plays", tostring(count))\n\nprint(colored("this game has been played:", color.cyan))\nprint(colored(tostring(count) .. " times", color.yellow))' },
     { name: 'arrow key demo', note: 'instant keypress with io.getkey', code: 'print(colored("press arrow keys or letters", color.cyan))\nprint("press q to quit")\nprint("")\n\nwhile true do\n  local key = io.getkey()\n  if key == "q" then break end\n  print("you pressed: " .. colored(key, color.yellow))\nend\n\nprint("")\nprint("done!")' },
-    { name: 'menu choice', note: 'numbered menu with io.choice', code: 'print(colored("THE ARMORY", color.yellow))\nprint("")\n\nlocal weapon = io.choice("pick your weapon:", {"sword", "bow", "magic staff", "bare fists"})\nprint("")\nprint("you chose: " .. colored(weapon, color.green))\nprint("")\n\nif io.confirm("ready for battle?") then\n  print(colored("charge!", color.cyan))\n  sound.win()\nelse\n  print("maybe next time.")\n  sound.click()\nend' },
   ];
 
   var REF_SECTIONS = [
@@ -792,12 +791,6 @@
       '',
       'local key = io.getkey()       -- single keypress, no enter',
       '-- returns: "a" "space" "up" "down" "left" "right"',
-      '',
-      'local pick = io.choice("go:", {"left", "right"})',
-      '-- numbered menu, returns chosen string',
-      '',
-      'local ok = io.confirm("sure?")',
-      '-- y/n prompt, returns true or false',
     ]},
     { title: 'net api', lines: [
       '-- persistent key-value store (per game)',

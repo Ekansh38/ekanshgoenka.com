@@ -76,18 +76,14 @@
   .tut-screen {
     position: absolute; inset: 0;
     display: flex; flex-direction: column;
-    align-items: center; justify-content: safe center;
-    padding: 60px 24px 160px;
+    align-items: center; justify-content: flex-start;
+    padding: 60px 24px 200px;
     overflow-y: auto;
     z-index: 5;
     opacity: 0;
     pointer-events: none;
     transform: translateY(20px);
     transition: opacity 0.35s ease, transform 0.35s ease;
-  }
-  /* fallback for browsers without safe center */
-  @supports not (justify-content: safe center) {
-    .tut-screen { justify-content: flex-start; padding-top: 10vh; }
   }
   .tut-screen.tut-active {
     opacity: 1;
@@ -187,7 +183,8 @@
     padding: 14px 18px; font-size: 0.82rem;
     line-height: 1.75; margin-bottom: 20px;
     overflow-x: auto; white-space: pre;
-    tab-size: 2;
+    tab-size: 2; min-width: 0;
+    max-width: 100%; box-sizing: border-box;
   }
 
   /* code editor component */
@@ -416,8 +413,18 @@
   .tut-str-block {
     padding: 6px 12px; font-size: 0.82rem;
     border: 1px solid var(--border);
-    cursor: default; transition: border-color 0.15s, background 0.15s;
+    cursor: pointer; transition: border-color 0.15s, background 0.15s, transform 0.1s;
     user-select: none;
+  }
+  .tut-str-block:hover { border-color: var(--accent); }
+  .tut-str-block:active { transform: scale(0.95); }
+  .tut-str-block.tut-str-pop {
+    animation: str-pop 0.3s ease;
+  }
+  @keyframes str-pop {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.12); }
+    100% { transform: scale(1); }
   }
   .tut-str-block.tut-str-lit { color: var(--code-str, #9ece6a); }
   .tut-str-block.tut-str-op { color: var(--code-op, #89ddff); font-weight: 700; }
@@ -461,13 +468,6 @@
     background: color-mix(in srgb, var(--accent) 14%, transparent);
     margin: 0 -16px; padding: 0 16px;
   }
-  .tut-flow-diagram {
-    text-align: center; padding: 10px 0 14px;
-    font-size: 0.75rem; color: var(--muted);
-    line-height: 1.5; white-space: pre;
-  }
-  .tut-flow-diagram .fd-active { color: var(--accent); font-weight: 700; }
-
   /* SCREEN 6: loops */
   .tut-loop-syntax {
     background: var(--code-bg, #1a1b26) !important;
@@ -683,19 +683,6 @@
     opacity: 0; transition: opacity 0.3s;
   }
   .tut-grid-msg.show { opacity: 1; }
-  .tut-choice-demo {
-    border: 1px solid var(--border);
-    background: var(--code-bg, #1a1b26) !important;
-    padding: 14px 18px; margin-bottom: 16px;
-    font-size: 0.82rem; color: var(--fg);
-  }
-  .tut-choice-opt {
-    padding: 4px 0; cursor: pointer;
-    transition: color 0.15s;
-  }
-  .tut-choice-opt:hover { color: var(--accent); }
-  .tut-choice-opt.selected { color: var(--accent); font-weight: 700; }
-
   /* SCREEN 10: tables & functions */
   .tut-backpack {
     border: 1px solid var(--border);
@@ -826,6 +813,17 @@
     max-height: 80px; overflow-y: auto;
   }
   .tut-kv-log-line { padding: 1px 0; }
+  .tut-kv-get-result {
+    font-size: 0.82rem; margin-left: 6px;
+    transition: opacity 0.15s;
+  }
+  .tut-kv-get-result.flash {
+    animation: kv-flash 0.4s ease;
+  }
+  @keyframes kv-flash {
+    0% { opacity: 0; transform: translateY(-4px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
 
   /* SCREEN 12: edit code */
   .tut-editcode-box {
@@ -1115,12 +1113,13 @@
       <div class="tut-step-tag">03 / 12</div>
       <div class="tut-heading">strings. <strong>..</strong> joins them together.</div>
       <div class="tut-body">Lua uses <strong>..</strong> to combine text. click the blocks to see how:</div>
+      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px">click blocks to change them:</div>
       <div class="tut-string-builder" id="tut-str-builder">
-        <span class="tut-str-block tut-str-lit">"brave soul "</span>
+        <span class="tut-str-block tut-str-lit" data-alts='"brave soul "|"welcome "|"hello "|"ahoy "'>"brave soul "</span>
         <span class="tut-str-block tut-str-op">..</span>
         <span class="tut-str-block tut-str-var">name</span>
         <span class="tut-str-block tut-str-op">..</span>
-        <span class="tut-str-block tut-str-lit">"."</span>
+        <span class="tut-str-block tut-str-lit" data-alts='"."|"!"|"!!"|", legend."'>"."</span>
       </div>
       <div style="font-size:0.72rem;color:var(--muted);margin-bottom:8px">result:</div>
       <div class="tut-str-preview" id="tut-str-preview">brave soul <span style="color:var(--accent)">ekansh</span>.</div>
@@ -1136,11 +1135,6 @@
       <div class="tut-step-tag">04 / 12</div>
       <div class="tut-heading">if/else. the cave choice.</div>
       <div class="tut-body">if the player types 'i', run one thing. otherwise, run another.</div>
-      <div class="tut-flow-diagram" id="tut-flow-diagram">       choice?
-      /       \
-  "i"          else
-   |             |
- inside        go home</div>
       <div class="tut-two-panel">
         <div>
           <div style="font-size:0.78rem;color:var(--muted);margin-bottom:10px">go [i]nside or [l]eave?</div>
@@ -1297,18 +1291,10 @@ end</textarea>
       <div class="tut-body"><strong>io.getkey()</strong> reads a single keypress - no Enter needed. good for action games.</div>
       <div style="font-size:0.78rem;color:var(--muted);margin-bottom:6px">press any key:</div>
       <div class="tut-key-demo" id="tut-key-demo" tabindex="0">waiting for keypress...</div>
-      <div style="font-size:0.78rem;color:var(--muted);margin-bottom:6px;margin-top:14px">arrow keys move the player. reach the star:</div>
+      <div style="font-size:0.78rem;color:var(--muted);margin-bottom:6px;margin-top:14px">use <strong style="color:var(--fg)">WASD</strong> or <strong style="color:var(--fg)">arrow keys</strong> to move. reach the star:</div>
       <div class="tut-grid-wrap" id="tut-grid-wrap" tabindex="0">
         <div class="tut-grid" id="tut-grid" style="grid-template-columns:repeat(7,32px)"></div>
         <div class="tut-grid-msg" id="tut-grid-msg"></div>
-      </div>
-      <div style="font-size:0.78rem;color:var(--muted);margin-bottom:6px;margin-top:14px"><strong style="color:var(--fg)">io.choice()</strong> - numbered menu:</div>
-      <div class="tut-choice-demo" id="tut-choice-demo">
-        <div style="margin-bottom:6px;color:var(--accent)">pick a weapon:</div>
-        <div class="tut-choice-opt" data-ch="1">1. sword</div>
-        <div class="tut-choice-opt" data-ch="2">2. bow</div>
-        <div class="tut-choice-opt" data-ch="3">3. magic staff</div>
-        <div id="tut-choice-result" style="margin-top:8px;font-size:0.78rem;color:var(--accent);min-height:18px"></div>
       </div>
       <button class="tut-btn" id="tut-s6-next" style="margin-top:14px">continue &#8594;</button>
     </div>
@@ -1330,7 +1316,10 @@ end</textarea>
         </div>
       </div>
       <div class="tut-backpack-code" id="tut-bp-code"><span class="lh-kw2">local</span> backpack <span class="lh-op">=</span> {}</div>
-      <div style="font-size:0.78rem;color:var(--muted);margin-bottom:8px;margin-top:14px">functions bundle reusable code:</div>
+      <div style="border-top:1px solid var(--border);margin:24px 0 18px;padding-top:18px">
+        <div class="tut-heading" style="font-size:clamp(1rem,2vw,1.2rem);margin-bottom:6px">functions. reuse code.</div>
+        <div class="tut-body">wrap code in a <strong>function</strong> to call it by name. edit the code below and hit run:</div>
+      </div>
       <div class="tut-ce-wrap" id="tut-s7-fn-ce">
         <pre class="tut-ce-hl" id="tut-s7-fn-hl"></pre>
         <textarea class="tut-ce-ta" id="tut-s7-fn-code" rows="4" spellcheck="false">function greet(who)
@@ -1391,14 +1380,20 @@ greet("player")</textarea>
         </div>
         <div class="tut-net-panel hidden" id="tut-net-panel-kv">
           <div class="tut-kv-entries" id="tut-kv-entries"></div>
-          <div class="tut-net-actions">
-            <input class="tut-net-inp" id="tut-kv-key" placeholder="key" style="width:70px">
-            <input class="tut-net-inp" id="tut-kv-val" placeholder="value" style="width:70px">
-            <button class="tut-btn-muted" id="tut-kv-set">net.set()</button>
-            <button class="tut-btn-muted" id="tut-kv-get">net.get()</button>
+          <div class="tut-kv-actions-wrap">
+            <div class="tut-net-actions" style="margin-bottom:6px">
+              <input class="tut-net-inp" id="tut-kv-key" placeholder="key" style="width:90px">
+              <input class="tut-net-inp" id="tut-kv-val" placeholder="value" style="width:90px">
+              <button class="tut-btn-muted" id="tut-kv-set">net.set()</button>
+            </div>
+            <div class="tut-net-actions">
+              <input class="tut-net-inp" id="tut-kv-get-key" placeholder="key to read" style="width:120px">
+              <button class="tut-btn-muted" id="tut-kv-get">net.get()</button>
+              <span class="tut-kv-get-result" id="tut-kv-get-result"></span>
+            </div>
           </div>
           <div class="tut-kv-log" id="tut-kv-log"></div>
-          <div class="tut-net-note">key-value storage scoped per game. good for: lives, level, inventory. <span>reads and writes are instant</span>.</div>
+          <div class="tut-net-note">server-side key-value storage, scoped per game. data persists across sessions. good for: save data, world state, shared flags.</div>
         </div>
       </div>
       <button class="tut-btn" id="tut-s8-next" style="display:none">continue &#8594;</button>
@@ -1500,13 +1495,13 @@ greet("player")</textarea>
       <div class="tut-heading" style="font-size:clamp(1.3rem,3vw,1.8rem)">what the arcade adds</div>
       <div class="tut-body">games run in a Lua sandbox. beyond standard Lua, you get these. click each to see what it does:</div>
       <div style="font-size:0.82rem;color:var(--muted);margin-bottom:18px;line-height:1.6">
-        the arcade has 4 types of input. use whichever fits your game:
+        two ways to get input. use whichever fits your game:
       </div>
       <div class="tut-api-grid">
         <div class="tut-api-row" data-eapi="io">
           <div class="tut-api-col">
             <div class="tut-api-name">io.read("prompt")</div>
-            <div class="tut-api-desc">shows prompt in the input bar, waits for Enter. returns the typed text as a string. use for names, answers, commands.</div>
+            <div class="tut-api-desc">shows the prompt inline in the terminal, waits for Enter. returns the typed text as a string. use for names, answers, commands.</div>
             <div class="tut-api-demo-out" id="eapi-io-out">name: <span style="color:var(--accent)">ekansh</span><br>hello, ekansh!</div>
           </div>
         </div>
@@ -1515,20 +1510,6 @@ greet("player")</textarea>
             <div class="tut-api-name">io.getkey()</div>
             <div class="tut-api-desc">waits for a single keypress. no Enter needed. returns the key name: "a", "space", "up", "down", "left", "right". use for real-time controls, movement, menus.</div>
             <div class="tut-api-demo-out" id="eapi-getkey-out">pressed: <span style="color:var(--accent)">up</span></div>
-          </div>
-        </div>
-        <div class="tut-api-row" data-eapi="choice">
-          <div class="tut-api-col">
-            <div class="tut-api-name">io.choice(prompt, options)</div>
-            <div class="tut-api-desc">shows a numbered menu. player picks a number, returns the chosen string. clean way to handle branching choices.</div>
-            <div class="tut-api-demo-out" id="eapi-choice-out"><span style="color:var(--code-type)">[1]</span> sword &nbsp;<span style="color:var(--code-type)">[2]</span> bow &nbsp;<span style="color:var(--code-type)">[3]</span> staff</div>
-          </div>
-        </div>
-        <div class="tut-api-row" data-eapi="confirm">
-          <div class="tut-api-col">
-            <div class="tut-api-name">io.confirm("sure?")</div>
-            <div class="tut-api-desc">asks a yes/no question. returns true or false. player types y or n.</div>
-            <div class="tut-api-demo-out" id="eapi-confirm-out">sure? (y/n) <span style="color:var(--accent)">y</span> -> true</div>
           </div>
         </div>
       </div>
@@ -2057,7 +2038,7 @@ greet("player")</textarea>
         '<span style="color:var(--muted)">|  ...                           |</span>\n' +
         '<span style="color:var(--muted)">|  io.read(...)                  |</span>\n' +
         '<span style="color:var(--muted)">|  if choice == "i" ...          |</span>\n' +
-        '<span style="color:var(--muted)">+-------- ------- ----------------+</span>';
+        '<span style="color:var(--muted)">+---------------------------------+</span>';
     }
   })();
 
@@ -2145,7 +2126,39 @@ greet("player")</textarea>
     goTo(4);
   });
 
-  // -- SCREEN 4: strings ---------------------------------------------------------------------
+  // -- SCREEN 4: strings — interactive blocks -------------------------------------------------
+  (function() {
+    var builder = document.getElementById('tut-str-builder');
+    var preview = document.getElementById('tut-str-preview');
+    if (!builder) return;
+    builder.querySelectorAll('.tut-str-block[data-alts]').forEach(function(block) {
+      var alts = block.getAttribute('data-alts').split('|');
+      var idx = 0;
+      block.addEventListener('click', function() {
+        idx = (idx + 1) % alts.length;
+        block.textContent = alts[idx];
+        block.classList.remove('tut-str-pop');
+        void block.offsetWidth; // reflow to restart animation
+        block.classList.add('tut-str-pop');
+        playClickSound();
+        var r = block.getBoundingClientRect();
+        burst(r.left + r.width/2, r.top + r.height/2, 6);
+        // update preview
+        var blocks = builder.querySelectorAll('.tut-str-block');
+        var result = '';
+        blocks.forEach(function(b) {
+          if (b.classList.contains('tut-str-op')) return;
+          var txt = b.textContent;
+          if (b.classList.contains('tut-str-var')) {
+            result += '<span style="color:var(--accent)">' + hlEsc(varsPlayerName) + '</span>';
+          } else {
+            result += hlEsc(txt.replace(/^"|"$/g, ''));
+          }
+        });
+        preview.innerHTML = result;
+      });
+    });
+  })();
   document.getElementById('tut-s3-next').addEventListener('click', function() { goTo(5); });
 
   // -- SCREEN 5: if/else ---------------------------------------------------------------------
@@ -2155,33 +2168,12 @@ greet("player")</textarea>
     document.querySelectorAll('.tut-branch-line').forEach(function(l){ l.classList.remove('active'); });
   }
 
-  function updateFlowDiagram(branch) {
-    var fd = document.getElementById('tut-flow-diagram');
-    if (!fd) return;
-    if (branch === 'inside') {
-      fd.innerHTML =
-        '       choice?\n' +
-        '      /       \\\n' +
-        '  <span class="fd-active">"i"</span>          else\n' +
-        '   <span class="fd-active">|</span>             |\n' +
-        ' <span class="fd-active">inside</span>        go home';
-    } else {
-      fd.innerHTML =
-        '       choice?\n' +
-        '      /       \\\n' +
-        '  "i"          <span class="fd-active">else</span>\n' +
-        '   |             <span class="fd-active">|</span>\n' +
-        ' inside        <span class="fd-active">go home</span>';
-    }
-  }
-
   document.getElementById('tut-cave-inside').addEventListener('click', function() {
     document.getElementById('tut-cave-inside').classList.add('chosen');
     document.getElementById('tut-cave-leave').classList.remove('chosen');
     clearBranchHighlights();
     document.getElementById('bl-1').classList.add('active');
     document.getElementById('bl-2').classList.add('active');
-    updateFlowDiagram('inside');
     var resultEl = document.getElementById('tut-cave-result');
     resultEl.style.opacity = '0';
     resultEl.innerHTML = '<span style="color:#73daca">you venture inside...</span>';
@@ -2203,7 +2195,6 @@ greet("player")</textarea>
     clearBranchHighlights();
     document.getElementById('bl-3').classList.add('active');
     document.getElementById('bl-4').classList.add('active');
-    updateFlowDiagram('leave');
     var resultEl = document.getElementById('tut-cave-result');
     resultEl.style.opacity = '0';
     resultEl.innerHTML = 'you go home safely.';
@@ -2540,18 +2531,6 @@ greet("player")</textarea>
     }
   });
 
-  // io.choice demo
-  document.querySelectorAll('.tut-choice-opt').forEach(function(opt) {
-    opt.addEventListener('click', function() {
-      document.querySelectorAll('.tut-choice-opt').forEach(function(o){ o.classList.remove('selected'); });
-      this.classList.add('selected');
-      var ch = this.getAttribute('data-ch');
-      var weapons = {1:'sword', 2:'bow', 3:'magic staff'};
-      document.getElementById('tut-choice-result').textContent = 'you chose: '+weapons[ch]+'!';
-      playClickSound();
-    });
-  });
-
   document.getElementById('tut-s6-next').addEventListener('click', function() { goTo(10); });
 
   // -- SCREEN 10: tables & functions ----------------------------------------------------------
@@ -2752,14 +2731,19 @@ greet("player")</textarea>
   });
 
   document.getElementById('tut-kv-get').addEventListener('click', function() {
-    var key = document.getElementById('tut-kv-key').value.trim();
+    var key = document.getElementById('tut-kv-get-key').value.trim();
     if (!key) return;
     var val = kvStore[key];
+    var resultEl = document.getElementById('tut-kv-get-result');
     if (val !== undefined) {
+      resultEl.innerHTML = '= <strong style="color:var(--accent)">' + hlEsc(val) + '</strong>';
       kvLog('net.get("'+key+'") -> '+val);
     } else {
+      resultEl.innerHTML = '= <strong style="color:var(--muted)">nil</strong>';
       kvLog('net.get("'+key+'") -> nil');
     }
+    resultEl.classList.add('flash');
+    setTimeout(function(){ resultEl.classList.remove('flash'); }, 400);
     playClickSound();
   });
 
