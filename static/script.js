@@ -2001,6 +2001,7 @@ function toggleTheme() {
       '  get =function(key) return coroutine.yield("\\0net\\0get\\1"..tostring(key)) end,',
       '  rank=function(name,score) coroutine.yield("\\0net\\0rank\\1"..tostring(name).."\\1"..tostring(tonumber(score) or 0)) end,',
       '  top =function(n) coroutine.yield("\\0net\\0top\\1"..tostring(math.floor(tonumber(n) or 10))) return _net_collect() end,',
+      '  bottom=function(n) coroutine.yield("\\0net\\0bottom\\1"..tostring(math.floor(tonumber(n) or 10))) return _net_collect() end,',
       '}',
       // tasks: scheduler with auto-yield on pollkey + debug.sethook fallback
       'tasks={',
@@ -2115,9 +2116,9 @@ function toggleTheme() {
                   .catch(function() { if (_gameMode) step('err:network'); });
                 return;
               }
-              if (op === 'top') {
+              if (op === 'top' || op === 'bottom') {
                 var n = parseInt(parts[1]) || 10;
-                fetch('/api/net?op=top&game=' + gid + '&n=' + n)
+                fetch('/api/net?op=' + op + '&game=' + gid + '&n=' + n)
                   .then(function(r) { return r.json(); })
                   .then(function(d) { window._netBuf = d.entries || []; if (_gameMode) step('\x01'); })
                   .catch(function() { window._netBuf = []; if (_gameMode) step('\x01'); });

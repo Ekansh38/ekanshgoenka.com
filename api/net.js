@@ -50,10 +50,11 @@ module.exports = async (req, res) => {
         return res.status(200).json({ value: result[0]?.result ?? null });
       }
 
-      if (op === 'top') {
+      if (op === 'top' || op === 'bottom') {
         const n = Math.min(Math.max(1, parseInt(reqUrl.searchParams.get('n') || '10', 10)), MAX_N);
         res.setHeader('Cache-Control', 'no-store');
-        const result = await kv([['zrevrange', `net:${game}:lb`, '0', String(n - 1), 'WITHSCORES']]);
+        const cmd = op === 'bottom' ? 'zrange' : 'zrevrange';
+        const result = await kv([[cmd, `net:${game}:lb`, '0', String(n - 1), 'WITHSCORES']]);
         const raw = result[0]?.result || [];
         const entries = [];
         for (let i = 0; i < raw.length; i += 2)
