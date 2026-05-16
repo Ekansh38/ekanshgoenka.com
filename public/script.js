@@ -1964,7 +1964,7 @@ function toggleTheme() {
       // task: cooperative concurrency scheduler
       'local _tasks={}',
       'local _task_active=false',
-      'task={',
+      'tasks={',
       '  spawn=function(fn) _tasks[#_tasks+1]={co=coroutine.create(fn),wake=0} end,',
       '  stop=function() _task_active=false end,',
       '  run=function()',
@@ -1988,7 +1988,7 @@ function toggleTheme() {
       '            elseif type(rv)=="string" and string.sub(rv,1,7)=="\\0sleep\\0" then',
       '              secs=(tonumber(string.sub(rv,8)) or 0)/1000',
       '            else',
-      '              print(colored("task: use task.wait() not io.getkey/io.read",color.red))',
+      '              print(colored("tasks: use sleep() not io.getkey/io.read",color.red))',
       '              table.remove(_tasks,i)',
       '              secs=nil',
       '            end',

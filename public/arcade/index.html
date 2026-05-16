@@ -155,7 +155,7 @@ document.getElementById('arc-write-btn').addEventListener('click', function() {
     var KW_OP     = /^(and|or|not)$/;
     var FN_STD    = /^(math|string|table|io|os|coroutine)$/;
     var FN_BLT    = /^(print|tostring|tonumber|type|pairs|ipairs|pcall|xpcall|error|select|assert|next|rawget|rawset|setmetatable|getmetatable)$/;
-    var FN_ARC    = /^(sleep|clear|colored|color|sound|net)$/;
+    var FN_ARC    = /^(sleep|clear|colored|color|sound|net|tasks)$/;
     var MOPS      = ['~=','<=','>=','==','..','//'];
 
     function tok(src) {
