@@ -675,9 +675,48 @@ body.page h3 { font-size: 1rem; color: var(--fg); font-weight: 700; margin: 28px
 .arc-cta-btn-arrow { font-size: 0.75rem; }
 
 /* ── Edit link (game page) ── */
-.ag-edit-link-row { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); }
-.ag-edit-link { color: var(--muted); font-size: 0.85rem; text-decoration: none; }
-.ag-edit-link:hover { color: var(--accent); }
+/* Manage section */
+.ag-manage { margin-top: 28px; }
+.ag-manage-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.ag-manage-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 0.78rem;
+  padding: 7px 16px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.15s, border-color 0.15s;
+}
+.ag-manage-btn:hover { color: var(--accent); border-color: var(--accent); }
+.ag-manage-muted { opacity: 0.6; }
+.ag-manage-muted:hover { opacity: 1; }
+.ag-manage-danger:hover { color: #e06c75; border-color: #e06c75; }
+.ag-manage-panel {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  background: var(--code-bg);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.ag-manage-inp {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 0.78rem;
+  padding: 5px 10px;
+  outline: none;
+  width: 140px;
+  transition: border-color 0.15s;
+}
+.ag-manage-inp:focus { border-color: var(--accent); }
+.ag-manage-actions { display: flex; gap: 6px; }
+.ag-manage-status { font-size: 0.75rem; color: var(--muted); }
 
 /* ── Section headers ── */
 .arc-section-header {
@@ -1077,18 +1116,6 @@ body.page h3 { font-size: 1rem; color: var(--fg); font-weight: 700; margin: 28px
   min-width: 0;
 }
 
-/* Delete */
-.ag-del-section { margin-top: 44px; padding-top: 20px; border-top: 1px solid var(--border); }
-.ag-del-summary {
-  cursor: pointer;
-  list-style: none;
-  color: var(--muted);
-  font-size: 0.82rem;
-  user-select: none;
-}
-.ag-del-summary::-webkit-details-marker { display: none; }
-.ag-del-summary::before { content: '+ '; }
-.ag-del-section[open] .ag-del-summary::before { content: '- '; }
 .ag-del-form {
   display: flex;
   align-items: center;

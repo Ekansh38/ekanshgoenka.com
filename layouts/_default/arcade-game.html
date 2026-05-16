@@ -173,27 +173,22 @@
     </div>
   </div>
 
-  <div class="ag-edit-link-row">
-    <a id="ag-edit-link" href="#" class="ag-edit-link">edit in editor →</a>
+  <div class="ag-manage">
+    <div class="ag-manage-row">
+      <a id="ag-edit-link" href="#" class="ag-manage-btn">edit in editor</a>
+      <button id="ag-manage-toggle" class="ag-manage-btn ag-manage-muted">manage</button>
+    </div>
+    <div id="ag-manage-panel" class="ag-manage-panel" style="display:none">
+      <div class="ag-manage-field">
+        <input type="password" id="ag-manage-code" class="ag-manage-inp" placeholder="edit code" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="ag-manage-actions">
+        <button id="ag-wipe-confirm" class="ag-manage-btn ag-manage-muted">wipe data</button>
+        <button id="ag-del-confirm" class="ag-manage-btn ag-manage-danger">delete game</button>
+      </div>
+      <span id="ag-manage-status" class="ag-manage-status"></span>
+    </div>
   </div>
-
-  <details class="ag-del-section">
-    <summary class="ag-del-summary">wipe game data</summary>
-    <div class="ag-del-form">
-      <input type="password" id="ag-wipe-code" class="arc-code-inp" placeholder="edit code (xxxxx-xxxxx)">
-      <button id="ag-wipe-confirm" class="arc-del-confirm">wipe data</button>
-      <span id="ag-wipe-status" class="arc-del-status"></span>
-    </div>
-  </details>
-
-  <details class="ag-del-section">
-    <summary class="ag-del-summary">delete this game</summary>
-    <div class="ag-del-form">
-      <input type="password" id="ag-code-inp" class="arc-code-inp" placeholder="edit code (xxxxx-xxxxx)">
-      <button id="ag-del-confirm" class="rc-del-confirm">confirm delete</button>
-      <span id="ag-del-status" class="arc-del-status"></span>
-    </div>
-  </details>
 
 </div>
 
@@ -343,47 +338,52 @@
       });
       document.getElementById('ag-lb-refresh').addEventListener('click', fetchLb);
 
-      // wipe game data
+      // ── manage panel ──
+      var managePanel = document.getElementById('ag-manage-panel');
+      document.getElementById('ag-manage-toggle').addEventListener('click', function() {
+        managePanel.style.display = managePanel.style.display === 'none' ? 'flex' : 'none';
+      });
+
+      function getManageCode() { return (document.getElementById('ag-manage-code').value || '').trim(); }
+      var manageStatus = document.getElementById('ag-manage-status');
+
+      // wipe data
       document.getElementById('ag-wipe-confirm').addEventListener('click', function() {
-        var code = document.getElementById('ag-wipe-code').value.trim();
-        var status = document.getElementById('ag-wipe-status');
-        if (!code) { status.textContent = 'enter your edit code'; return; }
-        this.disabled = true; this.textContent = 'wiping...'; status.textContent = '';
+        var code = getManageCode();
+        if (!code) { manageStatus.textContent = 'enter edit code'; return; }
+        this.disabled = true; this.textContent = 'wiping...'; manageStatus.textContent = '';
+        var self = this;
         fetch('/api/net?game=' + encodeURIComponent(id), {
           method: 'POST', headers: {'Content-Type':'application/json'},
           body: JSON.stringify({op: 'clear', code: code})
         }).then(function(r){return r.json();}).then(function(d){
-          if (d.ok) { status.textContent = 'done — ' + d.deleted + ' keys deleted'; status.style.color = 'var(--accent)'; }
-          else { status.textContent = d.error || 'error'; }
-          document.getElementById('ag-wipe-confirm').disabled = false;
-          document.getElementById('ag-wipe-confirm').textContent = 'wipe data';
+          if (d.ok) { manageStatus.textContent = d.deleted + ' keys wiped'; manageStatus.style.color = 'var(--accent)'; fetchLb(); }
+          else { manageStatus.textContent = d.error || 'error'; manageStatus.style.color = ''; }
+          self.disabled = false; self.textContent = 'wipe data';
         }).catch(function(){
-          status.textContent = 'network error';
-          document.getElementById('ag-wipe-confirm').disabled = false;
-          document.getElementById('ag-wipe-confirm').textContent = 'wipe data';
+          manageStatus.textContent = 'network error'; manageStatus.style.color = '';
+          self.disabled = false; self.textContent = 'wipe data';
         });
       });
 
-      // delete
+      // delete game
       document.getElementById('ag-del-confirm').addEventListener('click', function() {
-        var code = document.getElementById('ag-code-inp').value.trim();
-        var status = document.getElementById('ag-del-status');
-        if (!code) { status.textContent = 'enter your edit code'; return; }
-        this.disabled = true; this.textContent = 'deleting...'; status.textContent = '';
+        var code = getManageCode();
+        if (!code) { manageStatus.textContent = 'enter edit code'; return; }
+        this.disabled = true; this.textContent = 'deleting...'; manageStatus.textContent = '';
+        var self = this;
         fetch('/api/games?id=' + encodeURIComponent(id), {
           method: 'DELETE', headers: {'Content-Type':'application/json'},
           body: JSON.stringify({code: code})
         }).then(function(r){return r.json();}).then(function(d){
           if (d.ok) { try { localStorage.removeItem('arcade_v1'); } catch(e){} window.location.href = '/arcade/?r=1'; }
           else {
-            status.textContent = d.error || 'error';
-            document.getElementById('ag-del-confirm').disabled = false;
-            document.getElementById('ag-del-confirm').textContent = 'confirm delete';
+            manageStatus.textContent = d.error || 'error'; manageStatus.style.color = '';
+            self.disabled = false; self.textContent = 'delete game';
           }
         }).catch(function(){
-          status.textContent = 'network error';
-          document.getElementById('ag-del-confirm').disabled = false;
-          document.getElementById('ag-del-confirm').textContent = 'confirm delete';
+          manageStatus.textContent = 'network error'; manageStatus.style.color = '';
+          self.disabled = false; self.textContent = 'delete game';
         });
       });
     })
