@@ -1977,7 +1977,7 @@ function toggleTheme() {
       '        if coroutine.status(t.co)=="dead" then',
       '          table.remove(_tasks,i)',
       '        elseif now>=t.wake then',
-      '          debug.sethook(t.co,function() coroutine.yield(_PREEMPT) end,"",10000)',
+      '          debug.sethook(t.co,function() coroutine.yield(_PREEMPT) end,"",1000)',
       '          local ok,rv=coroutine.resume(t.co)',
       '          debug.sethook(t.co)',
       '          if not ok then',
