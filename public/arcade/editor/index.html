@@ -213,6 +213,11 @@
     padding: 0; outline: none; width: 100%;
   }
   .ae-meta-field input::placeholder { color: var(--muted); opacity: 0.4; }
+  .ae-meta-prev {
+    font-size: 0.65rem; color: var(--muted); opacity: 0.5;
+    margin-top: 2px; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap;
+  }
   .ae-field-title  { flex: 2.5; }
   .ae-field-author { flex: 1.5; }
   .ae-field-desc   { flex: 3; }
@@ -319,11 +324,11 @@
 
    
   @keyframes ae-pulse-glow {
-    0%   { border-color: var(--border); box-shadow: none; }
-    50%  { border-color: var(--accent); box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 40%, transparent); }
-    100% { border-color: var(--border); box-shadow: none; }
+    0%   { background: transparent; border-color: var(--accent); box-shadow: none; transform: scale(1); }
+    50%  { background: color-mix(in srgb, var(--accent) 20%, transparent); border-color: var(--accent); box-shadow: 0 0 16px color-mix(in srgb, var(--accent) 50%, transparent); transform: scale(1.08); }
+    100% { background: transparent; border-color: var(--accent); box-shadow: none; transform: scale(1); }
   }
-  .ae-docs-pulse { animation: ae-pulse-glow 1.4s ease-in-out infinite; }
+  .ae-docs-pulse { animation: ae-pulse-glow 1s ease-in-out infinite; color: var(--accent) !important; font-weight: 700; }
 
    
   .ae-actions {
@@ -441,12 +446,14 @@
     <div class="ae-metabar" id="ae-edit-bar" style="display:none">
       <div class="ae-meta-row">
         <div class="ae-meta-field ae-field-title">
-          <span class="ae-meta-lbl">new title <span class="ae-meta-lbl-opt">(leave blank to keep)</span></span>
-          <input id="ae-upd-title" type="text" placeholder="leave blank to keep current" maxlength="50" autocomplete="off" spellcheck="false">
+          <span class="ae-meta-lbl">title</span>
+          <input id="ae-upd-title" type="text" placeholder="leave blank to keep" maxlength="50" autocomplete="off" spellcheck="false">
+          <span class="ae-meta-prev" id="ae-prev-title"></span>
         </div>
         <div class="ae-meta-field ae-field-desc">
-          <span class="ae-meta-lbl">new description <span class="ae-meta-lbl-opt">(leave blank to keep)</span></span>
-          <input id="ae-upd-desc" type="text" placeholder="leave blank to keep current" maxlength="200" autocomplete="off" spellcheck="false">
+          <span class="ae-meta-lbl">description</span>
+          <input id="ae-upd-desc" type="text" placeholder="leave blank to keep" maxlength="200" autocomplete="off" spellcheck="false">
+          <span class="ae-meta-prev" id="ae-prev-desc"></span>
         </div>
         <div class="ae-meta-field ae-field-code">
           <span class="ae-meta-lbl">edit code</span>
@@ -706,8 +713,8 @@
       .then(function(game) {
         if (game.error) { modeEl.textContent = 'game not found'; return; }
         modeEl.innerHTML = 'editing &nbsp;<strong>' + game.title + '</strong>';
-        document.getElementById('ae-upd-title').placeholder = 'leave blank to keep: ' + game.title;
-        document.getElementById('ae-upd-desc').placeholder  = 'leave blank to keep: ' + (game.desc || '(none)');
+        document.getElementById('ae-prev-title').textContent = 'current: ' + game.title;
+        document.getElementById('ae-prev-desc').textContent  = 'current: ' + (game.desc || '(none)');
         setCode(game.code || '');
         updateCharCount();
       })
