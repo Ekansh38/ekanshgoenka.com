@@ -2981,7 +2981,6 @@ function toggleTheme() {
     overlay.classList.add('open');
     inp.focus();
     isOpen = true;
-    arcadeSound('click');
   }
   function close() {
     overlay.classList.remove('open');
