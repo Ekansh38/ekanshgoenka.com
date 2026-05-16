@@ -258,9 +258,22 @@
     color: var(--accent);
     background: color-mix(in srgb, var(--accent) 5%, transparent);
   }
+  .ae-docs-search-wrap {
+    padding: 6px 10px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .ae-docs-search {
+    width: 100%; padding: 5px 8px; font-family: inherit; font-size: 0.72rem;
+    background: var(--code-bg); border: 1px solid var(--border); color: var(--fg);
+    outline: none; box-sizing: border-box;
+  }
+  .ae-docs-search:focus { border-color: var(--accent); }
+  .ae-docs-search::placeholder { color: var(--muted); }
   .ae-docs-body {
     flex: 1; overflow-y: auto; padding: 10px;
     scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+  }
+  .ae-docs-no-results {
+    color: var(--muted); font-size: 0.75rem; font-style: italic; padding: 12px 4px;
   }
 
    
@@ -464,6 +477,9 @@
         <div class="ae-docs-tabs">
           <button class="ae-docs-tab ae-tab-on" data-tab="snippets">snippets</button>
           <button class="ae-docs-tab" data-tab="reference">reference</button>
+        </div>
+        <div class="ae-docs-search-wrap" id="ae-docs-search-wrap" style="display:none">
+          <input class="ae-docs-search" id="ae-docs-search" type="text" placeholder="search docs..." autocomplete="off" spellcheck="false">
         </div>
         <div class="ae-docs-body" id="ae-docs-body"></div>
       </div>
@@ -812,6 +828,31 @@
       '',
       'score = score + 10        -- update (no local the 2nd time)',
     ]},
+    { title: 'operators', lines: [
+      '-- arithmetic',
+      'a + b      a - b      a * b',
+      'a / b      a % b      a ^ b',
+      '',
+      '-- comparison (returns true/false)',
+      'a == b     -- equal',
+      'a ~= b     -- NOT equal  (not !=)',
+      'a < b      a > b      a <= b     a >= b',
+      '',
+      '-- logical',
+      'a and b    -- true if both true',
+      'a or b     -- true if either true',
+      'not a      -- flip true/false',
+      '',
+      '-- string join',
+      '"hi " .. name          -- concatenation',
+      '',
+      '-- length',
+      '#items     -- number of items in list',
+      '#str       -- number of chars in string',
+      '',
+      '-- NOTE: lua has NO +=  -=  *=  /=',
+      '-- write:  x = x + 1',
+    ]},
     { title: 'if / else', lines: [
       'if score > 100 then',
       '  print("you win!")',
@@ -820,9 +861,6 @@
       'else',
       '  print("keep going")',
       'end',
-      '',
-      '-- operators: ==  ~= (not equal)  <  >  <=  >=',
-      '-- combine:   and   or   not',
     ]},
     { title: 'loops', lines: [
       'for i = 1, 5 do           -- count 1 to 5',
@@ -883,6 +921,17 @@
       'math.abs(-5)              -- 5',
       'math.max(2, 8)            -- 8',
       'math.min(2, 8)            -- 2',
+    ]},
+    { title: 'types & conversion', lines: [
+      'type("hello")             -- "string"',
+      'type(42)                  -- "number"',
+      'type(true)                -- "boolean"',
+      'type(nil)                 -- "nil"',
+      'type({})                  -- "table"',
+      '',
+      'tostring(42)              -- "42"',
+      'tonumber("42")            -- 42',
+      'tonumber("abc")           -- nil (not a number)',
     ]},
     { title: 'colors', lines: [
       'print(colored("red!", color.red))',
@@ -963,13 +1012,14 @@
     if (lastIdx < code.length) tokens.push({ t: 'code', v: code.slice(lastIdx) });
 
     function highlightCode(s) {
-      
-      s = s.replace(/\b(\d+\.?\d*)\b/g, '<span style="color:var(--code-num)">$1</span>');
-      s = s.replace(KW_DEF, '<span class="cm-def">$1</span>');
-      s = s.replace(KW_CTL, '<span class="cm-keyword">$1</span>');
-      s = s.replace(KW_VAL, '<span class="cm-atom">$1</span>');
-      s = s.replace(FN_ARC, '<span class="cm-arcade">$1</span>');
-      s = s.replace(FN_BLT, '<span class="cm-builtin">$1</span>');
+      s = s.replace(KW_DEF, '\x00def\x00$1\x01');
+      s = s.replace(KW_CTL, '\x00keyword\x00$1\x01');
+      s = s.replace(KW_VAL, '\x00atom\x00$1\x01');
+      s = s.replace(FN_ARC, '\x00arcade\x00$1\x01');
+      s = s.replace(FN_BLT, '\x00builtin\x00$1\x01');
+      s = s.replace(/\b(\d+\.?\d*)\b/g, '\x00num\x00$1\x01');
+      s = s.replace(/\x00(def|keyword|atom|arcade|builtin)\x00(.*?)\x01/g, '<span class="cm-$1">$2</span>');
+      s = s.replace(/\x00num\x00(.*?)\x01/g, '<span style="color:var(--code-num)">$1</span>');
       return s;
     }
 
@@ -999,8 +1049,15 @@
     }).join('');
   }
 
-  function renderRef() {
-    return REF_SECTIONS.map(function(sec) {
+  function renderRef(query) {
+    var q = (query || '').toLowerCase().trim();
+    var sections = REF_SECTIONS.filter(function(sec) {
+      if (!q) return true;
+      if (sec.title.toLowerCase().indexOf(q) >= 0) return true;
+      return sec.lines.some(function(l) { return l.toLowerCase().indexOf(q) >= 0; });
+    });
+    if (!sections.length) return '<div class="ae-docs-no-results">no results for "' + escHtml(q) + '"</div>';
+    return sections.map(function(sec) {
       var highlighted = sec.lines.map(function(line) {
         return highlightLua(line);
       }).join('');
@@ -1012,14 +1069,24 @@
   var docsOpen = false;
   var activeTab = 'snippets';
 
+  var docsSearchWrap = document.getElementById('ae-docs-search-wrap');
+  var docsSearchInp = document.getElementById('ae-docs-search');
+
   function renderDocsContent() {
     var body = document.getElementById('ae-docs-body');
-    if (activeTab === 'snippets') {
-      body.innerHTML = renderSnippets();
+    var isRef = activeTab === 'reference';
+    docsSearchWrap.style.display = isRef ? '' : 'none';
+    if (isRef) {
+      body.innerHTML = renderRef(docsSearchInp.value);
     } else {
-      body.innerHTML = renderRef();
+      body.innerHTML = renderSnippets();
     }
   }
+
+  docsSearchInp.addEventListener('input', function() {
+    var body = document.getElementById('ae-docs-body');
+    body.innerHTML = renderRef(this.value);
+  });
 
   var docsTabBtn = document.getElementById('ae-docs-btn');
   docsTabBtn.addEventListener('click', function() {
