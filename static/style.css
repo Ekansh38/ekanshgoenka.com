@@ -1348,6 +1348,7 @@ body.page #bg-canvas { opacity: 0.25; }
   display: flex; align-items: center;
   font-family: inherit; font-size: inherit;
   color: var(--fg); line-height: 1.65;
+  white-space: pre;
 }
 .term-io-input {
   flex: 1; background: none; border: none; outline: none;
