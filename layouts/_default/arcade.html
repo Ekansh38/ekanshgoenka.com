@@ -7,13 +7,9 @@
 
 <!-- ── HERO ── -->
 <div class="arc-hero">
-  <div class="arc-hero-scanlines" aria-hidden="true"></div>
-  <div class="arc-hero-inner">
-    <span class="arc-banner-tag">ekanshgoenka.com / arcade</span>
-    <h1 class="arc-title-big" data-text="ARCADE">ARCADE</h1>
-    <p class="arc-banner-tagline">visitor-submitted lua games · runs in the terminal</p>
-    <div class="arc-stat-line" id="arc-stat-line"></div>
-  </div>
+  <h1 class="arc-title-big">arcade</h1>
+  <p class="arc-banner-tagline">visitor-submitted lua games · runs in the terminal</p>
+  <div class="arc-stat-line" id="arc-stat-line"></div>
 </div>
 
 <!-- ── INFO TABLE ── -->
@@ -46,14 +42,9 @@
 
 <!-- ── WRITE A GAME CTA ── -->
 <div class="arc-cta-section">
-  <div class="arc-cta-glow" aria-hidden="true"></div>
-  <div class="arc-cta-inner">
-    <div class="arc-cta-title">write a game</div>
-    <div class="arc-cta-desc">syntax highlighting · run &amp; submit in one place · guided intro for beginners · no experience required</div>
-    <button id="arc-write-btn" class="arc-cta-btn">
-      <span class="arc-cta-btn-arrow">▶</span> start writing →
-    </button>
-  </div>
+  <div class="arc-cta-title">write a game</div>
+  <div class="arc-cta-desc">syntax highlighting · run &amp; submit in one place · guided intro for beginners · no experience required</div>
+  <button id="arc-write-btn" class="arc-cta-btn">open editor →</button>
 </div>
 <script>
 document.getElementById('arc-write-btn').addEventListener('click', function() {
@@ -64,21 +55,6 @@ document.getElementById('arc-write-btn').addEventListener('click', function() {
 
 <script>
 (function() {
-  // ── tagline typing effect ──
-  var taglineEl = document.querySelector('.arc-banner-tagline');
-  if (taglineEl) {
-    var taglineText = taglineEl.textContent;
-    taglineEl.textContent = '';
-    setTimeout(function() {
-      var ci = 0;
-      var iv = setInterval(function() {
-        taglineEl.textContent += taglineText[ci];
-        ci++;
-        if (ci >= taglineText.length) clearInterval(iv);
-      }, 30);
-    }, 300);
-  }
-
   var API = '/api/games';
   var LS_KEY = 'arcade_v1', LS_TTL = 5 * 60 * 1000;
   var MAX_CODE = 25000;

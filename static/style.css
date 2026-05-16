@@ -395,9 +395,6 @@ body.page h3 { font-size: 1rem; color: var(--fg); font-weight: 700; margin: 28px
 /* ── ARCADE ──────────────────────────────────────────────────── */
 
 @keyframes arc-fadein { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-@keyframes arc-pulse  { 0%,100%{opacity:1} 50%{opacity:0.45} }
-@keyframes arc-scan { 0%{transform:translateY(-100%)} 100%{transform:translateY(100%)} }
-@keyframes arc-glow-pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
 
 /* background dot grid — scoped to arcade pages */
 .arc-bg-dots {
@@ -407,98 +404,31 @@ body.page h3 { font-size: 1rem; color: var(--fg); font-weight: 700; margin: 28px
   pointer-events: none; z-index: -1; opacity: 0.55;
 }
 
-/* ── Glitch title ── */
-@keyframes arc-glitch-a {
-  0%,100%{ clip-path:inset(0 0 95% 0); transform:translate(-3px,0); }
-  30%    { clip-path:inset(20% 0 60% 0); transform:translate(3px,0); }
-  70%    { clip-path:inset(65% 0 10% 0); transform:translate(-2px,0); }
-}
-@keyframes arc-glitch-b {
-  0%,100%{ clip-path:inset(85% 0 0 0); transform:translate(3px,0); }
-  40%    { clip-path:inset(30% 0 50% 0); transform:translate(-3px,0); }
-  80%    { clip-path:inset(50% 0 20% 0); transform:translate(2px,0); }
-}
-
 /* ── Hero ── */
 .arc-hero {
-  position: relative;
-  border: 1px solid var(--accent);
   margin-bottom: 40px;
-  overflow: hidden;
-  background: color-mix(in srgb, var(--accent) 4%, var(--code-bg));
-  box-shadow: 0 0 40px color-mix(in srgb, var(--accent) 12%, transparent),
-              inset 0 0 60px color-mix(in srgb, var(--accent) 6%, transparent);
-}
-.arc-hero-scanlines {
-  position: absolute; inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 3px,
-    color-mix(in srgb, var(--bg) 18%, transparent) 3px,
-    color-mix(in srgb, var(--bg) 18%, transparent) 4px
-  );
-  pointer-events: none; z-index: 1;
-}
-.arc-hero-scanlines::after {
-  content: '';
-  position: absolute; left: 0; right: 0;
-  height: 60px;
-  background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--accent) 8%, transparent), transparent);
-  animation: arc-scan 4s linear infinite;
-  pointer-events: none;
-}
-.arc-hero-inner {
-  position: relative; z-index: 2;
-  padding: 40px 40px 32px;
-  text-align: center;
-}
-.arc-banner-tag {
-  display: inline-block;
-  font-size: 0.68rem;
-  color: var(--muted);
-  letter-spacing: 0.18em;
-  margin-bottom: 18px;
-  opacity: 0.7;
+  padding: 48px 0 32px;
 }
 .arc-title-big {
-  display: block;
-  position: relative;
-  font-size: clamp(3.5rem, 10vw, 6.5rem);
+  font-size: clamp(2.4rem, 7vw, 4rem);
   font-weight: 700;
-  letter-spacing: 0.18em;
-  color: var(--accent);
+  letter-spacing: 0.14em;
+  color: var(--fg);
   line-height: 1;
-  margin: 0 0 18px;
-  user-select: none;
-  text-shadow: 0 0 30px color-mix(in srgb, var(--accent) 60%, transparent),
-               0 0 60px color-mix(in srgb, var(--accent) 30%, transparent);
+  margin: 0 0 14px;
 }
-.arc-title-big::before, .arc-title-big::after {
-  content: attr(data-text);
-  position: absolute; left:0; top:0; width:100%;
-  font-size: inherit; font-weight: inherit; letter-spacing: inherit;
-  opacity: 0; pointer-events: none;
-}
-.arc-title-big:hover::before {
-  color: #f7768e; opacity: 0.85;
-  animation: arc-glitch-a 0.22s steps(1) infinite;
-}
-.arc-title-big:hover::after {
-  color: #7aa2f7; opacity: 0.75;
-  animation: arc-glitch-b 0.22s steps(1) 0.07s infinite;
-}
+.arc-title-big::before { content: '[ '; color: var(--muted); font-weight: 400; }
+.arc-title-big::after  { content: ' ]'; color: var(--muted); font-weight: 400; }
 .arc-banner-tagline {
   color: var(--muted);
   font-size: 0.85rem;
-  margin: 0 0 14px;
-  letter-spacing: 0.05em;
+  margin: 0 0 10px;
+  letter-spacing: 0.03em;
 }
 .arc-stat-line {
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   color: var(--muted);
-  letter-spacing: 0.03em;
-  margin-bottom: 8px;
+  opacity: 0.6;
 }
 .arc-stat-val { color: var(--accent); font-weight: 700; }
 /* ── Arcade intro ── */
@@ -611,68 +541,40 @@ body.page h3 { font-size: 1rem; color: var(--fg); font-weight: 700; margin: 28px
 
 /* ── Write-a-game CTA section ── */
 .arc-cta-section {
-  position: relative;
-  border: 1px solid var(--accent);
+  border: 1px solid var(--border);
   margin: 48px 0 48px;
-  padding: 36px 40px;
-  overflow: hidden;
-  background: color-mix(in srgb, var(--accent) 4%, var(--code-bg));
-  box-shadow: 0 0 32px color-mix(in srgb, var(--accent) 10%, transparent),
-              inset 0 0 40px color-mix(in srgb, var(--accent) 5%, transparent);
-}
-.arc-cta-glow {
-  position: absolute; inset: 0;
-  background: radial-gradient(ellipse at 50% 100%, color-mix(in srgb, var(--accent) 12%, transparent) 0%, transparent 70%);
-  pointer-events: none;
-  animation: arc-glow-pulse 3s ease-in-out infinite;
-}
-.arc-cta-inner { position: relative; z-index: 1; }
-.arc-cta-eyebrow {
-  font-size: 0.65rem;
-  letter-spacing: 0.3em;
-  color: var(--accent);
-  opacity: 0.55;
-  margin-bottom: 10px;
-  animation: arc-pulse 2.4s ease-in-out infinite;
+  padding: 28px 28px;
+  background: var(--code-bg);
 }
 .arc-cta-title {
-  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--fg);
-  letter-spacing: 0.06em;
-  margin-bottom: 10px;
-  line-height: 1.1;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
 }
 .arc-cta-desc {
-  font-size: 0.83rem;
+  font-size: 0.82rem;
   color: var(--muted);
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   line-height: 1.6;
-  max-width: 52ch;
 }
 .arc-cta-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--accent);
-  color: var(--bg);
-  border: none;
-  padding: 11px 22px;
+  background: none;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 8px 18px;
   font-family: inherit;
-  font-size: 0.88rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
   cursor: pointer;
-  transition: opacity 0.18s, transform 0.15s, box-shadow 0.18s;
-  box-shadow: 0 0 16px color-mix(in srgb, var(--accent) 35%, transparent);
+  transition: background 0.15s, color 0.15s;
 }
 .arc-cta-btn:hover {
-  opacity: 0.88;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 24px color-mix(in srgb, var(--accent) 45%, transparent);
+  background: var(--accent);
+  color: var(--bg);
 }
-.arc-cta-btn:active { transform: translateY(0); }
-.arc-cta-btn-arrow { font-size: 0.75rem; }
 
 /* ── Edit link (game page) ── */
 /* Manage section */
