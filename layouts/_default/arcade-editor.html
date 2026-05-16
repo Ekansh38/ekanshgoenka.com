@@ -399,6 +399,10 @@
             <option value="asc">lower is better</option>
           </select>
         </div>
+        <div class="ae-meta-field ae-field-code">
+          <span class="ae-meta-lbl">edit code</span>
+          <input id="ae-newcode" type="password" placeholder="choose a code" minlength="4" maxlength="50" autocomplete="off" spellcheck="false">
+        </div>
       </div>
       <div class="ae-slug-hint" id="ae-slug" style="display:none"></div>
     </div>
@@ -460,15 +464,7 @@
   <div id="ae-success-panel">
     <div class="ae-success-check">&#10003;</div>
     <div class="ae-success-title">game submitted!</div>
-    <div class="ae-success-sub">it's live on the arcade. here's your edit code - this is how you edit or delete your game later. no accounts, no passwords, just this.</div>
-    <div class="ae-success-lbl">your edit code</div>
-    <div class="ae-success-code-box">
-      <code class="ae-success-code" id="ae-success-code"></code>
-      <button class="ag-copy-btn" id="ae-success-copy">copy</button>
-    </div>
-    <p class="ae-success-warn">
-      <strong>save this.</strong> it won't be shown again. you'll need it to edit or delete your game. paste it somewhere safe.
-    </p>
+    <div class="ae-success-sub">it's live on the arcade. use the edit code you chose to edit or delete your game later.</div>
     <div class="ae-success-btns">
       <a class="ae-success-view" id="ae-success-link" href="#">view game</a>
       <button class="ae-success-another" id="ae-success-another">write another</button>
@@ -1266,37 +1262,40 @@
   });
 
   // ── success panel ──
-  function showSuccess(editCode, gameId) {
+  function showSuccess(gameId) {
     clearDraft();
     document.getElementById('ae-form-area').style.display = 'none';
     var panel = document.getElementById('ae-success-panel');
     panel.style.display = 'flex';
-    document.getElementById('ae-success-code').textContent = editCode;
-    document.getElementById('ae-success-link').href        = '/arcade/game/?id=' + gameId;
+    document.getElementById('ae-success-link').href = '/arcade/game/?id=' + gameId;
   }
 
   // ── submit (new game) ──
   submitBtn.addEventListener('click', function() {
-    var title  = (document.getElementById('ae-title')  || {}).value || '';
-    var author = (document.getElementById('ae-author') || {}).value || '';
-    var desc   = (document.getElementById('ae-desc')   || {}).value || '';
-    var code   = getCode().trim();
-    var btn    = this;
+    var title    = (document.getElementById('ae-title')   || {}).value || '';
+    var author   = (document.getElementById('ae-author')  || {}).value || '';
+    var desc     = (document.getElementById('ae-desc')    || {}).value || '';
+    var editCode = (document.getElementById('ae-newcode') || {}).value || '';
+    var code     = getCode().trim();
+    var btn      = this;
     title  = title.trim();
     author = author.trim();
     desc   = desc.trim();
+    editCode = editCode.trim();
     if (!title)       { setStatus('title required', 'err'); return; }
     if (!author)      { setStatus('author required', 'err'); return; }
+    if (!editCode)    { setStatus('choose an edit code', 'err'); return; }
+    if (editCode.length < 4) { setStatus('edit code must be at least 4 characters', 'err'); return; }
     if (!code)        { setStatus('write some code first', 'err'); return; }
     if (code.length > 25000) { setStatus('code too long (max 25000)', 'err'); return; }
     btn.disabled = true; btn.textContent = 'submitting...'; setStatus('', '');
     fetch('/api/games', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: title, author: author, desc: desc, code: code, lbMode: (document.getElementById('ae-lbmode') || {}).value || 'desc' }),
+      body: JSON.stringify({ title: title, author: author, desc: desc, code: code, editCode: editCode, lbMode: (document.getElementById('ae-lbmode') || {}).value || 'desc' }),
     }).then(function(r) { return r.json(); }).then(function(data) {
       if (data.ok) {
         try { localStorage.removeItem('arcade_v1'); } catch(e) {}
-        showSuccess(data.editCode, data.id);
+        showSuccess(data.id);
       } else {
         setStatus(data.error || 'something went wrong', 'err');
         btn.disabled = false; btn.textContent = 'submit game';
@@ -1340,15 +1339,6 @@
     }).catch(function() {
       setStatus('network error', 'err');
       btn.disabled = false; btn.textContent = 'publish update';
-    });
-  });
-
-  // ── copy edit code ──
-  document.getElementById('ae-success-copy').addEventListener('click', function() {
-    var btn = this;
-    navigator.clipboard.writeText(document.getElementById('ae-success-code').textContent).then(function() {
-      btn.textContent = 'copied!'; btn.classList.add('copied');
-      setTimeout(function() { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 1800);
     });
   });
 

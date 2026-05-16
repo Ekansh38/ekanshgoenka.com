@@ -31,10 +31,6 @@ function slugify(str) {
 function hashCode(s) {
   return crypto.createHash('sha256').update(s).digest('hex');
 }
-function genCode() {
-  const h = crypto.randomBytes(5).toString('hex'); // 10 hex chars
-  return h.slice(0, 5) + '-' + h.slice(5);         // e.g. a3f9b-2c81d
-}
 function checkAuth(submitted, game) {
   const master = process.env.ARCADE_MASTER_CODE;
   if (master && submitted === master) return true;
@@ -85,30 +81,31 @@ module.exports = async (req, res) => {
 
     // ── POST: submit a game ───────────────────────────────────────────────────
     if (req.method === 'POST') {
-      const { title, author, desc, code, lbMode, hp } = req.body || {};
+      const { title, author, desc, code, editCode, lbMode, hp } = req.body || {};
       if (hp) return res.status(200).json({ ok: true });
 
-      const t = (title  || '').trim().slice(0, MAX_TITLE);
-      const a = (author || '').trim().slice(0, MAX_AUTHOR);
-      const d = (desc   || '').trim().slice(0, MAX_DESC);
-      const c = (code   || '').trim().slice(0, MAX_CODE);
+      const t  = (title    || '').trim().slice(0, MAX_TITLE);
+      const a  = (author   || '').trim().slice(0, MAX_AUTHOR);
+      const d  = (desc     || '').trim().slice(0, MAX_DESC);
+      const c  = (code     || '').trim().slice(0, MAX_CODE);
+      const ec = (editCode || '').trim();
       const lb = lbMode === 'asc' ? 'asc' : 'desc';
       if (!t || !a || !c) return res.status(400).json({ error: 'title, author, and code are all required' });
+      if (!ec || ec.length < 4) return res.status(400).json({ error: 'edit code must be at least 4 characters' });
 
       const newId = slugify(t);
       const all = await fetchAll();
       if (all.some(g => g.id === newId))
         return res.status(409).json({ error: `a game called "${newId}" already exists, pick a different title` });
 
-      const editCode = genCode();
-      const entry = { id: newId, title: t, author: a, desc: d, code: c, lbMode: lb, date: new Date().toISOString(), codeHash: hashCode(editCode) };
+      const entry = { id: newId, title: t, author: a, desc: d, code: c, lbMode: lb, date: new Date().toISOString(), codeHash: hashCode(ec) };
 
       await kv([
         ['lpush', 'arcade', JSON.stringify(entry)],
         ['ltrim', 'arcade', '0', String(MAX_KEEP - 1)]
       ]);
 
-      return res.status(200).json({ ok: true, id: newId, editCode });
+      return res.status(200).json({ ok: true, id: newId });
     }
 
     // ── DELETE: remove a game ─────────────────────────────────────────────────
