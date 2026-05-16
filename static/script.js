@@ -2187,11 +2187,6 @@ function toggleTheme() {
         // io.getkey() — single keypress, no Enter required
         if (iobuf === '__getkey__') {
           iobuf = '';
-          // show indicator inline in output area
-          var gkEl = document.createElement('div');
-          gkEl.className = 'term-io-inline';
-          gkEl.innerHTML = '<i style="color:var(--muted)">[press any key]</i>';
-          output.appendChild(gkEl);
           inp.blur();
           var handler = function(e) {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
