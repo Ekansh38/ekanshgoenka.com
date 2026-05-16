@@ -1,4 +1,31 @@
 {{ define "main" }}
+<style>
+  .ag-source-code .ag-line-active {
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+    display: inline-block;
+    width: 100%;
+  }
+  .ag-preview-panel {
+    border: 1px solid var(--border);
+    margin-top: 8px;
+    background: var(--code-bg, #1a1b26);
+  }
+  .ag-preview-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+  .ag-preview-out {
+    padding: 10px 14px;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    min-height: 40px;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+</style>
 <div class="arc-bg-dots" aria-hidden="true"></div>
 <div class="ag-back"><a href="/arcade">← arcade</a></div>
 
@@ -38,6 +65,7 @@
   <div class="ag-source-section">
     <div class="ag-source-header">
       <span class="ag-source-title">source</span>
+      <button id="ag-preview" class="ag-copy-btn">▶ preview</button>
       <button id="ag-copy" class="ag-copy-btn">copy</button>
     </div>
     <div class="ag-source-window">
@@ -51,6 +79,13 @@
         <div class="ag-line-nums" id="ag-line-nums"></div>
         <pre id="ag-source" class="ag-source-code"></pre>
       </div>
+    </div>
+    <div id="ag-preview-panel" class="ag-preview-panel" style="display:none">
+      <div class="ag-preview-bar">
+        <span>preview output</span>
+        <button id="ag-preview-close" class="ag-copy-btn" style="font-size:0.68rem">close</button>
+      </div>
+      <div id="ag-preview-out" class="ag-preview-out"></div>
     </div>
   </div>
 
@@ -112,9 +147,12 @@
       var lines = (game.code || '').split('\n').length;
       document.getElementById('ag-lines').textContent = lines;
 
-      // source with line numbers
+      // source with line numbers (wrap each line in a span for preview highlighting)
       var highlighted = highlightLua(game.code || '');
-      document.getElementById('ag-source').innerHTML = highlighted;
+      var hlLines = highlighted.split('\n');
+      document.getElementById('ag-source').innerHTML = hlLines.map(function(l, i) {
+        return '<span class="ag-src-line" data-line="' + i + '">' + l + '</span>';
+      }).join('\n');
       document.getElementById('ag-filename').textContent = id + '.lua';
       var lineCount = (game.code || '').split('\n').length;
       document.getElementById('ag-line-nums').textContent = Array.from({length: lineCount}, function(_, i) { return i + 1; }).join('\n');
@@ -151,6 +189,147 @@
           setTimeout(function() { btn.textContent = 'copy'; }, 1800);
         });
       });
+
+      // preview
+      var COLORS = {
+        'color.red': '#f7768e', 'color.green': '#9ece6a', 'color.yellow': '#e0af68',
+        'color.cyan': '#7dcfff', 'color.blue': '#7aa2f7', 'color.purple': '#bb9af7',
+        'color.white': '#c0caf5', 'color.bold': '#c0caf5'
+      };
+
+      var previewRunning = false;
+      var previewAbort = false;
+
+      function previewCleanup() {
+        previewRunning = false;
+        previewAbort = false;
+        var allLines = document.querySelectorAll('.ag-src-line');
+        for (var i = 0; i < allLines.length; i++) {
+          allLines[i].classList.remove('ag-line-active');
+        }
+        var btn = document.getElementById('ag-preview');
+        btn.textContent = '\u25b6 preview';
+      }
+
+      function previewClose() {
+        previewAbort = true;
+        document.getElementById('ag-preview-panel').style.display = 'none';
+        previewCleanup();
+      }
+
+      function evalColoredStr(s) {
+        // parse colored("text", color.X) and return {text, color}
+        var m = s.match(/^colored\(\s*"([^"]*)"\s*,\s*(color\.\w+)\s*\)$/);
+        if (m) return { text: m[1], color: COLORS[m[2]] || null };
+        m = s.match(/^colored\(\s*'([^']*)'\s*,\s*(color\.\w+)\s*\)$/);
+        if (m) return { text: m[1], color: COLORS[m[2]] || null };
+        return null;
+      }
+
+      function evalPrintArg(arg) {
+        // handle concatenation with ..
+        var parts = arg.split('..');
+        var result = [];
+        for (var i = 0; i < parts.length; i++) {
+          var p = parts[i].trim();
+          // string literal
+          var sm = p.match(/^"([^"]*)"$/) || p.match(/^'([^']*)'$/);
+          if (sm) { result.push({ text: sm[1], color: null }); continue; }
+          // colored()
+          var c = evalColoredStr(p);
+          if (c) { result.push(c); continue; }
+          // skip variables/expressions - show placeholder
+          result.push({ text: '...', color: null });
+        }
+        return result;
+      }
+
+      function parsePrintLine(raw) {
+        // match print(...) call
+        var m = raw.match(/^\s*print\((.+)\)\s*$/);
+        if (!m) return null;
+        var inner = m[1].trim();
+        // print("") or print('')  -> empty line
+        if (inner === '""' || inner === "''") return [];
+        return evalPrintArg(inner);
+      }
+
+      function isSkipLine(raw) {
+        var t = raw.trim();
+        if (!t || t.indexOf('--') === 0) return true;
+        if (/^\s*(local\s+\w+\s*=\s*)?io\.(read|getkey|choice|confirm)\b/.test(t)) return true;
+        if (/^\s*net\./.test(t)) return true;
+        if (/^\s*(while|for|repeat)\b/.test(t)) return true;
+        if (/^\s*sleep\s*\(/.test(t)) return true;
+        if (/^\s*(if|elseif|else|end|do|then|break|return|until)\b/.test(t)) return true;
+        if (/^\s*local\s+/.test(t) && !parsePrintLine(t)) return true;
+        if (/^\s*sound\./.test(t)) return true;
+        if (/^\s*clear\s*\(/.test(t)) return true;
+        return false;
+      }
+
+      function runPreview() {
+        if (previewRunning) { previewClose(); return; }
+        previewRunning = true;
+        previewAbort = false;
+        var btn = document.getElementById('ag-preview');
+        btn.textContent = '\u25a0 stop';
+
+        var panel = document.getElementById('ag-preview-panel');
+        var outEl = document.getElementById('ag-preview-out');
+        panel.style.display = 'block';
+        outEl.innerHTML = '';
+
+        var rawLines = (game.code || '').split('\n');
+        var srcLines = document.querySelectorAll('.ag-src-line');
+        var idx = 0;
+
+        function step() {
+          if (previewAbort || idx >= rawLines.length) { previewCleanup(); return; }
+
+          // clear previous highlight
+          for (var j = 0; j < srcLines.length; j++) srcLines[j].classList.remove('ag-line-active');
+
+          // highlight current line
+          if (srcLines[idx]) {
+            srcLines[idx].classList.add('ag-line-active');
+            srcLines[idx].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          }
+
+          var raw = rawLines[idx];
+          var printed = parsePrintLine(raw);
+
+          if (printed !== null) {
+            // it's a print statement
+            var div = document.createElement('div');
+            if (printed.length === 0) {
+              div.innerHTML = '&nbsp;';
+            } else {
+              for (var p = 0; p < printed.length; p++) {
+                var span = document.createElement('span');
+                span.textContent = printed[p].text;
+                if (printed[p].color) span.style.color = printed[p].color;
+                div.appendChild(span);
+              }
+            }
+            outEl.appendChild(div);
+            outEl.scrollTop = outEl.scrollHeight;
+            idx++;
+            setTimeout(step, 300);
+          } else if (isSkipLine(raw)) {
+            idx++;
+            setTimeout(step, 80);
+          } else {
+            idx++;
+            setTimeout(step, 150);
+          }
+        }
+
+        step();
+      }
+
+      document.getElementById('ag-preview').addEventListener('click', runPreview);
+      document.getElementById('ag-preview-close').addEventListener('click', previewClose);
 
       // wire edit-in-editor link
       document.getElementById('ag-edit-link').href = '/arcade/editor/?edit=' + encodeURIComponent(id);
