@@ -1927,7 +1927,8 @@ function toggleTheme() {
     var co = lua.lua_newthread(L);
 
     var sandbox = [
-      'os=nil; require=nil; load=nil; dofile=nil; loadfile=nil; collectgarbage=nil',
+      'local _os_time=os.time; local _os_clock=os.clock; os={time=_os_time,clock=_os_clock}',
+      'require=nil; load=nil; dofile=nil; loadfile=nil; collectgarbage=nil',
       'io={',
       '  read =function(prompt) if type(prompt)=="string" then _setprompt(prompt) end return coroutine.yield() end,',
       '  getkey=function() _setprompt("__getkey__") return coroutine.yield() end,',
