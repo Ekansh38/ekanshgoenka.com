@@ -1243,8 +1243,8 @@ function toggleTheme() {
       '  scores <game-id> [n]    leaderboard (default top 10)',
       '  delete <game-id> <code> delete (requires edit code)',
       '',
-      '  open arcade             browse arcade',
-      '  open arcade/editor      write / edit a game',
+      '  editor                  open editor (new game)',
+      '  editor <game-id>        edit existing game',
       '',
       'input:',
       '  io.read("prompt")       wait for Enter, return text',
@@ -2166,6 +2166,14 @@ function toggleTheme() {
       } else {
         line('open: ' + (args[0] || '?') + ': not found', 'term-line-err');
       }
+    },
+
+    editor: function (args) {
+      if (args.length > 1) { tooMany('editor'); return; }
+      var url = '/arcade/editor/';
+      if (args[0]) url += '?edit=' + encodeURIComponent(args[0]);
+      line('→ ' + url, 'term-line-ok');
+      setTimeout(function () { window.location.href = url; }, 280);
     },
 
     whoami: function (args) {
