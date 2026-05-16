@@ -1,79 +1,111 @@
 {{ define "main" }}
 <style>
-  /* ── leaderboard ── */
-  .ag-lb {
-    margin-top: 28px;
-    border: 1px solid var(--border);
-    background: var(--code-bg);
+  /* ── leaderboard slide-out ── */
+  .ag-lb-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
   }
+  .ag-lb-overlay.open { opacity: 1; pointer-events: auto; }
+  .ag-lb {
+    position: fixed;
+    top: 0; right: 0; bottom: 0;
+    width: min(360px, 85vw);
+    background: var(--bg);
+    border-left: 1px solid var(--border);
+    z-index: 1000;
+    transform: translateX(100%);
+    transition: transform 0.25s ease;
+    display: flex;
+    flex-direction: column;
+  }
+  .ag-lb.open { transform: translateX(0); }
   .ag-lb-header {
     display: flex;
     align-items: center;
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--border);
+    padding: 16px 18px 12px;
     gap: 10px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
   }
+  .ag-lb-close {
+    background: none; border: none; color: var(--muted); font-size: 1.1rem;
+    cursor: pointer; padding: 0 4px; line-height: 1; opacity: 0.6;
+    transition: opacity 0.15s;
+  }
+  .ag-lb-close:hover { opacity: 1; color: var(--fg); }
   .ag-lb-title {
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-weight: 700;
     color: var(--muted);
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    white-space: nowrap;
-  }
-  .ag-lb-mode {
-    font-size: 0.65rem;
-    color: var(--muted);
-    opacity: 0.5;
     flex: 1;
   }
+  .ag-lb-mode {
+    font-size: 0.6rem;
+    color: var(--muted);
+    opacity: 0.45;
+  }
+  .ag-lb-search-row {
+    padding: 10px 18px;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+    flex-shrink: 0;
+  }
   .ag-lb-search {
-    background: var(--bg);
+    background: var(--code-bg);
     border: 1px solid var(--border);
     color: var(--fg);
     font-family: inherit;
-    font-size: 0.72rem;
-    padding: 3px 8px;
+    font-size: 0.75rem;
+    padding: 5px 10px;
     outline: none;
-    width: 130px;
+    width: 100%;
+    box-sizing: border-box;
     transition: border-color 0.15s;
   }
   .ag-lb-search:focus { border-color: var(--accent); }
   .ag-lb-search::placeholder { color: var(--muted); opacity: 0.4; }
   .ag-lb-body {
-    max-height: 340px;
+    flex: 1;
     overflow-y: auto;
+    min-height: 0;
   }
   .ag-lb-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
   }
   .ag-lb-table th {
-    font-size: 0.62rem;
+    font-size: 0.6rem;
     font-weight: 700;
     color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 0.1em;
     text-align: left;
-    padding: 7px 14px;
+    padding: 8px 18px;
     border-bottom: 1px solid var(--border);
     position: sticky;
     top: 0;
-    background: var(--code-bg);
+    background: var(--bg);
   }
-  .ag-lb-table th:first-child { width: 40px; text-align: center; }
+  .ag-lb-table th:first-child { width: 36px; text-align: center; padding-right: 0; }
   .ag-lb-table th:last-child { text-align: right; }
   .ag-lb-table td {
-    padding: 6px 14px;
-    border-bottom: 1px solid color-mix(in srgb, var(--border) 30%, transparent);
+    padding: 7px 18px;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 25%, transparent);
     color: var(--fg);
   }
   .ag-lb-table td:first-child {
     text-align: center;
     color: var(--muted);
-    font-size: 0.72rem;
-    width: 40px;
+    font-size: 0.7rem;
+    width: 36px;
+    padding-right: 0;
   }
   .ag-lb-table td:last-child {
     text-align: right;
@@ -81,7 +113,7 @@
     color: var(--muted);
   }
   .ag-lb-table tr:last-child td { border-bottom: none; }
-  .ag-lb-table tr:hover td { background: color-mix(in srgb, var(--accent) 5%, transparent); }
+  .ag-lb-table tr:hover td { background: color-mix(in srgb, var(--accent) 6%, transparent); }
   .ag-lb-gold td:first-child { color: #e0af68 !important; font-weight: 700; }
   .ag-lb-gold td:nth-child(2) { color: var(--accent); font-weight: 600; }
   .ag-lb-gold td:last-child { color: var(--fg); font-weight: 600; }
@@ -91,19 +123,23 @@
   .ag-lb-empty {
     font-size: 0.75rem;
     color: var(--muted);
-    opacity: 0.4;
-    padding: 24px 14px;
+    opacity: 0.35;
+    padding: 40px 18px;
     text-align: center;
   }
   .ag-lb-footer {
-    font-size: 0.62rem;
+    font-size: 0.6rem;
     color: var(--muted);
     opacity: 0.4;
-    padding: 6px 14px;
-    border-top: 1px solid color-mix(in srgb, var(--border) 30%, transparent);
+    padding: 8px 18px;
+    border-top: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
     display: flex;
     justify-content: space-between;
+    flex-shrink: 0;
   }
+  .ag-lb-footer span { cursor: default; }
+  .ag-lb-footer .ag-lb-refresh-btn { cursor: pointer; color: var(--accent); opacity: 0.7; }
+  .ag-lb-footer .ag-lb-refresh-btn:hover { opacity: 1; }
 </style>
 <div class="arc-bg-dots" aria-hidden="true"></div>
 <div class="ag-back"><a href="/arcade">← arcade</a></div>
@@ -139,18 +175,23 @@
   <div class="ag-actions">
     <button id="ag-play" class="ag-play-btn"><span class="ag-play-btn-inner">▶&nbsp; play in terminal</span></button>
     <button id="ag-remix" class="ag-action-btn">remix →</button>
+    <button id="ag-lb-toggle" class="ag-action-btn" style="display:none">leaderboard</button>
   </div>
 
-  <div id="ag-lb" class="ag-lb" style="display:none">
+  <div id="ag-lb-overlay" class="ag-lb-overlay"></div>
+  <div id="ag-lb" class="ag-lb">
     <div class="ag-lb-header">
+      <button class="ag-lb-close" id="ag-lb-close">&times;</button>
       <span class="ag-lb-title">leaderboard</span>
       <span class="ag-lb-mode" id="ag-lb-mode"></span>
+    </div>
+    <div class="ag-lb-search-row">
       <input type="text" class="ag-lb-search" id="ag-lb-search" placeholder="search player..." autocomplete="off" spellcheck="false">
     </div>
     <div class="ag-lb-body" id="ag-lb-body"></div>
     <div class="ag-lb-footer" id="ag-lb-footer" style="display:none">
       <span id="ag-lb-count"></span>
-      <span id="ag-lb-refresh" style="cursor:pointer;color:var(--accent);opacity:0.7">refresh</span>
+      <span id="ag-lb-refresh" class="ag-lb-refresh-btn">refresh</span>
     </div>
   </div>
 
@@ -277,10 +318,19 @@
       // wire edit-in-editor link
       document.getElementById('ag-edit-link').href = '/arcade/editor/?edit=' + encodeURIComponent(id);
 
-      // ── leaderboard ──
+      // ── leaderboard slide-out ──
       var lbMode = game.lbMode || 'desc';
       var lbOp = lbMode === 'asc' ? 'bottom' : 'top';
       var allEntries = [];
+      var lbPanel = document.getElementById('ag-lb');
+      var lbOverlay = document.getElementById('ag-lb-overlay');
+
+      function openLb() { lbPanel.classList.add('open'); lbOverlay.classList.add('open'); fetchLb(); }
+      function closeLb() { lbPanel.classList.remove('open'); lbOverlay.classList.remove('open'); }
+
+      document.getElementById('ag-lb-toggle').addEventListener('click', openLb);
+      document.getElementById('ag-lb-close').addEventListener('click', closeLb);
+      lbOverlay.addEventListener('click', closeLb);
 
       function renderLb(entries, query) {
         var body = document.getElementById('ag-lb-body');
@@ -325,13 +375,14 @@
           .then(function(r) { return r.json(); })
           .then(function(data) {
             allEntries = data.entries || [];
-            document.getElementById('ag-lb').style.display = 'block';
             document.getElementById('ag-lb-mode').textContent = lbMode === 'asc' ? 'lower is better' : 'higher is better';
             renderLb(allEntries, (document.getElementById('ag-lb-search').value || '').trim());
           })
           .catch(function() {});
       }
-      fetchLb();
+
+      // show leaderboard button
+      document.getElementById('ag-lb-toggle').style.display = 'inline-block';
 
       document.getElementById('ag-lb-search').addEventListener('input', function() {
         renderLb(allEntries, this.value.trim());
