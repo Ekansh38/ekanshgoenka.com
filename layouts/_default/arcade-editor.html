@@ -263,13 +263,16 @@
   .ae-ref-line .cm-def      { color: var(--code-fn); }
   .ae-ref-line .cm-muted    { color: var(--muted); }
 
-  /* docs pulse animation for new users */
-  @keyframes ae-pulse-glow {
-    0%   { background: transparent; border-color: var(--accent); box-shadow: none; transform: scale(1); }
-    50%  { background: color-mix(in srgb, var(--accent) 20%, transparent); border-color: var(--accent); box-shadow: 0 0 16px color-mix(in srgb, var(--accent) 50%, transparent); transform: scale(1.08); }
-    100% { background: transparent; border-color: var(--accent); box-shadow: none; transform: scale(1); }
+  /* docs escalating glow — intensity set via --glow-i CSS variable from JS */
+  .ae-docs-pulse {
+    color: var(--accent) !important; font-weight: 700;
+    border-color: var(--accent) !important;
+    animation: ae-pulse-beat 1s ease-in-out infinite;
   }
-  .ae-docs-pulse { animation: ae-pulse-glow 1s ease-in-out infinite; color: var(--accent) !important; font-weight: 700; }
+  @keyframes ae-pulse-beat {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(calc(1 + var(--glow-i, 0.04))); }
+  }
 
   /* ── action bar ── */
   .ae-actions {
@@ -1072,21 +1075,29 @@
     }
   }
 
-  // ── docs panel pulse for new users ──
-  // Trigger if sessionStorage flag is set (tutorial sets this) OR user is not 'expert'
+  // ── docs panel escalating glow for new users ──
   (function() {
     var docsBtn = document.getElementById('ae-docs-btn');
+    if (!docsBtn) return;
     var showDocs = false;
     try { showDocs = !!sessionStorage.getItem('arcade_show_docs'); } catch(e) {}
     if (!showDocs) {
       var intro = localStorage.getItem('arcade_intro');
       showDocs = (intro !== 'expert');
     }
-    if (showDocs && docsBtn) {
-      if (!sessionStorage.getItem('ae_docs_seen')) {
-        docsBtn.classList.add('ae-docs-pulse');
-      }
-    }
+    if (!showDocs || sessionStorage.getItem('ae_docs_seen')) return;
+    docsBtn.classList.add('ae-docs-pulse');
+    var intensity = 0;
+    var MAX = 1; // cap
+    var glowTimer = setInterval(function() {
+      intensity = Math.min(intensity + 0.04, MAX);
+      docsBtn.style.setProperty('--glow-i', intensity.toFixed(2));
+      var shadow = Math.round(intensity * 30);
+      var bgAlpha = Math.round(intensity * 40);
+      docsBtn.style.boxShadow = '0 0 ' + shadow + 'px color-mix(in srgb, var(--accent) ' + Math.min(bgAlpha + 30, 70) + '%, transparent)';
+      docsBtn.style.background = 'color-mix(in srgb, var(--accent) ' + bgAlpha + '%, transparent)';
+      if (intensity >= MAX) clearInterval(glowTimer);
+    }, 800);
   })();
 
   editor.focus();
