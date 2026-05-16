@@ -752,7 +752,7 @@
     { name: 'shared counter', note: 'count how many times your game has been played (net API)', code: 'local count = (tonumber(net.get("plays")) or 0) + 1\nnet.set("plays", tostring(count))\n\nprint(colored("this game has been played:", color.cyan))\nprint(colored(tostring(count) .. " times", color.yellow))' },
     { name: 'arrow key demo', note: 'instant keypress with io.getkey', code: 'print(colored("press arrow keys or letters", color.cyan))\nprint("press q to quit")\nprint("")\n\nwhile true do\n  local key = io.getkey()\n  if key == "q" then break end\n  print("you pressed: " .. colored(key, color.yellow))\nend\n\nprint("")\nprint("done!")' },
     { name: 'task game loop', note: 'concurrent timer + input pattern', code: '-- reusable pattern: game logic + input as separate tasks\nlocal ticks = 0\n\ntasks.spawn(function()\n  while true do\n    ticks = ticks + 1\n    clear()\n    print("tick " .. ticks)\n    -- put your game logic here\n    sleep(500)\n  end\nend)\n\ntasks.spawn(function()\n  while true do\n    local k = io.pollkey()\n    if k == "q" then tasks.stop() end\n    sleep(50)\n  end\nend)\n\ntasks.run()\nprint("ran for " .. ticks .. " ticks")' },
-    { name: 'dungeon crawler', note: 'WASD movement, rooms, and treasure', code: 'local W, H = 20, 12\nlocal px, py = 3, 3\nlocal walls = {}\nlocal gems = {}\nlocal score = 0\nlocal total = 8\n\n-- build walls (border + inner)\nfor x = 1, W do walls[x..","..1] = true; walls[x..","..H] = true end\nfor y = 1, H do walls["1,"..y] = true; walls[W..","..y] = true end\nfor x = 8, 8 do for y = 2, 6 do walls[x..","..y] = true end end\nfor x = 13, 13 do for y = 7, 11 do walls[x..","..y] = true end end\nfor x = 5, 9 do walls[x..",9"] = true end\n\n-- scatter gems (hash table for fast lookup)\nmath.randomseed(os.time())\nlocal placed = 0\nwhile placed < total do\n  local cx, cy = math.random(2, W-1), math.random(2, H-1)\n  local k = cx..","..cy\n  if not walls[k] and not gems[k] and (cx ~= px or cy ~= py) then\n    gems[k] = true\n    placed = placed + 1\n  end\nend\n\nwhile true do\n  clear()\n  for y = 1, H do\n    local row = ""\n    for x = 1, W do\n      local k = x..","..y\n      if x == px and y == py then row = row .. colored("@", color.cyan)\n      elseif walls[k] then row = row .. "#"\n      elseif gems[k] then row = row .. colored("$", color.green)\n      else row = row .. "." end\n    end\n    print(row)\n  end\n  print(colored(score .. "/" .. total, color.yellow) .. "  wasd/arrows  q=quit")\n\n  if score >= total then\n    clear()\n    print(colored("you got all the treasure!", color.green))\n    sound.win()\n    break\n  end\n\n  local k = io.pollkey()\n  local nx, ny = px, py\n  if k == "w" or k == "up" then ny = ny - 1 end\n  if k == "s" or k == "down" then ny = ny + 1 end\n  if k == "a" or k == "left" then nx = nx - 1 end\n  if k == "d" or k == "right" then nx = nx + 1 end\n  if k == "q" then break end\n\n  if not walls[nx..","..ny] then px = nx; py = ny end\n\n  local pk = px..","..py\n  if gems[pk] then\n    gems[pk] = nil\n    score = score + 1\n    sound.coin()\n  end\n\n  sleep(33)\nend' },
+    { name: 'dungeon crawler', note: 'WASD movement, rooms, and treasure', code: 'local W, H = 20, 12\nlocal px, py = 3, 3\nlocal walls = {}\nlocal gems = {}\nlocal score = 0\nlocal total = 8\n\n-- build walls (border + inner)\nfor x = 1, W do walls[x..","..1] = true; walls[x..","..H] = true end\nfor y = 1, H do walls["1,"..y] = true; walls[W..","..y] = true end\nfor x = 8, 8 do for y = 2, 6 do walls[x..","..y] = true end end\nfor x = 13, 13 do for y = 7, 11 do walls[x..","..y] = true end end\nfor x = 5, 9 do walls[x..",9"] = true end\n\n-- scatter gems (hash table for fast lookup)\nmath.randomseed(os.time())\nlocal placed = 0\nwhile placed < total do\n  local cx, cy = math.random(2, W-1), math.random(2, H-1)\n  local k = cx..","..cy\n  if not walls[k] and not gems[k] and (cx ~= px or cy ~= py) then\n    gems[k] = true\n    placed = placed + 1\n  end\nend\n\nwhile true do\n  clear()\n  for y = 1, H do\n    local row = ""\n    for x = 1, W do\n      local k = x..","..y\n      if x == px and y == py then row = row .. colored("@", color.cyan)\n      elseif walls[k] then row = row .. "#"\n      elseif gems[k] then row = row .. colored("$", color.green)\n      else row = row .. "." end\n    end\n    print(row)\n  end\n  print(colored(score .. "/" .. total, color.yellow) .. "  wasd/arrows  q=quit")\n\n  if score >= total then\n    clear()\n    print(colored("you got all the treasure!", color.green))\n    sound.win()\n    break\n  end\n\n  local k = io.pollkey()\n  local nx, ny = px, py\n  if k == "w" or k == "up" then ny = ny - 1 end\n  if k == "s" or k == "down" then ny = ny + 1 end\n  if k == "a" or k == "left" then nx = nx - 2 end\n  if k == "d" or k == "right" then nx = nx + 2 end\n  if k == "q" then break end\n\n  if nx ~= px then\n    local mid = (px + nx) / 2\n    if not walls[mid..","..ny] and not walls[nx..","..ny] then px = nx; py = ny end\n  elseif not walls[nx..","..ny] then px = nx; py = ny end\n\n  local pk = px..","..py\n  if gems[pk] then gems[pk] = nil; score = score + 1; sound.coin() end\n\n  sleep(33)\nend' },
   ];
 
   var REF_SECTIONS = [
@@ -935,7 +935,7 @@
       'os.time()                 -- current time (seconds since epoch)',
       'os.clock()                -- CPU time (seconds, high precision)',
     ]},
-    { title: 'types & conversion', lines: [
+    { title: 'types & conversion', see: ['number guessing game'], lines: [
       'type("hello")             -- "string"',
       'type(42)                  -- "number"',
       'type(true)                -- "boolean"',
@@ -945,6 +945,24 @@
       'tostring(42)              -- "42"',
       'tonumber("42")            -- 42',
       'tonumber("abc")           -- nil (not a number)',
+      '',
+      '-- validate input',
+      'local n = tonumber(io.read("enter a number: "))',
+      'if n then',
+      '  print("got " .. n)',
+      'else',
+      '  print("that\'s not a number!")',
+      'end',
+      '',
+      '-- check type before using',
+      'if type(x) == "number" then print(x + 1) end',
+      'if type(x) == "string" then print(#x) end',
+      '',
+      '-- catch errors',
+      'local ok, err = pcall(function()',
+      '  -- risky code here',
+      'end)',
+      'if not ok then print("error: " .. err) end',
     ]},
     { title: 'colors', lines: [
       'print(colored("red!", color.red))',
