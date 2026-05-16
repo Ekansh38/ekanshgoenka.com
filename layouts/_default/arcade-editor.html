@@ -263,16 +263,6 @@
   .ae-ref-line .cm-def      { color: var(--code-fn); }
   .ae-ref-line .cm-muted    { color: var(--muted); }
 
-  /* docs escalating glow — intensity set via --glow-i CSS variable from JS */
-  .ae-docs-pulse {
-    color: var(--accent) !important; font-weight: 700;
-    border-color: var(--accent) !important;
-    animation: ae-pulse-beat 1s ease-in-out infinite;
-  }
-  @keyframes ae-pulse-beat {
-    0%, 100% { transform: scale(1); }
-    50%      { transform: scale(calc(1 + var(--glow-i, 0.04))); }
-  }
 
   /* ── action bar ── */
   .ae-actions {
@@ -566,7 +556,7 @@
 
   // ── create editor ──
   var editor = CodeMirror(document.getElementById('ae-editor'), {
-    value: 'print("hello!")\n',
+    value: '',
     mode: 'lua-arcade',
     theme: 'default',
     lineNumbers: true,
@@ -625,8 +615,32 @@
 
   // ── vim toggle with persistence ──
   var vimOn = localStorage.getItem('arcade_vim') === '1';
+  var _vimCursorLine = 0;
+  function _relFmt(line) { return line === _vimCursorLine + 1 ? String(line) : String(Math.abs(line - _vimCursorLine - 1)); }
+  function _absFmt(line) { return String(line); }
+  function _onCursorForRel() {
+    var c = editor.getCursor().line;
+    if (c !== _vimCursorLine) {
+      _vimCursorLine = c;
+      // re-render gutter by toggling lineNumbers
+      editor.setOption('lineNumbers', false);
+      editor.setOption('lineNumbers', true);
+    }
+  }
+
   function applyVim(on) {
     editor.setOption('keyMap', on ? 'vim' : 'default');
+    if (on) {
+      _vimCursorLine = editor.getCursor().line;
+      editor.setOption('lineNumberFormatter', _relFmt);
+      editor.on('cursorActivity', _onCursorForRel);
+    } else {
+      editor.off('cursorActivity', _onCursorForRel);
+      editor.setOption('lineNumberFormatter', _absFmt);
+    }
+    // force gutter refresh
+    editor.setOption('lineNumbers', false);
+    editor.setOption('lineNumbers', true);
     var btn = document.getElementById('ae-vim-btn');
     btn.textContent = 'vim: ' + (on ? 'on' : 'off');
     btn.classList.toggle('ae-btn-on', on);
@@ -715,103 +729,145 @@
   ];
 
   var REF_SECTIONS = [
-    { title: 'printing', lines: [
-      'print("text")              -- print a line',
-      'print("a" .. "b")          -- join strings with ..',
-      'print(tostring(42))        -- convert number to string',
+    { title: 'output', lines: [
+      'print("hello!")            -- prints a line (adds newline)',
+      'print("score: " .. 42)    -- .. joins strings together',
+      '',
+      'io.write("loading")       -- print without newline',
+      'io.write(".")             -- keeps appending on same line',
+      'print()                   -- blank line / flush',
+    ]},
+    { title: 'input', lines: [
+      'local name = io.read("your name: ")  -- shows prompt, waits for enter',
+      'local age = tonumber(io.read("age: "))  -- string → number',
+      '',
+      'local key = io.getkey()   -- single keypress, no enter needed',
+      '-- returns: "a" "b" "1" "space" "enter" "escape"',
+      '--          "up" "down" "left" "right"',
     ]},
     { title: 'variables', lines: [
-      'local score = 0            -- number',
-      'local name  = "alice"      -- text (use quotes)',
-      'local alive = true         -- boolean (true/false)',
-      'local x = nil              -- no value',
+      'local score = 0           -- number',
+      'local name  = "alice"     -- text (string)',
+      'local alive = true        -- boolean (true / false)',
+      'local x = nil             -- no value',
+      '',
+      'score = score + 10        -- update (no local the 2nd time)',
     ]},
     { title: 'if / else', lines: [
-      'if score > 10 then',
-      '  print("win!")',
-      'elseif score > 5 then',
-      '  print("close")',
+      'if score > 100 then',
+      '  print("you win!")',
+      'elseif score > 50 then',
+      '  print("almost")',
       'else',
-      '  print("try again")',
+      '  print("keep going")',
       'end',
+      '',
+      '-- operators: ==  ~= (not equal)  <  >  <=  >=',
+      '-- combine:   and   or   not',
     ]},
     { title: 'loops', lines: [
-      'for i = 1, 5 do            -- count 1 to 5',
+      'for i = 1, 5 do           -- count 1 to 5',
       '  print(i)',
       'end',
       '',
-      'while score < 100 do       -- loop until condition',
-      '  score = score + 10',
+      'for i = 10, 1, -1 do      -- count down',
+      '  print(i)',
       'end',
       '',
-      'for i = 10, 1, -1 do       -- count down',
-      '  print(i)',
+      'while alive do            -- loop until condition is false',
+      '  -- game logic here',
       'end',
     ]},
     { title: 'functions', lines: [
       'local function greet(name)',
-      '  print("hello " .. name)',
+      '  return "hi, " .. name .. "!"',
       'end',
-      'greet("world")',
+      'print(greet("alice"))     -- hi, alice!',
       '',
-      'local function add(a, b)   -- return a value',
+      'local function add(a, b)',
       '  return a + b',
       'end',
-      'local sum = add(3, 4)',
     ]},
-    { title: 'colors', lines: [
-      'colored("text", color.red)',
-      'colored("text", color.green)',
-      'colored("text", color.yellow)',
-      'colored("text", color.cyan)',
-      'colored("text", color.blue)',
-      'colored("text", color.magenta)',
-      'colored("text", color.bold)',
-      'colored("text", color.dim)',
+    { title: 'strings', lines: [
+      '"hello" .. " world"       -- join with ..',
+      'string.len("abc")         -- 3',
+      'string.upper("hi")        -- "HI"',
+      'string.lower("HI")        -- "hi"',
+      'string.sub("hello", 1, 3) -- "hel"',
+      'string.rep("ab", 3)       -- "ababab"',
+      'tostring(42)              -- "42"',
+      'tonumber("42")            -- 42',
     ]},
-    { title: 'sounds', lines: [
-      'sound.win()                -- victory fanfare',
-      'sound.lose()               -- defeat',
-      'sound.coin()               -- pickup / collect',
-      'sound.blip()               -- neutral blip',
-      'sound.click()              -- UI click',
-      'sound.beep(440, 0.2)       -- tone: freq(Hz), dur(s)',
-    ]},
-    { title: 'sleep / clear', lines: [
-      'sleep(500)                 -- pause 500ms',
-      'sleep(1000)                -- pause 1 second',
-      'clear()                    -- wipe terminal output',
-    ]},
-    { title: 'lists / tables', lines: [
-      'local t = {10, 20, 30}     -- array',
-      'print(t[1])                -- first item (index from 1)',
-      'table.insert(t, 40)        -- add to end',
-      'print(#t)                  -- length',
+    { title: 'tables (lists & maps)', lines: [
+      'local items = {"sword", "shield"}',
+      'print(items[1])           -- "sword" (starts at 1)',
+      'table.insert(items, "key")  -- add to end',
+      'table.remove(items, 1)    -- remove first',
+      'print(#items)             -- length',
       '',
-      'local m = {hp=100,mp=50}   -- map / object',
-      'print(m.hp)                -- access by key',
+      'local m = {hp=100, mp=50} -- map / object',
+      'print(m.hp)               -- 100',
+      'm.hp = m.hp - 20          -- update',
       '',
-      'for i, v in ipairs(t) do   -- iterate array',
+      'for i, v in ipairs(items) do  -- iterate list',
       '  print(i, v)',
       'end',
+      'for k, v in pairs(m) do   -- iterate map',
+      '  print(k, v)',
+      'end',
     ]},
-    { title: 'input', lines: [
-      'local x = io.read("name: ")   -- wait for enter',
-      'local n = tonumber(x)         -- string to number',
+    { title: 'math', lines: [
+      'math.random(1, 6)         -- random int 1 to 6',
+      'math.random()             -- random float 0 to 1',
+      'math.floor(3.7)           -- 3',
+      'math.ceil(3.2)            -- 4',
+      'math.abs(-5)              -- 5',
+      'math.max(2, 8)            -- 8',
+      'math.min(2, 8)            -- 2',
+    ]},
+    { title: 'colors', lines: [
+      'print(colored("red!", color.red))',
+      'print(colored("bold!", color.bold))',
       '',
-      'local key = io.getkey()       -- single keypress, no enter',
-      '-- returns: "a" "space" "up" "down" "left" "right"',
+      '-- all colors:',
+      '--   color.red     color.green   color.yellow',
+      '--   color.blue    color.purple  color.cyan',
+      '--   color.white   color.bold',
+      '',
+      '-- combine:  color.red .. color.bold',
+      'print(colored("alert!", color.red .. color.bold))',
     ]},
-    { title: 'net api', lines: [
-      '-- persistent key-value store (per game)',
-      'net.set("key", "value")    -- save a string',
-      'local v = net.get("key")   -- load ("" if unset)',
+    { title: 'sounds', lines: [
+      'sound.win()               -- victory fanfare',
+      'sound.lose()              -- defeat',
+      'sound.coin()              -- pickup / collect',
+      'sound.blip()              -- neutral blip',
+      'sound.click()             -- UI click',
+      'sound.buzz()              -- error buzz',
+      'sound.beep(440, 0.2)      -- custom tone: freq(Hz), dur(s)',
+    ]},
+    { title: 'timing & screen', lines: [
+      'sleep(500)                -- pause 500ms',
+      'sleep(1000)               -- pause 1 second',
+      'clear()                   -- wipe terminal output',
+      '',
+      '-- animation pattern:',
+      'for i = 1, 10 do',
+      '  clear()',
+      '  print("frame " .. i)',
+      '  sleep(200)',
+      'end',
+    ]},
+    { title: 'net (persist data)', lines: [
+      '-- key-value store (scoped per game)',
+      'net.set("high_score", "1500")  -- save a value',
+      'local hs = net.get("high_score")  -- load ("" if unset)',
       '',
       '-- leaderboard',
-      'net.rank("alice", 500)     -- submit score',
-      'local top = net.top(10)    -- get top N entries',
+      'net.rank("alice", 1500)   -- submit score',
+      'local top = net.top(10)   -- get top N',
       'for i, e in ipairs(top) do',
-      '  print(i, e.name, e.score)',
+      '  print(i .. ". " .. e.name .. "  " .. e.score)',
       'end',
     ]},
   ];
@@ -914,11 +970,6 @@
     this.classList.toggle('ae-btn-on', docsOpen);
     if (docsOpen) renderDocsContent();
     editor.refresh();
-    docsTabBtn.classList.remove('ae-docs-pulse');
-    docsTabBtn.style.boxShadow = '';
-    docsTabBtn.style.background = '';
-    docsTabBtn.style.removeProperty('--glow-i');
-    try { sessionStorage.setItem('ae_docs_seen', '1'); } catch(e) {}
   });
 
   document.querySelectorAll('.ae-docs-tab').forEach(function(tab) {
@@ -951,7 +1002,7 @@
     // insert at cursor or append
     var doc      = editor.getDoc();
     var existing = editor.getValue();
-    if (!existing.trim() || existing.trim() === 'print("hello!")') {
+    if (!existing.trim()) {
       editor.setValue(code + '\n');
     } else {
       doc.replaceRange('\n\n' + code, { line: doc.lineCount(), ch: 0 });
@@ -1058,7 +1109,7 @@
   document.getElementById('ae-success-another').addEventListener('click', function() {
     document.getElementById('ae-success-panel').style.display = 'none';
     document.getElementById('ae-form-area').style.display = 'flex';
-    setCode('print("hello!")\n');
+    setCode('');
     ['ae-title', 'ae-author', 'ae-desc'].forEach(function(id) {
       var el = document.getElementById(id); if (el) el.value = '';
     });
@@ -1077,31 +1128,6 @@
       window.location.replace('/arcade/tutorial/');
     }
   }
-
-  // ── docs panel escalating glow for new users ──
-  (function() {
-    var docsBtn = document.getElementById('ae-docs-btn');
-    if (!docsBtn) return;
-    var showDocs = false;
-    try { showDocs = !!sessionStorage.getItem('arcade_show_docs'); } catch(e) {}
-    if (!showDocs) {
-      var intro = localStorage.getItem('arcade_intro');
-      showDocs = (intro !== 'expert');
-    }
-    if (!showDocs || sessionStorage.getItem('ae_docs_seen')) return;
-    docsBtn.classList.add('ae-docs-pulse');
-    var intensity = 0;
-    var MAX = 1; // cap
-    var glowTimer = setInterval(function() {
-      intensity = Math.min(intensity + 0.04, MAX);
-      docsBtn.style.setProperty('--glow-i', intensity.toFixed(2));
-      var shadow = Math.round(intensity * 30);
-      var bgAlpha = Math.round(intensity * 40);
-      docsBtn.style.boxShadow = '0 0 ' + shadow + 'px color-mix(in srgb, var(--accent) ' + Math.min(bgAlpha + 30, 70) + '%, transparent)';
-      docsBtn.style.background = 'color-mix(in srgb, var(--accent) ' + bgAlpha + '%, transparent)';
-      if (intensity >= MAX) clearInterval(glowTimer);
-    }, 800);
-  })();
 
   editor.focus();
 })();

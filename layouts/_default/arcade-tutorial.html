@@ -299,7 +299,7 @@
     background: var(--code-bg, #1a1b26) !important;
     border: 1px solid var(--border);
   }
-  .tut-cave-code-reveal.show { max-height: 600px; }
+  .tut-cave-code-reveal.show { max-height: 900px; }
   .tut-cave-code-reveal pre {
     padding: 14px 18px; margin: 0;
     font-size: 0.78rem; line-height: 1.75;
@@ -413,11 +413,13 @@
   .tut-str-block {
     padding: 6px 12px; font-size: 0.82rem;
     border: 1px solid var(--border);
-    cursor: pointer; transition: border-color 0.15s, background 0.15s, transform 0.1s;
+    cursor: grab; transition: border-color 0.15s, background 0.15s, transform 0.1s;
     user-select: none;
   }
   .tut-str-block:hover { border-color: var(--accent); }
-  .tut-str-block:active { transform: scale(0.95); }
+  .tut-str-block:active { cursor: grabbing; }
+  .tut-str-block.tut-str-dragging { opacity: 0.3; }
+  .tut-str-block.tut-str-drop-target { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
   .tut-str-block.tut-str-pop {
     animation: str-pop 0.3s ease;
   }
@@ -473,24 +475,26 @@
     background: var(--code-bg, #1a1b26) !important;
     border: 1px solid var(--border);
     padding: 18px 20px; margin-bottom: 16px;
-    font-size: 0.88rem; line-height: 2.2;
-    text-align: center; position: relative;
-  }
-  .tut-loop-syntax-code {
-    font-size: 0.92rem; color: var(--fg); margin-bottom: 6px;
-  }
-  .tut-loop-syntax-labels {
-    display: flex; justify-content: center; gap: 0;
-    font-size: 0.68rem; color: var(--muted);
     position: relative;
   }
-  .tut-loop-syntax-label {
+  .tut-loop-syntax-grid {
+    display: inline-grid;
+    grid-template-columns: repeat(9, auto);
+    gap: 0 12px; text-align: center;
+    font-size: 0.92rem; color: var(--fg);
+    line-height: 1.8;
+  }
+  .tut-loop-syntax-grid > .lsg-lbl {
+    font-size: 0.68rem; color: var(--muted);
     opacity: 0; transform: translateY(-4px);
     transition: opacity 0.3s, transform 0.3s;
-    text-align: center; padding: 0 6px;
   }
-  .tut-loop-syntax-label.show { opacity: 1; transform: translateY(0); }
-  .tut-loop-syntax-label .lbl-arrow { color: var(--accent); display: block; font-size: 0.7rem; }
+  .tut-loop-syntax-grid > .lsg-lbl.show { opacity: 1; transform: translateY(0); }
+  .tut-loop-syntax-grid > .lsg-arrow {
+    font-size: 0.7rem; color: var(--accent);
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .tut-loop-syntax-grid > .lsg-arrow.show { opacity: 1; }
   .tut-loop-out {
     border: 1px solid var(--border);
     background: var(--code-bg, #1a1b26) !important;
@@ -1078,7 +1082,6 @@
           <button class="tut-btn-muted" id="tut-run-btn">&#9654; run it</button>
         </div>
       </div>
-      <div class="tut-outline" id="tut-s2-outline"></div>
       <div class="tut-success-msg" id="tut-s2-success">nice. that's your game's first line. try changing the text inside the quotes.</div>
       <button class="tut-btn" id="tut-s2-next" style="display:none;margin-top:12px">continue &#8594;</button>
     </div>
@@ -1113,7 +1116,7 @@
       <div class="tut-step-tag">03 / 12</div>
       <div class="tut-heading">strings. <strong>..</strong> joins them together.</div>
       <div class="tut-body">Lua uses <strong>..</strong> to combine text. click the blocks to see how:</div>
-      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px">click blocks to change them:</div>
+      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px">drag to reorder, click to change:</div>
       <div class="tut-string-builder" id="tut-str-builder">
         <span class="tut-str-block tut-str-lit" data-alts='"brave soul "|"welcome "|"hello "|"ahoy "'>"brave soul "</span>
         <span class="tut-str-block tut-str-op">..</span>
@@ -1137,9 +1140,7 @@
       <div class="tut-body">if the player types 'i', run one thing. otherwise, run another.</div>
       <div class="tut-two-panel">
         <div>
-          <div style="font-size:0.78rem;color:var(--muted);margin-bottom:10px">go [i]nside or [l]eave?</div>
-          <button class="tut-cave-choice-btn" id="tut-cave-inside">[i] go inside</button>
-          <button class="tut-cave-choice-btn" id="tut-cave-leave">[l] leave</button>
+          <div class="tut-cave-prompt-row" style="font-size:0.85rem;margin-bottom:10px;white-space:pre;display:flex;align-items:center">go [i]nside or [l]eave? <input class="tut-cave-inp" id="tut-cave-choice-inp" autocomplete="off" spellcheck="false" style="flex:1"></div>
           <div id="tut-cave-result" style="font-size:0.82rem;color:var(--fg);margin-top:10px;min-height:24px;line-height:1.6;opacity:0;transition:opacity 0.3s"></div>
         </div>
         <div class="tut-branch-code" id="tut-branch-code"><span class="tut-branch-line" id="bl-0"><span class="lh-kw2">local</span> choice <span class="lh-op">=</span> io.<span class="lh-fn">read</span>(<span class="lh-str">"[i]nside or [l]eave? "</span>)</span>
@@ -1160,19 +1161,11 @@
       <div class="tut-step-tag">05 / 12</div>
       <div class="tut-heading">loops. do it 5 times.</div>
       <div class="tut-body">a <strong>for</strong> loop counts and runs code each time.</div>
-      <div class="tut-loop-syntax" id="tut-loop-syntax">
-        <div class="tut-loop-syntax-code">
-          <span class="lh-kw">for</span> &nbsp; i &nbsp; <span class="lh-op">=</span> &nbsp; <span class="lh-num">5</span> &nbsp; , &nbsp; <span class="lh-num">1</span> &nbsp; , &nbsp; <span class="lh-num">-1</span> &nbsp; <span class="lh-kw">do</span>
-        </div>
-        <div class="tut-loop-syntax-labels">
-          <div class="tut-loop-syntax-label" data-delay="0"><span class="lbl-arrow">^</span>keyword</div>
-          <div class="tut-loop-syntax-label" data-delay="1"><span class="lbl-arrow">^</span>variable</div>
-          <div class="tut-loop-syntax-label" data-delay="2">&nbsp;</div>
-          <div class="tut-loop-syntax-label" data-delay="3"><span class="lbl-arrow">^</span>start</div>
-          <div class="tut-loop-syntax-label" data-delay="4">&nbsp;</div>
-          <div class="tut-loop-syntax-label" data-delay="5"><span class="lbl-arrow">^</span>stop</div>
-          <div class="tut-loop-syntax-label" data-delay="6">&nbsp;</div>
-          <div class="tut-loop-syntax-label" data-delay="7"><span class="lbl-arrow">^</span>step</div>
+      <div class="tut-loop-syntax" id="tut-loop-syntax" style="text-align:center">
+        <div class="tut-loop-syntax-grid" style="margin:0 auto">
+          <span class="lh-kw">for</span><span>i</span><span class="lh-op">=</span><span class="lh-num">5</span><span>,</span><span class="lh-num">1</span><span>,</span><span class="lh-num">-1</span><span class="lh-kw">do</span>
+          <span class="lsg-arrow" data-delay="0">^</span><span class="lsg-arrow" data-delay="1">^</span><span></span><span class="lsg-arrow" data-delay="3">^</span><span></span><span class="lsg-arrow" data-delay="5">^</span><span></span><span class="lsg-arrow" data-delay="7">^</span><span></span>
+          <span class="lsg-lbl" data-delay="0">keyword</span><span class="lsg-lbl" data-delay="1">variable</span><span></span><span class="lsg-lbl" data-delay="3">start</span><span></span><span class="lsg-lbl" data-delay="5">stop</span><span></span><span class="lsg-lbl" data-delay="7">step</span><span></span>
         </div>
       </div>
       <div class="tut-loop-code-wrap" id="tut-loop-code">
@@ -1290,9 +1283,9 @@ end</textarea>
       <div class="tut-heading">faster controls.</div>
       <div class="tut-body"><strong>io.getkey()</strong> reads a single keypress - no Enter needed. good for action games.</div>
       <div style="font-size:0.78rem;color:var(--muted);margin-bottom:6px">press any key:</div>
-      <div class="tut-key-demo" id="tut-key-demo" tabindex="0">waiting for keypress...</div>
+      <div class="tut-key-demo" id="tut-key-demo">waiting for keypress...</div>
       <div style="font-size:0.78rem;color:var(--muted);margin-bottom:6px;margin-top:14px">use <strong style="color:var(--fg)">WASD</strong> or <strong style="color:var(--fg)">arrow keys</strong> to move. reach the star:</div>
-      <div class="tut-grid-wrap" id="tut-grid-wrap" tabindex="0">
+      <div class="tut-grid-wrap" id="tut-grid-wrap">
         <div class="tut-grid" id="tut-grid" style="grid-template-columns:repeat(7,32px)"></div>
         <div class="tut-grid-msg" id="tut-grid-msg"></div>
       </div>
@@ -1357,25 +1350,26 @@ greet("player")</textarea>
           <button class="tut-net-tab" data-tab="kv">key-value</button>
         </div>
         <div class="tut-net-panel" id="tut-net-panel-lb">
-          <div class="tut-lb" id="tut-lb-list"></div>
-          <div style="margin-top:12px">
-            <div class="tut-net-actions">
-              <input class="tut-net-inp" id="tut-lb-name" placeholder="name" maxlength="18" style="width:80px">
-              <input class="tut-net-inp" id="tut-lb-score" placeholder="score" maxlength="6" style="width:60px" type="number">
-              <button class="tut-btn-muted" id="tut-lb-add">net.rank()</button>
-            </div>
-            <div class="tut-net-topn-row">
-              <span class="tut-net-topn-label">net.top(</span>
-              <select class="tut-net-topn-sel" id="tut-lb-topn">
-                <option value="1">1</option>
-                <option value="3" selected>3</option>
-                <option value="5">5</option>
-                <option value="10">10</option>
-              </select>
-              <span class="tut-net-topn-label">)</span>
-            </div>
-            <div class="tut-net-log" id="tut-net-log"></div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px;font-weight:600">add a score</div>
+          <div class="tut-net-actions">
+            <input class="tut-net-inp" id="tut-lb-name" placeholder="name" maxlength="18" style="width:100px">
+            <input class="tut-net-inp" id="tut-lb-score" placeholder="score" maxlength="6" style="width:80px" type="number">
+            <button class="tut-btn-muted" id="tut-lb-add">net.rank()</button>
           </div>
+          <div class="tut-net-log" id="tut-net-log"></div>
+          <div style="border-top:1px solid var(--border);margin:14px 0"></div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px;font-weight:600">query the board</div>
+          <div class="tut-net-topn-row" style="margin-top:0">
+            <span class="tut-net-topn-label">net.top(</span>
+            <select class="tut-net-topn-sel" id="tut-lb-topn">
+              <option value="1">1</option>
+              <option value="3" selected>3</option>
+              <option value="5">5</option>
+              <option value="10">10</option>
+            </select>
+            <span class="tut-net-topn-label">)</span>
+          </div>
+          <div class="tut-lb" id="tut-lb-list" style="margin-top:10px"></div>
           <div class="tut-net-note">the score is whatever your game decides. <span>net.rank(name, score)</span> handles the rest.</div>
         </div>
         <div class="tut-net-panel hidden" id="tut-net-panel-kv">
@@ -1903,7 +1897,6 @@ greet("player")</textarea>
         nameInp.className = 'tut-cave-inp';
         nameInp.setAttribute('autocomplete', 'off');
         nameInp.setAttribute('spellcheck', 'false');
-        nameInp.setAttribute('placeholder', 'type your name');
         promptLine.appendChild(nameInp);
         nameInp.focus();
 
@@ -1925,24 +1918,19 @@ greet("player")</textarea>
           // Phase 3: choice
           setTimeout(function() {
             var choiceLine = addLine();
-            choiceLine.textContent = 'go [i]nside or [l]eave?';
-
-            var btnsDiv = document.createElement('div');
-            btnsDiv.className = 'tut-cave-buttons';
-            var insideBtn = document.createElement('button');
-            insideBtn.className = 'tut-cave-choice-big';
-            insideBtn.innerHTML = '[i]nside';
-            var leaveBtn = document.createElement('button');
-            leaveBtn.className = 'tut-cave-choice-big';
-            leaveBtn.innerHTML = '[l]eave';
-            btnsDiv.appendChild(insideBtn);
-            btnsDiv.appendChild(leaveBtn);
-            body.appendChild(btnsDiv);
+            choiceLine.innerHTML = 'go [i]nside or [l]eave? ';
+            choiceLine.style.whiteSpace = 'pre';
+            var choiceInp = document.createElement('input');
+            choiceInp.className = 'tut-cave-inp';
+            choiceInp.setAttribute('autocomplete', 'off');
+            choiceInp.setAttribute('spellcheck', 'false');
+            choiceLine.appendChild(choiceInp);
+            choiceInp.focus();
 
             function doChoice(choice) {
-              insideBtn.disabled = true;
-              leaveBtn.disabled = true;
-              btnsDiv.style.opacity = '0.5';
+              choiceInp.disabled = true;
+              choiceInp.style.opacity = '0.6';
+              choiceLine.innerHTML = 'go [i]nside or [l]eave? <span style="color:var(--accent)">' + hlEsc(choice) + '</span>';
               playClickSound();
 
               if (choice === 'i') {
@@ -1991,15 +1979,16 @@ greet("player")</textarea>
               }
             }
 
-            insideBtn.addEventListener('click', function() { doChoice('i'); });
-            leaveBtn.addEventListener('click', function() { doChoice('l'); });
-
-            // keyboard shortcuts
-            function onKeyChoice(e) {
-              if (e.key === 'i' || e.key === 'I') { document.removeEventListener('keydown', onKeyChoice); doChoice('i'); }
-              if (e.key === 'l' || e.key === 'L') { document.removeEventListener('keydown', onKeyChoice); doChoice('l'); }
-            }
-            document.addEventListener('keydown', onKeyChoice);
+            choiceInp.addEventListener('keydown', function onChoiceKey(e) {
+              if (e.key !== 'Enter') return;
+              choiceInp.removeEventListener('keydown', onChoiceKey);
+              var v = choiceInp.value.trim().toLowerCase();
+              if (v === 'i' || v === 'l') {
+                doChoice(v);
+              } else {
+                doChoice(Math.random() < 0.5 ? 'i' : 'l');
+              }
+            });
           }, 400);
         });
       });
@@ -2027,20 +2016,6 @@ greet("player")</textarea>
   var s2ta = document.getElementById('tut-s2-code');
   var s2hl = document.getElementById('tut-s2-hl');
   var s2CE = new TutCodeEditor(s2ta, s2hl);
-
-  // code outline
-  (function() {
-    var ol = document.getElementById('tut-s2-outline');
-    if (ol) {
-      ol.innerHTML =
-        '<span style="color:var(--muted)">+-- THE CAVE GAME ----------------+</span>\n' +
-        '<span class="tut-ol-active">|  <span class="tut-ol-arrow">&gt;</span> print("THE CAVE")          |</span>  <span class="tut-ol-arrow">&larr; you are here</span>\n' +
-        '<span style="color:var(--muted)">|  ...                           |</span>\n' +
-        '<span style="color:var(--muted)">|  io.read(...)                  |</span>\n' +
-        '<span style="color:var(--muted)">|  if choice == "i" ...          |</span>\n' +
-        '<span style="color:var(--muted)">+---------------------------------+</span>';
-    }
-  })();
 
   var s2everRan = false;
   var s2editedAfterRun = false;
@@ -2100,6 +2075,7 @@ greet("player")</textarea>
     if (e.key !== 'Enter') return;
     var val = this.value.trim() || 'stranger';
     varsPlayerName = val;
+    playClickSound();
     var accent = getAccent();
     varsOut.innerHTML = 'your name? <span style="color:'+accent+';font-weight:700">'+hlEsc(val)+'</span>';
     varsInpRow.style.display = 'none';
@@ -2126,36 +2102,84 @@ greet("player")</textarea>
     goTo(4);
   });
 
-  // -- SCREEN 4: strings — interactive blocks -------------------------------------------------
+  // -- SCREEN 4: strings — interactive blocks + drag reorder -----------------------------------
   (function() {
     var builder = document.getElementById('tut-str-builder');
     var preview = document.getElementById('tut-str-preview');
     if (!builder) return;
+
+    function updatePreview() {
+      var blocks = builder.querySelectorAll('.tut-str-block');
+      var result = '';
+      blocks.forEach(function(b) {
+        if (b.classList.contains('tut-str-op')) return;
+        var txt = b.textContent;
+        if (b.classList.contains('tut-str-var')) {
+          result += '<span style="color:var(--accent)">' + hlEsc(varsPlayerName) + '</span>';
+        } else {
+          result += hlEsc(txt.replace(/^"|"$/g, ''));
+        }
+      });
+      preview.innerHTML = result;
+    }
+
+    // click to cycle alternatives
     builder.querySelectorAll('.tut-str-block[data-alts]').forEach(function(block) {
       var alts = block.getAttribute('data-alts').split('|');
       var idx = 0;
       block.addEventListener('click', function() {
+        if (block._wasDragged) { block._wasDragged = false; return; }
         idx = (idx + 1) % alts.length;
         block.textContent = alts[idx];
         block.classList.remove('tut-str-pop');
-        void block.offsetWidth; // reflow to restart animation
+        void block.offsetWidth;
         block.classList.add('tut-str-pop');
         playClickSound();
         var r = block.getBoundingClientRect();
         burst(r.left + r.width/2, r.top + r.height/2, 6);
-        // update preview
-        var blocks = builder.querySelectorAll('.tut-str-block');
-        var result = '';
-        blocks.forEach(function(b) {
-          if (b.classList.contains('tut-str-op')) return;
-          var txt = b.textContent;
-          if (b.classList.contains('tut-str-var')) {
-            result += '<span style="color:var(--accent)">' + hlEsc(varsPlayerName) + '</span>';
-          } else {
-            result += hlEsc(txt.replace(/^"|"$/g, ''));
-          }
-        });
-        preview.innerHTML = result;
+        updatePreview();
+      });
+    });
+
+    // drag to reorder
+    var dragEl = null;
+    builder.querySelectorAll('.tut-str-block').forEach(function(block) {
+      block.setAttribute('draggable', 'true');
+      block.addEventListener('dragstart', function(e) {
+        dragEl = block;
+        block.classList.add('tut-str-dragging');
+        e.dataTransfer.effectAllowed = 'move';
+      });
+      block.addEventListener('dragend', function() {
+        block.classList.remove('tut-str-dragging');
+        builder.querySelectorAll('.tut-str-block').forEach(function(b) { b.classList.remove('tut-str-drop-target'); });
+        if (dragEl) { dragEl._wasDragged = true; }
+        dragEl = null;
+        updatePreview();
+      });
+      block.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        if (block !== dragEl) block.classList.add('tut-str-drop-target');
+      });
+      block.addEventListener('dragleave', function() {
+        block.classList.remove('tut-str-drop-target');
+      });
+      block.addEventListener('drop', function(e) {
+        e.preventDefault();
+        block.classList.remove('tut-str-drop-target');
+        if (!dragEl || dragEl === block) return;
+        var allBlocks = Array.prototype.slice.call(builder.querySelectorAll('.tut-str-block'));
+        var fromIdx = allBlocks.indexOf(dragEl);
+        var toIdx = allBlocks.indexOf(block);
+        if (fromIdx < toIdx) {
+          builder.insertBefore(dragEl, block.nextSibling);
+        } else {
+          builder.insertBefore(dragEl, block);
+        }
+        playClickSound();
+        var r = block.getBoundingClientRect();
+        burst(r.left + r.width/2, r.top + r.height/2, 8);
       });
     });
   })();
@@ -2168,39 +2192,29 @@ greet("player")</textarea>
     document.querySelectorAll('.tut-branch-line').forEach(function(l){ l.classList.remove('active'); });
   }
 
-  document.getElementById('tut-cave-inside').addEventListener('click', function() {
-    document.getElementById('tut-cave-inside').classList.add('chosen');
-    document.getElementById('tut-cave-leave').classList.remove('chosen');
+  var caveChoiceInp = document.getElementById('tut-cave-choice-inp');
+  caveChoiceInp.addEventListener('keydown', function(e) {
+    if (e.key !== 'Enter') return;
+    var v = caveChoiceInp.value.trim().toLowerCase();
+    if (v !== 'i' && v !== 'l') return;
+    caveChoiceInp.disabled = true;
+    caveChoiceInp.style.opacity = '0.6';
     clearBranchHighlights();
-    document.getElementById('bl-1').classList.add('active');
-    document.getElementById('bl-2').classList.add('active');
     var resultEl = document.getElementById('tut-cave-result');
     resultEl.style.opacity = '0';
-    resultEl.innerHTML = '<span style="color:#73daca">you venture inside...</span>';
-    setTimeout(function(){ resultEl.style.opacity = '1'; }, 20);
-    var r = this.getBoundingClientRect();
+    var r = caveChoiceInp.getBoundingClientRect();
     burst(r.left+r.width/2, r.top+r.height/2, 8);
-    if (!caveChosen) {
-      caveChosen = true;
-      setTimeout(function() {
-        document.getElementById('tut-s4-explain').style.display = 'block';
-        document.getElementById('tut-s4-next').style.display = 'inline-block';
-      }, 500);
-    }
-  });
 
-  document.getElementById('tut-cave-leave').addEventListener('click', function() {
-    document.getElementById('tut-cave-leave').classList.add('chosen');
-    document.getElementById('tut-cave-inside').classList.remove('chosen');
-    clearBranchHighlights();
-    document.getElementById('bl-3').classList.add('active');
-    document.getElementById('bl-4').classList.add('active');
-    var resultEl = document.getElementById('tut-cave-result');
-    resultEl.style.opacity = '0';
-    resultEl.innerHTML = 'you go home safely.';
+    if (v === 'i') {
+      document.getElementById('bl-1').classList.add('active');
+      document.getElementById('bl-2').classList.add('active');
+      resultEl.innerHTML = '<span style="color:#73daca">you venture inside...</span>';
+    } else {
+      document.getElementById('bl-3').classList.add('active');
+      document.getElementById('bl-4').classList.add('active');
+      resultEl.innerHTML = 'you go home safely.';
+    }
     setTimeout(function(){ resultEl.style.opacity = '1'; }, 20);
-    var r = this.getBoundingClientRect();
-    burst(r.left+r.width/2, r.top+r.height/2, 8);
     if (!caveChosen) {
       caveChosen = true;
       setTimeout(function() {
@@ -2208,6 +2222,13 @@ greet("player")</textarea>
         document.getElementById('tut-s4-next').style.display = 'inline-block';
       }, 500);
     }
+    // allow re-trying
+    setTimeout(function() {
+      caveChoiceInp.disabled = false;
+      caveChoiceInp.style.opacity = '1';
+      caveChoiceInp.value = '';
+      caveChoiceInp.focus();
+    }, 600);
   });
 
   document.getElementById('tut-s4-next').addEventListener('click', function() { goTo(6); });
@@ -2226,10 +2247,9 @@ greet("player")</textarea>
     if (loopSyntaxAnimated) return;
     loopSyntaxAnimated = true;
     // animate syntax labels with stagger
-    var labels = document.querySelectorAll('.tut-loop-syntax-label');
-    labels.forEach(function(lbl) {
-      var delay = parseInt(lbl.getAttribute('data-delay')) * 200;
-      setTimeout(function() { lbl.classList.add('show'); }, delay);
+    document.querySelectorAll('.lsg-arrow[data-delay], .lsg-lbl[data-delay]').forEach(function(el) {
+      var delay = parseInt(el.getAttribute('data-delay')) * 200;
+      setTimeout(function() { el.classList.add('show'); }, delay);
     });
   }
 
@@ -2461,18 +2481,6 @@ greet("player")</textarea>
   // -- SCREEN 9: input controls ---------------------------------------------------------------
   var keyDemoEl = document.getElementById('tut-key-demo');
   var keyCount = 0;
-  keyDemoEl.addEventListener('keydown', function(e) {
-    e.preventDefault();
-    keyCount++;
-    var keyName = e.key;
-    if (keyName === ' ') keyName = 'space';
-    if (keyName === 'ArrowUp') keyName = 'up';
-    if (keyName === 'ArrowDown') keyName = 'down';
-    if (keyName === 'ArrowLeft') keyName = 'left';
-    if (keyName === 'ArrowRight') keyName = 'right';
-    this.innerHTML = 'you pressed: <span style="color:var(--accent);font-weight:700">'+hlEsc(keyName)+'</span>';
-    if (keyCount === 1) playClickSound();
-  });
 
   // grid game
   var gridW = 7, gridH = 5;
@@ -2506,10 +2514,24 @@ greet("player")</textarea>
 
   function startScreenGrid() {
     renderGrid();
-    gridWrapEl.focus();
   }
 
-  gridWrapEl.addEventListener('keydown', function(e) {
+  // document-level keydown for both key demo and grid game (screen 9)
+  document.addEventListener('keydown', function(e) {
+    if (currentScreen !== 9) return;
+
+    // key demo: show what was pressed
+    keyCount++;
+    var keyName = e.key;
+    if (keyName === ' ') keyName = 'space';
+    if (keyName === 'ArrowUp') keyName = 'up';
+    if (keyName === 'ArrowDown') keyName = 'down';
+    if (keyName === 'ArrowLeft') keyName = 'left';
+    if (keyName === 'ArrowRight') keyName = 'right';
+    keyDemoEl.innerHTML = 'you pressed: <span style="color:var(--accent);font-weight:700">'+hlEsc(keyName)+'</span>';
+    if (keyCount === 1) playClickSound();
+
+    // grid game movement
     if (gridWon) return;
     var moved = false;
     if ((e.key === 'ArrowUp' || e.key === 'w') && playerY > 0) { playerY--; moved = true; }
