@@ -1863,6 +1863,18 @@ function toggleTheme() {
     }
     function _gameKeyCapture(e) {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (!_gameMode) return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.ctrlKey && (e.key === 'c' || e.key === 'C')) {
+        _gameMode = false; _gameResume = null;
+        flushIoBuf();
+        document.removeEventListener('keydown', _gameKeyCapture, true);
+        if (termPrompt) termPrompt.innerHTML = DEFAULT_PROMPT;
+        line('^C  game stopped.', 'term-line-err');
+        output.scrollTop = output.scrollHeight;
+        return;
+      }
       _keyBuf = _normalizeKey(e);
     }
     document.addEventListener('keydown', _gameKeyCapture, true);
@@ -1874,6 +1886,13 @@ function toggleTheme() {
       return 1;
     });
     lua.lua_setglobal(L, toLua('_pollkey'));
+
+    // _clock — high-resolution time in seconds
+    lua.lua_pushcfunction(L, function(Ls) {
+      lua.lua_pushnumber(Ls, performance.now() / 1000);
+      return 1;
+    });
+    lua.lua_setglobal(L, toLua('_clock'));
 
     // _setprompt(s) — flush pending io.write, then set iobuf for JS step function
     lua.lua_pushcfunction(L, function(Ls) {
@@ -1940,6 +1959,50 @@ function toggleTheme() {
       '  get =function(key) return coroutine.yield("\\0net\\0get\\1"..tostring(key)) end,',
       '  rank=function(name,score) coroutine.yield("\\0net\\0rank\\1"..tostring(name).."\\1"..tostring(tonumber(score) or 0)) end,',
       '  top =function(n) coroutine.yield("\\0net\\0top\\1"..tostring(math.floor(tonumber(n) or 10))) return _net_collect() end,',
+      '}',
+      // task: cooperative concurrency scheduler
+      'local _tasks={}',
+      'local _task_active=false',
+      'task={',
+      '  spawn=function(fn) _tasks[#_tasks+1]={co=coroutine.create(fn),wake=0} end,',
+      '  stop=function() _task_active=false end,',
+      '  run=function()',
+      '    _task_active=true',
+      '    while _task_active and #_tasks>0 do',
+      '      local now=_clock()',
+      '      for i=#_tasks,1,-1 do',
+      '        local t=_tasks[i]',
+      '        if coroutine.status(t.co)=="dead" then',
+      '          table.remove(_tasks,i)',
+      '        elseif now>=t.wake then',
+      '          local ok,rv=coroutine.resume(t.co)',
+      '          if not ok then',
+      '            print(colored("task error: "..tostring(rv),color.red))',
+      '            table.remove(_tasks,i)',
+      '          elseif coroutine.status(t.co)=="dead" then',
+      '            table.remove(_tasks,i)',
+      '          else',
+      '            local secs=0',
+      '            if type(rv)=="number" then secs=rv',
+      '            elseif type(rv)=="string" and string.sub(rv,1,7)=="\\0sleep\\0" then',
+      '              secs=(tonumber(string.sub(rv,8)) or 0)/1000',
+      '            else',
+      '              print(colored("task: use task.wait() not io.getkey/io.read",color.red))',
+      '              table.remove(_tasks,i)',
+      '              secs=nil',
+      '            end',
+      '            if secs then t.wake=_clock()+secs end',
+      '          end',
+      '        end',
+      '      end',
+      '      if #_tasks==0 then break end',
+      '      local nxt=_clock()+1',
+      '      for _,t in ipairs(_tasks) do if t.wake<nxt then nxt=t.wake end end',
+      '      local ms=math.max(10,math.floor((nxt-_clock())*1000))',
+      '      sleep(ms)',
+      '    end',
+      '    _tasks={}',
+      '  end,',
       '}',
     ].join('\n');
 
