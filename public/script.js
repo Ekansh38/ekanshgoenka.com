@@ -1933,8 +1933,11 @@ function toggleTheme() {
       '  read =function(prompt) if type(prompt)=="string" then _setprompt(prompt) end return coroutine.yield() end,',
       '  getkey=function() _setprompt("__getkey__") return coroutine.yield() end,',
       '  pollkey=function() local k=_pollkey(); if _in_task then coroutine.yield(0) end; return k end,',
-      '  write=function(...) local s="" for i=1,select("#",...)do s=s..tostring(select(i,...))end _iowrite(s) end,',
+      '  write=function(...) local s="" for i=1,select("#",...)do s=s..tostring(select(i,...))end _iowrite(s); if _in_task then coroutine.yield(0) end end,',
       '}',
+      // auto-yield helper: yields in task context every N calls
+      'local _ty_n=0',
+      'local function _ty() if not _in_task then return end; _ty_n=_ty_n+1; if _ty_n>=4 then _ty_n=0; coroutine.yield(0) end end',
       // color: ANSI escape constants
       'color={',
       '  red="\\27[31m", green="\\27[32m", yellow="\\27[33m",',
@@ -1942,15 +1945,20 @@ function toggleTheme() {
       '  white="\\27[37m", bold="\\27[1m", reset="\\27[0m"',
       '}',
       'function colored(text, col) return col .. tostring(text) .. color.reset end',
-      // sound: named presets + raw beep
+      // print/clear: auto-yield every 4 calls in task context
+      'local _orig_print=print',
+      'function print(...) _orig_print(...); _ty() end',
+      'local _orig_clear=clear',
+      'function clear() _orig_clear(); _ty() end',
+      // sound: named presets + raw beep (auto-yield)
       'sound={',
-      '  beep =function(freq,dur) _sound(freq or 440, dur or 0.15, "sine") end,',
-      '  blip =function() _sound("blip") end,',
-      '  buzz =function() _sound("buzz") end,',
-      '  win  =function() _sound("win")  end,',
-      '  lose =function() _sound("lose") end,',
-      '  click=function() _sound("click") end,',
-      '  coin =function() _sound("coin") end,',
+      '  beep =function(freq,dur) _sound(freq or 440, dur or 0.15, "sine"); _ty() end,',
+      '  blip =function() _sound("blip"); _ty() end,',
+      '  buzz =function() _sound("buzz"); _ty() end,',
+      '  win  =function() _sound("win"); _ty() end,',
+      '  lose =function() _sound("lose"); _ty() end,',
+      '  click=function() _sound("click"); _ty() end,',
+      '  coin =function() _sound("coin"); _ty() end,',
       '}',
       // sleep(ms): yields with sentinel, resumed by setTimeout
       'function sleep(ms) coroutine.yield("\\0sleep\\0"..tostring(math.floor(ms or 100))) end',
