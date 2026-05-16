@@ -1932,7 +1932,7 @@ function toggleTheme() {
       'io={',
       '  read =function(prompt) if type(prompt)=="string" then _setprompt(prompt) end return coroutine.yield() end,',
       '  getkey=function() _setprompt("__getkey__") return coroutine.yield() end,',
-      '  pollkey=function() return _pollkey() end,',
+      '  pollkey=function() local k=_pollkey(); if _in_task then coroutine.yield(0) end; return k end,',
       '  write=function(...) local s="" for i=1,select("#",...)do s=s..tostring(select(i,...))end _iowrite(s) end,',
       '}',
       // color: ANSI escape constants
@@ -1961,15 +1961,16 @@ function toggleTheme() {
       '  rank=function(name,score) coroutine.yield("\\0net\\0rank\\1"..tostring(name).."\\1"..tostring(tonumber(score) or 0)) end,',
       '  top =function(n) coroutine.yield("\\0net\\0top\\1"..tostring(math.floor(tonumber(n) or 10))) return _net_collect() end,',
       '}',
-      // tasks: preemptive scheduler (debug.sethook forces yield after N instructions)
+      // tasks: scheduler with auto-yield on pollkey + debug.sethook fallback
       'local _tasks={}',
       'local _task_active=false',
+      'local _in_task=false',
       'local _PREEMPT={}',
       'tasks={',
       '  spawn=function(fn) _tasks[#_tasks+1]={co=coroutine.create(fn),wake=0} end,',
       '  stop=function() _task_active=false end,',
       '  run=function()',
-      '    _task_active=true',
+      '    _task_active=true; _in_task=true',
       '    while _task_active and #_tasks>0 do',
       '      local now=_clock()',
       '      for i=#_tasks,1,-1 do',
@@ -2006,7 +2007,7 @@ function toggleTheme() {
       '      local ms=math.max(10,math.floor((nxt-_clock())*1000))',
       '      sleep(ms)',
       '    end',
-      '    _tasks={}',
+      '    _in_task=false; _tasks={}',
       '  end,',
       '}',
     ].join('\n');
