@@ -23,13 +23,13 @@ function applyTheme(name) {
   var isLight = LIGHT_THEMES.indexOf(name) >= 0;
   var t = document.getElementById('t');
   if (t) t.textContent = isLight ? '[light]' : '[dark]';
-  var items = document.querySelectorAll('.tp-item, .mts-item');
+  var items = document.querySelectorAll('.tp-item, .ms-item');
   for (var i = 0; i < items.length; i++)
     items[i].classList.toggle('active', items[i].getAttribute('data-t') === name);
 }
 
 function toggleTheme() {
-  var sheet = document.getElementById('m-theme-sheet');
+  var sheet = document.getElementById('m-sheet');
   if (sheet) {
     sheet.classList.add('open');
     return;
@@ -75,21 +75,20 @@ function toggleTheme() {
       }
     }
 
-    // Mobile theme bottom sheet
-    var mSheet = document.getElementById('m-theme-sheet');
-    var mPanel = document.getElementById('m-theme-panel');
+    // Mobile settings sheet
+    var mSheet = document.getElementById('m-sheet');
+    var mPanel = document.getElementById('m-sheet-panel');
     if (mSheet && mPanel) {
       // tap backdrop to close
       mSheet.addEventListener('click', function (e) {
         if (e.target === mSheet) mSheet.classList.remove('open');
       });
       // tap theme item
-      var mItems = mPanel.querySelectorAll('.mts-item');
+      var mItems = mPanel.querySelectorAll('.ms-item');
       for (var j = 0; j < mItems.length; j++) {
         mItems[j].addEventListener('click', (function (item) {
           return function () {
             applyTheme(item.getAttribute('data-t'));
-            mSheet.classList.remove('open');
           };
         })(mItems[j]));
       }
@@ -112,10 +111,9 @@ function toggleTheme() {
   if (!canvas) return;
   var ctx = canvas.getContext('2d');
 
-  var MODES = _isMobile ? ['boids', 'off'] : ['life', 'boids', 'combo', 'off'];
+  var MODES = ['life', 'boids', 'combo', 'off'];
   var _savedMode = localStorage.getItem('bgMode') || (_isMobile ? 'boids' : 'combo');
   var modeIdx = Math.max(0, MODES.indexOf(_savedMode));
-  if (modeIdx < 0 || modeIdx >= MODES.length) modeIdx = 0;
   var lifeSpeedLevel  = Math.max(0, Math.min(100, parseInt(localStorage.getItem('bgLifeSpeed')  || '15')));
   var boidsSpeedLevel = Math.max(0, Math.min(100, parseInt(localStorage.getItem('bgBoidsSpeed') || '15')));
   var W, H;
@@ -1037,9 +1035,63 @@ function toggleTheme() {
     }
   });
 
+  // ── mobile sheet: mode seg + preset chips ──
+  function _updateMobileMode() {
+    var seg = document.getElementById('ms-mode-seg');
+    if (!seg) return;
+    var cur = window.getBgMode ? window.getBgMode() : 'boids';
+    var btns = seg.querySelectorAll('button');
+    for (var i = 0; i < btns.length; i++)
+      btns[i].classList.toggle('active', btns[i].getAttribute('data-mode') === cur);
+  }
+
+  function _rebuildMobilePresets() {
+    var container = document.getElementById('ms-presets');
+    if (!container) return;
+    container.innerHTML = '';
+    var cur = window.getBgMode ? window.getBgMode() : 'boids';
+    // show presets for current mode, plus "any" presets
+    var names = window.getPresetNames ? window.getPresetNames() : [];
+    var active = window.getActivePreset ? window.getActivePreset() : null;
+    // mobile subset: curated lighter presets
+    var MOBILE_PRESETS = ['default','mist','bloom','chromatic','flock','midnight','swarm','soft'];
+    names.forEach(function (name) {
+      if (MOBILE_PRESETS.indexOf(name) < 0) return;
+      var btn = document.createElement('button');
+      btn.className = 'ms-preset' + (active === name ? ' active' : '');
+      btn.textContent = name;
+      btn.addEventListener('click', function () {
+        window.applyPreset(name);
+        _rebuildMobilePresets();
+        _updateMobileMode();
+      });
+      container.appendChild(btn);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    // mode segmented control
+    var seg = document.getElementById('ms-mode-seg');
+    if (seg) {
+      _updateMobileMode();
+      var mBtns = seg.querySelectorAll('button');
+      for (var i = 0; i < mBtns.length; i++) {
+        mBtns[i].addEventListener('click', (function (btn) {
+          return function () {
+            var mode = btn.getAttribute('data-mode');
+            if (window.setBgMode) window.setBgMode(mode);
+            _updateMobileMode();
+            _rebuildMobilePresets();
+          };
+        })(mBtns[i]));
+      }
+    }
+    _rebuildMobilePresets();
+  });
+
   // rebuild picker whenever mode changes
   var _origCycleMode = cycleMode;
-  cycleMode = function () { _origCycleMode(); rebuildPresetPicker(); };
+  cycleMode = function () { _origCycleMode(); rebuildPresetPicker(); _updateMobileMode(); _rebuildMobilePresets(); };
 
   var activePreset = null;
   window.applyPreset = function (name) {
@@ -1054,6 +1106,8 @@ function toggleTheme() {
     activePreset = name;
     localStorage.setItem('preset', name);
     if (window._rebuildPresetPicker) window._rebuildPresetPicker();
+    _rebuildMobilePresets();
+    _updateMobileMode();
     return true;
   };
   window.getActivePreset = function () { return activePreset; };
