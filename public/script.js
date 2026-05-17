@@ -23,12 +23,18 @@ function applyTheme(name) {
   var isLight = LIGHT_THEMES.indexOf(name) >= 0;
   var t = document.getElementById('t');
   if (t) t.textContent = isLight ? '[light]' : '[dark]';
-  var items = document.querySelectorAll('.tp-item');
+  var items = document.querySelectorAll('.tp-item, .mts-item');
   for (var i = 0; i < items.length; i++)
     items[i].classList.toggle('active', items[i].getAttribute('data-t') === name);
 }
 
 function toggleTheme() {
+  var sheet = document.getElementById('m-theme-sheet');
+  if (sheet) {
+    sheet.classList.add('open');
+    return;
+  }
+  // fallback: cycle
   var cur = document.documentElement.getAttribute('data-theme');
   var idx = THEMES.indexOf(cur);
   applyTheme(THEMES[(idx + 1) % THEMES.length]);
@@ -68,6 +74,26 @@ function toggleTheme() {
         })(items[i]));
       }
     }
+
+    // Mobile theme bottom sheet
+    var mSheet = document.getElementById('m-theme-sheet');
+    var mPanel = document.getElementById('m-theme-panel');
+    if (mSheet && mPanel) {
+      // tap backdrop to close
+      mSheet.addEventListener('click', function (e) {
+        if (e.target === mSheet) mSheet.classList.remove('open');
+      });
+      // tap theme item
+      var mItems = mPanel.querySelectorAll('.mts-item');
+      for (var j = 0; j < mItems.length; j++) {
+        mItems[j].addEventListener('click', (function (item) {
+          return function () {
+            applyTheme(item.getAttribute('data-t'));
+            mSheet.classList.remove('open');
+          };
+        })(mItems[j]));
+      }
+    }
   });
 })();
 
@@ -79,15 +105,17 @@ function toggleTheme() {
 //            <canvas id="bg-canvas"> and #bg-mode-btn from templates.
 // ================================================================
 (function () {
-  // Disable sim entirely on touch-only devices (phones/tablets)
-  if (window.matchMedia('(hover: none) and (pointer: coarse)').matches) return;
+  // Reduced sim on touch-only devices (phones/tablets)
+  var _isMobile = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
 
   var canvas = document.getElementById('bg-canvas');
   if (!canvas) return;
   var ctx = canvas.getContext('2d');
 
-  var MODES = ['life', 'boids', 'combo', 'off'];
-  var modeIdx = Math.max(0, MODES.indexOf(localStorage.getItem('bgMode') || 'combo'));
+  var MODES = _isMobile ? ['boids', 'off'] : ['life', 'boids', 'combo', 'off'];
+  var _savedMode = localStorage.getItem('bgMode') || (_isMobile ? 'boids' : 'combo');
+  var modeIdx = Math.max(0, MODES.indexOf(_savedMode));
+  if (modeIdx < 0 || modeIdx >= MODES.length) modeIdx = 0;
   var lifeSpeedLevel  = Math.max(0, Math.min(100, parseInt(localStorage.getItem('bgLifeSpeed')  || '15')));
   var boidsSpeedLevel = Math.max(0, Math.min(100, parseInt(localStorage.getItem('bgBoidsSpeed') || '15')));
   var W, H;
@@ -127,7 +155,7 @@ function toggleTheme() {
   // flocking shapes. Soft trail via partial-fade instead of clearRect.
   // Each boid is a concave arrow pointing in its velocity direction.
 
-  var N          = 120;
+  var N          = _isMobile ? 40 : 120;
   var MAX_SPEED  = 1.0,  MIN_SPEED  = 0.3;
   var PERCEPTION = 52,   SEP_DIST   = 38;
   var SEP_W      = 0.16, ALI_W      = 0.05, COH_W = 0.003;
@@ -210,6 +238,25 @@ function toggleTheme() {
       if (b.y < MARGIN)   fy += TURN*(1-b.y/MARGIN);
       if (b.y > H-MARGIN) fy -= TURN*(1-(H-b.y)/MARGIN);
 
+      // cursor interaction: gentle attract from afar, scatter when close
+      if (_mouseActive) {
+        dx = _mouseX - b.x; dy = _mouseY - b.y;
+        d2 = dx*dx + dy*dy;
+        if (d2 > 1) {
+          d = Math.sqrt(d2);
+          if (d < CURSOR_REPEL_R) {
+            var repel = (1 - d / CURSOR_REPEL_R);
+            repel = repel * repel;  // quadratic falloff
+            fx -= (dx/d) * repel * CURSOR_REPEL_W;
+            fy -= (dy/d) * repel * CURSOR_REPEL_W;
+          } else if (d < CURSOR_ATTRACT_R) {
+            var attract = (1 - (d - CURSOR_REPEL_R) / (CURSOR_ATTRACT_R - CURSOR_REPEL_R));
+            fx += (dx/d) * attract * CURSOR_ATTRACT_W;
+            fy += (dy/d) * attract * CURSOR_ATTRACT_W;
+          }
+        }
+      }
+
       b.wa += (Math.random() - 0.5) * b.wd * 14;  // per-boid wander drift rate
       b.vx += fx + Math.cos(b.wa) * WANDER;
       b.vy += fy + Math.sin(b.wa) * WANDER;
@@ -222,6 +269,42 @@ function toggleTheme() {
       if (b.y < -20) b.y = H+20; else if (b.y > H+20) b.y = -20;
     }
   }
+
+  // ── cursor interaction ──
+  var _mouseX = -9999, _mouseY = -9999, _mouseActive = false, _mouseTimer = 0;
+  var CURSOR_ATTRACT_R = 200, CURSOR_REPEL_R = 60;
+  var CURSOR_ATTRACT_W = 0.0004, CURSOR_REPEL_W = 0.08;
+  var CURSOR_IDLE_MS = 2000;
+
+  document.addEventListener('mousemove', function(e) {
+    _mouseX = e.clientX; _mouseY = e.clientY;
+    _mouseActive = true;
+    clearTimeout(_mouseTimer);
+    _mouseTimer = setTimeout(function() { _mouseActive = false; }, CURSOR_IDLE_MS);
+  });
+  document.addEventListener('mouseleave', function() { _mouseActive = false; });
+
+  // touch interaction for mobile boids
+  document.addEventListener('touchmove', function(e) {
+    var t = e.touches[0];
+    if (!t) return;
+    _mouseX = t.clientX; _mouseY = t.clientY;
+    _mouseActive = true;
+    clearTimeout(_mouseTimer);
+    _mouseTimer = setTimeout(function() { _mouseActive = false; }, CURSOR_IDLE_MS);
+  }, { passive: true });
+  document.addEventListener('touchstart', function(e) {
+    var t = e.touches[0];
+    if (!t) return;
+    _mouseX = t.clientX; _mouseY = t.clientY;
+    _mouseActive = true;
+    clearTimeout(_mouseTimer);
+    _mouseTimer = setTimeout(function() { _mouseActive = false; }, CURSOR_IDLE_MS);
+  }, { passive: true });
+  document.addEventListener('touchend', function() {
+    clearTimeout(_mouseTimer);
+    _mouseTimer = setTimeout(function() { _mouseActive = false; }, 500);
+  });
 
   function isHome() { return window.location.pathname === '/'; }
 
@@ -782,7 +865,8 @@ function toggleTheme() {
         window.setBoidsSpeed(parseFloat(val));
         return true;
       case 'boids.n':
-        N = Math.max(1, Math.min(1000, Math.round(val)));
+        var maxN = _isMobile ? 60 : 1000;
+        N = Math.max(1, Math.min(maxN, Math.round(val)));
         if (MODES[modeIdx] === 'boids' || MODES[modeIdx] === 'combo') initBoids();
         return true;
       case 'boids.size':
@@ -1773,9 +1857,10 @@ function toggleTheme() {
 
     _gameMode = true;
     output.innerHTML = '';
+    output.style.fontSize = '';
 
     // game header bar (skip for test runs from editor/tutorial)
-    if (game.id !== '_test_') {
+    if (game.id.indexOf('_test_') !== 0) {
       var ghdr = document.createElement('div');
       ghdr.className = 'term-game-header';
       ghdr.innerHTML = '<span>▶ ' + (game.title || 'game') + '</span>'
@@ -1847,8 +1932,10 @@ function toggleTheme() {
     lua.lua_pushcfunction(L, function(Ls) { iobuf = ''; output.innerHTML = ''; return 0; });
     lua.lua_setglobal(L, toLua('clear'));
 
-    // _pollkey() — non-blocking key read: returns last key pressed since last poll, or ""
+    // _pollkey() — non-blocking key read: returns held key or last tap, or ""
     var _keyBuf = '';
+    var _keysHeld = {};
+    var _lastHeld = '';
     function _normalizeKey(e) {
       var k = e.key;
       if (k === 'ArrowUp') return 'up';
@@ -1870,18 +1957,36 @@ function toggleTheme() {
         _gameMode = false; _gameResume = null;
         flushIoBuf();
         document.removeEventListener('keydown', _gameKeyCapture, true);
+        document.removeEventListener('keyup', _gameKeyRelease, true);
         if (termPrompt) termPrompt.innerHTML = DEFAULT_PROMPT;
         line('^C  game stopped.', 'term-line-err');
         output.scrollTop = output.scrollHeight;
+        _keysHeld = {}; _lastHeld = '';
         return;
       }
-      _keyBuf = _normalizeKey(e);
+      var k = _normalizeKey(e);
+      _keyBuf = k;
+      _keysHeld[k] = true;
+      _lastHeld = k;
+    }
+    function _gameKeyRelease(e) {
+      var k = _normalizeKey(e);
+      delete _keysHeld[k];
+      if (_lastHeld === k) _lastHeld = '';
     }
     document.addEventListener('keydown', _gameKeyCapture, true);
+    document.addEventListener('keyup', _gameKeyRelease, true);
 
     lua.lua_pushcfunction(L, function(Ls) {
-      var k = _keyBuf;
-      _keyBuf = '';
+      // return currently held key (instant, no repeat delay)
+      var k = '';
+      if (_lastHeld && _keysHeld[_lastHeld]) {
+        k = _lastHeld;
+      } else {
+        for (var key in _keysHeld) { k = key; break; }
+      }
+      if (!k) { k = _keyBuf; _keyBuf = ''; }
+      else { _keyBuf = ''; }
       lua.lua_pushstring(Ls, toLua(k));
       return 1;
     });
@@ -1924,16 +2029,48 @@ function toggleTheme() {
     });
     lua.lua_setglobal(L, toLua('_net_collect'));
 
+    // _fontsize(n) — set output font size by level 1–10 (output only, not input row)
+    var _fontSizes = [14, 18, 24, 32, 40, 48, 56, 64, 80, 96];
+    lua.lua_pushcfunction(L, function(Ls) {
+      if (lua.lua_type(Ls, 1) !== lua.LUA_TNUMBER) return 0;
+      var lvl = Math.floor(lua.lua_tonumber(Ls, 1));
+      lvl = Math.max(1, Math.min(10, lvl));
+      output.style.fontSize = _fontSizes[lvl - 1] + 'px';
+      return 0;
+    });
+    lua.lua_setglobal(L, toLua('_fontsize'));
+
+    // _termsize() — returns cols, rows based on current font size
+    lua.lua_pushcfunction(L, function(Ls) {
+      var style = getComputedStyle(output);
+      var fontSize = parseFloat(style.fontSize);
+      var charW = fontSize * 0.6;
+      var w = output.clientWidth;
+      var h = output.clientHeight;
+      lua.lua_pushnumber(Ls, Math.floor(w / charW));
+      lua.lua_pushnumber(Ls, Math.floor(h / (fontSize * 1.4)));
+      return 2;
+    });
+    lua.lua_setglobal(L, toLua('_termsize'));
+
     var co = lua.lua_newthread(L);
 
     var sandbox = [
       'local _os_time=os.time; local _os_clock=os.clock; os={time=_os_time,clock=_os_clock}',
       'require=nil; load=nil; dofile=nil; loadfile=nil; collectgarbage=nil',
+      // task state must be declared before io/print/sound closures reference _in_task
+      'local _tasks={}',
+      'local _task_active=false',
+      'local _in_task=false',
+      'local _PREEMPT={}',
       'io={',
       '  read =function(prompt) if type(prompt)=="string" then _setprompt(prompt) end return coroutine.yield() end,',
       '  getkey=function() _setprompt("__getkey__") return coroutine.yield() end,',
       '  pollkey=function() local k=_pollkey(); if _in_task then coroutine.yield(0) end; return k end,',
       '  write=function(...) local s="" for i=1,select("#",...)do s=s..tostring(select(i,...))end _iowrite(s); if _in_task then coroutine.yield(0) end end,',
+      '  fontsize=function(n) _fontsize(n) end,',
+      '  width=function() local w,h=_termsize(); return w end,',
+      '  height=function() local w,h=_termsize(); return h end,',
       '}',
       // auto-yield helper: yields in task context every N calls
       'local _ty_n=0',
@@ -1968,12 +2105,9 @@ function toggleTheme() {
       '  get =function(key) return coroutine.yield("\\0net\\0get\\1"..tostring(key)) end,',
       '  rank=function(name,score) coroutine.yield("\\0net\\0rank\\1"..tostring(name).."\\1"..tostring(tonumber(score) or 0)) end,',
       '  top =function(n) coroutine.yield("\\0net\\0top\\1"..tostring(math.floor(tonumber(n) or 10))) return _net_collect() end,',
+      '  bottom=function(n) coroutine.yield("\\0net\\0bottom\\1"..tostring(math.floor(tonumber(n) or 10))) return _net_collect() end,',
       '}',
       // tasks: scheduler with auto-yield on pollkey + debug.sethook fallback
-      'local _tasks={}',
-      'local _task_active=false',
-      'local _in_task=false',
-      'local _PREEMPT={}',
       'tasks={',
       '  spawn=function(fn) _tasks[#_tasks+1]={co=coroutine.create(fn),wake=0} end,',
       '  stop=function() _task_active=false end,',
@@ -2039,6 +2173,8 @@ function toggleTheme() {
     function exitGame() {
       flushIoBuf();
       document.removeEventListener('keydown', _gameKeyCapture, true);
+      document.removeEventListener('keyup', _gameKeyRelease, true);
+      _keysHeld = {}; _lastHeld = '';
       _gameMode = false; _gameResume = null;
       if (termPrompt) termPrompt.innerHTML = DEFAULT_PROMPT;
     }
@@ -2086,9 +2222,9 @@ function toggleTheme() {
                   .catch(function() { if (_gameMode) step('err:network'); });
                 return;
               }
-              if (op === 'top') {
+              if (op === 'top' || op === 'bottom') {
                 var n = parseInt(parts[1]) || 10;
-                fetch('/api/net?op=top&game=' + gid + '&n=' + n)
+                fetch('/api/net?op=' + op + '&game=' + gid + '&n=' + n)
                   .then(function(r) { return r.json(); })
                   .then(function(d) { window._netBuf = d.entries || []; if (_gameMode) step('\x01'); })
                   .catch(function() { window._netBuf = []; if (_gameMode) step('\x01'); });
@@ -2102,11 +2238,6 @@ function toggleTheme() {
         // io.getkey() — single keypress, no Enter required
         if (iobuf === '__getkey__') {
           iobuf = '';
-          // show indicator inline in output area
-          var gkEl = document.createElement('div');
-          gkEl.className = 'term-io-inline';
-          gkEl.innerHTML = '<i style="color:var(--muted)">[press any key]</i>';
-          output.appendChild(gkEl);
           inp.blur();
           var handler = function(e) {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
@@ -2123,7 +2254,6 @@ function toggleTheme() {
             else if (k === 'Escape') k = 'escape';
             else if (k.length === 1) k = k.toLowerCase();
             else k = k.toLowerCase();
-            if (gkEl.parentNode) gkEl.parentNode.removeChild(gkEl);
             if (_gameMode) step(k);
           };
           document.addEventListener('keydown', handler, true);
@@ -2797,6 +2927,15 @@ function toggleTheme() {
     },
   };
 
+  // ── game ID list for tab completion (prefetch silently) ─────
+  function _gameIds() { return _gCache ? _gCache.map(function(g) { return g.id; }) : []; }
+  (function prefetchGames() {
+    if (_gCache) return;
+    fetch('/api/games').then(function(r) { return r.json(); }).then(function(gs) {
+      _gCache = gs; _gCacheAt = Date.now();
+    }).catch(function() {});
+  })();
+
   // ── tab completion ──────────────────────────────────────────
   var CMD_NAMES = Object.keys(CMDS);
 
@@ -2855,6 +2994,9 @@ function toggleTheme() {
       which:       function (p) { return p === 0 ? CMD_NAMES : []; },
       curl:        function (p) { return p === 0 ? ['-L'] : p === 1 ? ['ekanshgoenka.com'] : []; },
       rm:          function ()  { return completePath(typed); },
+      play:        function (p) { return p === 0 ? _gameIds() : []; },
+      source:      function (p) { return p === 0 ? _gameIds() : []; },
+      delete:      function (p) { return p === 0 ? _gameIds() : []; },
     };
     var fn = CMAP[cmd];
     if (fn) return fn(pos).filter(function (s) { return s.indexOf(typed) === 0; });
@@ -2920,7 +3062,8 @@ function toggleTheme() {
   // expose for arcade page buttons
   window.termOpen   = open;
   window.termRun    = function(cmd) { output.innerHTML = ''; open(); setTimeout(function() { run(cmd); }, 80); };
-  window.termRunLua = function(code) { output.innerHTML = ''; open(); setTimeout(function() { loadFengari(function() { runLuaGame({ id: '_test_', title: 'test run', author: 'you', code: code }); }); }, 80); };
+  var _testId = '_test_' + Math.random().toString(36).slice(2, 8);
+  window.termRunLua = function(code) { output.innerHTML = ''; open(); setTimeout(function() { loadFengari(function() { runLuaGame({ id: _testId, title: 'test run', author: 'you', code: code }); }); }, 80); };
 
   // ── run a command ───────────────────────────────────────────
   function run(raw) {

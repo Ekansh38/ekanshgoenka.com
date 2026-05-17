@@ -66,13 +66,9 @@
 
 
 <div class="arc-hero">
-  <div class="arc-hero-scanlines" aria-hidden="true"></div>
-  <div class="arc-hero-inner">
-    <span class="arc-banner-tag">ekanshgoenka.com / arcade</span>
-    <h1 class="arc-title-big" data-text="ARCADE">ARCADE</h1>
-    <p class="arc-banner-tagline">visitor-submitted lua games · runs in the terminal</p>
-    <div class="arc-stat-line" id="arc-stat-line"></div>
-  </div>
+  <h1 class="arc-title-big">arcade</h1>
+  <p class="arc-banner-tagline">visitor-submitted lua games · runs in the terminal</p>
+  <div class="arc-stat-line" id="arc-stat-line"></div>
 </div>
 
 
@@ -105,14 +101,9 @@
 
 
 <div class="arc-cta-section">
-  <div class="arc-cta-glow" aria-hidden="true"></div>
-  <div class="arc-cta-inner">
-    <div class="arc-cta-title">write a game</div>
-    <div class="arc-cta-desc">syntax highlighting · run &amp; submit in one place · guided intro for beginners · no experience required</div>
-    <button id="arc-write-btn" class="arc-cta-btn">
-      <span class="arc-cta-btn-arrow">▶</span> start writing →
-    </button>
-  </div>
+  <div class="arc-cta-title">write a game</div>
+  <div class="arc-cta-desc">syntax highlighting · run &amp; submit in one place · guided intro for beginners · no experience required</div>
+  <button id="arc-write-btn" class="arc-cta-btn">open editor →</button>
 </div>
 <script>
 document.getElementById('arc-write-btn').addEventListener('click', function() {
@@ -123,21 +114,6 @@ document.getElementById('arc-write-btn').addEventListener('click', function() {
 
 <script>
 (function() {
-  
-  var taglineEl = document.querySelector('.arc-banner-tagline');
-  if (taglineEl) {
-    var taglineText = taglineEl.textContent;
-    taglineEl.textContent = '';
-    setTimeout(function() {
-      var ci = 0;
-      var iv = setInterval(function() {
-        taglineEl.textContent += taglineText[ci];
-        ci++;
-        if (ci >= taglineText.length) clearInterval(iv);
-      }, 30);
-    }, 300);
-  }
-
   var API = '/api/games';
   var LS_KEY = 'arcade_v1', LS_TTL = 5 * 60 * 1000;
   var MAX_CODE = 25000;
@@ -565,6 +541,43 @@ document.getElementById('arc-write-btn').addEventListener('click', function() {
       </button>
       <button class="tp-item" data-t="papercolor-light">
         <span class="tp-arrow">▶</span>papercolor-light<span class="tp-variant">light</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="m-theme-sheet">
+    <div id="m-theme-panel">
+      <div class="mts-handle"></div>
+      <div class="mts-title">colorscheme</div>
+      <button class="mts-item" data-t="tokyo-night">
+        <span class="mts-swatch" style="background:#7aa2f7"></span>
+        <span class="mts-name">tokyo-night</span>
+        <span class="mts-label">dark</span>
+      </button>
+      <button class="mts-item" data-t="gruvbox">
+        <span class="mts-swatch" style="background:#d79921"></span>
+        <span class="mts-name">gruvbox</span>
+        <span class="mts-label">dark</span>
+      </button>
+      <button class="mts-item" data-t="dracula">
+        <span class="mts-swatch" style="background:#bd93f9"></span>
+        <span class="mts-name">dracula</span>
+        <span class="mts-label">dark</span>
+      </button>
+      <button class="mts-item" data-t="rose-pine">
+        <span class="mts-swatch" style="background:#b4637a"></span>
+        <span class="mts-name">rose-pine</span>
+        <span class="mts-label">light</span>
+      </button>
+      <button class="mts-item" data-t="github-light">
+        <span class="mts-swatch" style="background:#0969da"></span>
+        <span class="mts-name">github-light</span>
+        <span class="mts-label">light</span>
+      </button>
+      <button class="mts-item" data-t="papercolor-light">
+        <span class="mts-swatch" style="background:#005f87"></span>
+        <span class="mts-name">papercolor-light</span>
+        <span class="mts-label">light</span>
       </button>
     </div>
   </div>

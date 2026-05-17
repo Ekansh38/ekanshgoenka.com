@@ -23,12 +23,18 @@ function applyTheme(name) {
   var isLight = LIGHT_THEMES.indexOf(name) >= 0;
   var t = document.getElementById('t');
   if (t) t.textContent = isLight ? '[light]' : '[dark]';
-  var items = document.querySelectorAll('.tp-item');
+  var items = document.querySelectorAll('.tp-item, .mts-item');
   for (var i = 0; i < items.length; i++)
     items[i].classList.toggle('active', items[i].getAttribute('data-t') === name);
 }
 
 function toggleTheme() {
+  var sheet = document.getElementById('m-theme-sheet');
+  if (sheet) {
+    sheet.classList.add('open');
+    return;
+  }
+  // fallback: cycle
   var cur = document.documentElement.getAttribute('data-theme');
   var idx = THEMES.indexOf(cur);
   applyTheme(THEMES[(idx + 1) % THEMES.length]);
@@ -68,6 +74,26 @@ function toggleTheme() {
         })(items[i]));
       }
     }
+
+    // Mobile theme bottom sheet
+    var mSheet = document.getElementById('m-theme-sheet');
+    var mPanel = document.getElementById('m-theme-panel');
+    if (mSheet && mPanel) {
+      // tap backdrop to close
+      mSheet.addEventListener('click', function (e) {
+        if (e.target === mSheet) mSheet.classList.remove('open');
+      });
+      // tap theme item
+      var mItems = mPanel.querySelectorAll('.mts-item');
+      for (var j = 0; j < mItems.length; j++) {
+        mItems[j].addEventListener('click', (function (item) {
+          return function () {
+            applyTheme(item.getAttribute('data-t'));
+            mSheet.classList.remove('open');
+          };
+        })(mItems[j]));
+      }
+    }
   });
 })();
 
@@ -79,15 +105,17 @@ function toggleTheme() {
 //            <canvas id="bg-canvas"> and #bg-mode-btn from templates.
 // ================================================================
 (function () {
-  // Disable sim entirely on touch-only devices (phones/tablets)
-  if (window.matchMedia('(hover: none) and (pointer: coarse)').matches) return;
+  // Reduced sim on touch-only devices (phones/tablets)
+  var _isMobile = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
 
   var canvas = document.getElementById('bg-canvas');
   if (!canvas) return;
   var ctx = canvas.getContext('2d');
 
-  var MODES = ['life', 'boids', 'combo', 'off'];
-  var modeIdx = Math.max(0, MODES.indexOf(localStorage.getItem('bgMode') || 'combo'));
+  var MODES = _isMobile ? ['boids', 'off'] : ['life', 'boids', 'combo', 'off'];
+  var _savedMode = localStorage.getItem('bgMode') || (_isMobile ? 'boids' : 'combo');
+  var modeIdx = Math.max(0, MODES.indexOf(_savedMode));
+  if (modeIdx < 0 || modeIdx >= MODES.length) modeIdx = 0;
   var lifeSpeedLevel  = Math.max(0, Math.min(100, parseInt(localStorage.getItem('bgLifeSpeed')  || '15')));
   var boidsSpeedLevel = Math.max(0, Math.min(100, parseInt(localStorage.getItem('bgBoidsSpeed') || '15')));
   var W, H;
@@ -127,7 +155,7 @@ function toggleTheme() {
   // flocking shapes. Soft trail via partial-fade instead of clearRect.
   // Each boid is a concave arrow pointing in its velocity direction.
 
-  var N          = 120;
+  var N          = _isMobile ? 40 : 120;
   var MAX_SPEED  = 1.0,  MIN_SPEED  = 0.3;
   var PERCEPTION = 52,   SEP_DIST   = 38;
   var SEP_W      = 0.16, ALI_W      = 0.05, COH_W = 0.003;
@@ -255,6 +283,28 @@ function toggleTheme() {
     _mouseTimer = setTimeout(function() { _mouseActive = false; }, CURSOR_IDLE_MS);
   });
   document.addEventListener('mouseleave', function() { _mouseActive = false; });
+
+  // touch interaction for mobile boids
+  document.addEventListener('touchmove', function(e) {
+    var t = e.touches[0];
+    if (!t) return;
+    _mouseX = t.clientX; _mouseY = t.clientY;
+    _mouseActive = true;
+    clearTimeout(_mouseTimer);
+    _mouseTimer = setTimeout(function() { _mouseActive = false; }, CURSOR_IDLE_MS);
+  }, { passive: true });
+  document.addEventListener('touchstart', function(e) {
+    var t = e.touches[0];
+    if (!t) return;
+    _mouseX = t.clientX; _mouseY = t.clientY;
+    _mouseActive = true;
+    clearTimeout(_mouseTimer);
+    _mouseTimer = setTimeout(function() { _mouseActive = false; }, CURSOR_IDLE_MS);
+  }, { passive: true });
+  document.addEventListener('touchend', function() {
+    clearTimeout(_mouseTimer);
+    _mouseTimer = setTimeout(function() { _mouseActive = false; }, 500);
+  });
 
   function isHome() { return window.location.pathname === '/'; }
 
@@ -815,7 +865,8 @@ function toggleTheme() {
         window.setBoidsSpeed(parseFloat(val));
         return true;
       case 'boids.n':
-        N = Math.max(1, Math.min(1000, Math.round(val)));
+        var maxN = _isMobile ? 60 : 1000;
+        N = Math.max(1, Math.min(maxN, Math.round(val)));
         if (MODES[modeIdx] === 'boids' || MODES[modeIdx] === 'combo') initBoids();
         return true;
       case 'boids.size':

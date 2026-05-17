@@ -66,6 +66,9 @@
 <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.18/addon/edit/matchbrackets.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.18/addon/edit/closebrackets.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.18/addon/display/autorefresh.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.18/addon/search/search.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.18/addon/search/searchcursor.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.18/addon/search/jump-to-line.min.js"></script>
 
 <style>
   body { max-width: min(1200px, 96vw) !important; }
@@ -213,11 +216,6 @@
     padding: 0; outline: none; width: 100%;
   }
   .ae-meta-field input::placeholder { color: var(--muted); opacity: 0.4; }
-  .ae-meta-prev {
-    font-size: 0.65rem; color: var(--muted); opacity: 0.5;
-    margin-top: 2px; overflow: hidden;
-    text-overflow: ellipsis; white-space: nowrap;
-  }
   .ae-field-title  { flex: 2.5; }
   .ae-field-author { flex: 1.5; }
   .ae-field-desc   { flex: 3; }
@@ -453,6 +451,17 @@
           <span class="ae-meta-lbl">description <span class="ae-meta-lbl-opt">(optional)</span></span>
           <input id="ae-desc" type="text" placeholder="what does your game do?" maxlength="200" autocomplete="off" spellcheck="false">
         </div>
+        <div class="ae-meta-field" style="max-width:140px">
+          <span class="ae-meta-lbl">leaderboard <span class="ae-meta-lbl-opt">(optional)</span></span>
+          <select id="ae-lbmode" style="background:var(--code-bg);border:1px solid var(--border);color:var(--fg);font-family:inherit;font-size:0.82rem;padding:4px 6px;outline:none;width:100%">
+            <option value="desc">higher is better</option>
+            <option value="asc">lower is better</option>
+          </select>
+        </div>
+        <div class="ae-meta-field ae-field-code">
+          <span class="ae-meta-lbl">edit code</span>
+          <input id="ae-newcode" type="password" placeholder="choose a code" minlength="4" maxlength="50" autocomplete="off" spellcheck="false">
+        </div>
       </div>
       <div class="ae-slug-hint" id="ae-slug" style="display:none"></div>
     </div>
@@ -463,16 +472,21 @@
         <div class="ae-meta-field ae-field-title">
           <span class="ae-meta-lbl">title</span>
           <input id="ae-upd-title" type="text" placeholder="leave blank to keep" maxlength="50" autocomplete="off" spellcheck="false">
-          <span class="ae-meta-prev" id="ae-prev-title"></span>
         </div>
         <div class="ae-meta-field ae-field-desc">
           <span class="ae-meta-lbl">description</span>
           <input id="ae-upd-desc" type="text" placeholder="leave blank to keep" maxlength="200" autocomplete="off" spellcheck="false">
-          <span class="ae-meta-prev" id="ae-prev-desc"></span>
+        </div>
+        <div class="ae-meta-field" style="max-width:140px">
+          <span class="ae-meta-lbl">leaderboard</span>
+          <select id="ae-upd-lbmode" style="background:var(--code-bg);border:1px solid var(--border);color:var(--fg);font-family:inherit;font-size:0.82rem;padding:4px 6px;outline:none;width:100%">
+            <option value="desc">higher is better</option>
+            <option value="asc">lower is better</option>
+          </select>
         </div>
         <div class="ae-meta-field ae-field-code">
           <span class="ae-meta-lbl">edit code</span>
-          <input id="ae-editcode" type="text" placeholder="xxxxx-xxxxx" autocomplete="off" spellcheck="false">
+          <input id="ae-editcode" type="password" placeholder="xxxxx-xxxxx" autocomplete="off" spellcheck="false">
         </div>
       </div>
     </div>
@@ -509,15 +523,7 @@
   <div id="ae-success-panel">
     <div class="ae-success-check">&#10003;</div>
     <div class="ae-success-title">game submitted!</div>
-    <div class="ae-success-sub">it's live on the arcade. here's your edit code - this is how you edit or delete your game later. no accounts, no passwords, just this.</div>
-    <div class="ae-success-lbl">your edit code</div>
-    <div class="ae-success-code-box">
-      <code class="ae-success-code" id="ae-success-code"></code>
-      <button class="ag-copy-btn" id="ae-success-copy">copy</button>
-    </div>
-    <p class="ae-success-warn">
-      <strong>save this.</strong> it won't be shown again. you'll need it to edit or delete your game. paste it somewhere safe.
-    </p>
+    <div class="ae-success-sub">it's live on the arcade. use the edit code you chose to edit or delete your game later.</div>
     <div class="ae-success-btns">
       <a class="ae-success-view" id="ae-success-link" href="#">view game</a>
       <button class="ae-success-another" id="ae-success-another">write another</button>
@@ -582,9 +588,8 @@
   var remixId = params.get('remix');
 
   function saveDraft() {
-    if (editId || remixId) return;
     try {
-      localStorage.setItem(DRAFT_KEY, JSON.stringify({
+      localStorage.setItem(draftKey(), JSON.stringify({
         code:   editor ? editor.getValue() : '',
         title:  (document.getElementById('ae-title')  || {}).value || '',
         author: (document.getElementById('ae-author') || {}).value || '',
@@ -594,9 +599,13 @@
     } catch(e) {}
   }
 
+  function draftKey() {
+    return DRAFT_KEY + (editId ? '_edit_' + editId : remixId ? '_remix_' + remixId : '');
+  }
+
   function loadDraft() {
     try {
-      var d = JSON.parse(localStorage.getItem(DRAFT_KEY));
+      var d = JSON.parse(localStorage.getItem(draftKey()));
       if (!d) return false;
       var age = Date.now() - (d.t || 0);
       if (age > 7 * 24 * 60 * 60 * 1000) return false; 
@@ -610,7 +619,7 @@
   }
 
   function clearDraft() {
-    try { localStorage.removeItem(DRAFT_KEY); } catch(e) {}
+    try { localStorage.removeItem(draftKey()); } catch(e) {}
   }
 
   var saveTimer;
@@ -662,6 +671,11 @@
   });
 
   editor.on('change', function() { updateCharCount(); scheduleSave(); });
+
+  
+  editor.on('vim-mode-change', function(e) {
+    if (e.mode === 'normal') { editor.execCommand('clearSearch'); }
+  });
 
   
   var loaded = false;
@@ -750,26 +764,38 @@
     submitBtn.style.display = 'none';
     updateBtn.style.display = 'inline-block';
 
+    
+    var hadDraft = loadDraft();
     fetch('/api/games?id=' + encodeURIComponent(editId))
       .then(function(r) { return r.json(); })
       .then(function(game) {
         if (game.error) { modeEl.textContent = 'game not found'; return; }
         modeEl.innerHTML = 'editing &nbsp;<strong>' + game.title + '</strong>';
-        document.getElementById('ae-prev-title').textContent = 'current: ' + game.title;
-        document.getElementById('ae-prev-desc').textContent  = 'current: ' + (game.desc || '(none)');
-        setCode(game.code || '');
-        updateCharCount();
+        document.getElementById('ae-upd-title').placeholder = game.title;
+        document.getElementById('ae-upd-desc').placeholder  = game.desc || '(no description)';
+        if (game.lbMode) { var sel = document.getElementById('ae-upd-lbmode'); if (sel) sel.value = game.lbMode; }
+        if (!hadDraft) { setCode(game.code || ''); updateCharCount(); }
       })
       .catch(function() { modeEl.textContent = 'error loading game'; });
+    
+    ['ae-title', 'ae-author', 'ae-desc'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.addEventListener('input', scheduleSave);
+    });
 
   } else if (remixId) {
     modeEl.textContent = 'remix';
     document.getElementById('ae-title').value = 'remix-' + remixId.slice(0, 20);
+    var hadRemixDraft = loadDraft();
     fetch('/api/games?id=' + encodeURIComponent(remixId))
       .then(function(r) { return r.json(); })
       .then(function(game) {
-        if (!game.error) { setCode(game.code || ''); updateCharCount(); }
+        if (!game.error && !hadRemixDraft) { setCode(game.code || ''); updateCharCount(); }
       });
+    ['ae-title', 'ae-author', 'ae-desc'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.addEventListener('input', scheduleSave);
+    });
 
   } else {
     modeEl.textContent = 'new game';
@@ -811,7 +837,7 @@
     { name: 'shared counter', note: 'count how many times your game has been played (net API)', code: 'local count = (tonumber(net.get("plays")) or 0) + 1\nnet.set("plays", tostring(count))\n\nprint(colored("this game has been played:", color.cyan))\nprint(colored(tostring(count) .. " times", color.yellow))' },
     { name: 'arrow key demo', note: 'instant keypress with io.getkey', code: 'print(colored("press arrow keys or letters", color.cyan))\nprint("press q to quit")\nprint("")\n\nwhile true do\n  local key = io.getkey()\n  if key == "q" then break end\n  print("you pressed: " .. colored(key, color.yellow))\nend\n\nprint("")\nprint("done!")' },
     { name: 'task game loop', note: 'concurrent timer + input pattern', code: '-- reusable pattern: game logic + input as separate tasks\nlocal ticks = 0\n\ntasks.spawn(function()\n  while true do\n    ticks = ticks + 1\n    clear()\n    print("tick " .. ticks)\n    -- put your game logic here\n    sleep(500)\n  end\nend)\n\ntasks.spawn(function()\n  while true do\n    local k = io.pollkey()\n    if k == "q" then tasks.stop() end\n    sleep(50)\n  end\nend)\n\ntasks.run()\nprint("ran for " .. ticks .. " ticks")' },
-    { name: 'dungeon crawler', note: 'WASD movement, rooms, and treasure', code: 'local W, H = 20, 12\nlocal px, py = 3, 3\nlocal walls = {}\nlocal gems = {}\nlocal score = 0\nlocal total = 8\n\n-- build walls (border + inner)\nfor x = 1, W do walls[x..","..1] = true; walls[x..","..H] = true end\nfor y = 1, H do walls["1,"..y] = true; walls[W..","..y] = true end\nfor x = 8, 8 do for y = 2, 6 do walls[x..","..y] = true end end\nfor x = 13, 13 do for y = 7, 11 do walls[x..","..y] = true end end\nfor x = 5, 9 do walls[x..",9"] = true end\n\n-- scatter gems (hash table for fast lookup)\nmath.randomseed(os.time())\nlocal placed = 0\nwhile placed < total do\n  local cx, cy = math.random(2, W-1), math.random(2, H-1)\n  local k = cx..","..cy\n  if not walls[k] and not gems[k] and (cx ~= px or cy ~= py) then\n    gems[k] = true\n    placed = placed + 1\n  end\nend\n\nwhile true do\n  clear()\n  for y = 1, H do\n    local row = ""\n    for x = 1, W do\n      local k = x..","..y\n      if x == px and y == py then row = row .. colored("@", color.cyan)\n      elseif walls[k] then row = row .. "#"\n      elseif gems[k] then row = row .. colored("$", color.green)\n      else row = row .. "." end\n    end\n    print(row)\n  end\n  print(colored(score .. "/" .. total, color.yellow) .. "  wasd/arrows  q=quit")\n\n  if score >= total then\n    clear()\n    print(colored("you got all the treasure!", color.green))\n    sound.win()\n    break\n  end\n\n  local k = io.pollkey()\n  local nx, ny = px, py\n  if k == "w" or k == "up" then ny = ny - 1 end\n  if k == "s" or k == "down" then ny = ny + 1 end\n  if k == "a" or k == "left" then nx = nx - 2 end\n  if k == "d" or k == "right" then nx = nx + 2 end\n  if k == "q" then break end\n\n  if nx ~= px then\n    local mid = (px + nx) / 2\n    if not walls[mid..","..ny] and not walls[nx..","..ny] then px = nx; py = ny end\n  elseif not walls[nx..","..ny] then px = nx; py = ny end\n\n  local pk = px..","..py\n  if gems[pk] then gems[pk] = nil; score = score + 1; sound.coin() end\n\n  sleep(33)\nend' },
+    { name: 'coin collector', note: 'WASD grid movement + coin pickups', code: '-- grid size\nlocal W, H = 20, 12\n\n-- player starts in the middle\nlocal px, py = 10, 6\nlocal score = 0\n\n-- place 5 coins at random spots\nlocal coins = {}\nfor i = 1, 5 do\n  local x = math.random(1, W)\n  local y = math.random(1, H)\n  coins[x .. "," .. y] = true  -- store as "x,y" string key\nend\n\n-- game loop\nwhile true do\n  clear()\n\n  -- draw the grid\n  for y = 1, H do\n    local row = ""\n    for x = 1, W do\n      if x == px and y == py then\n        row = row .. colored("@", color.cyan)   -- player\n      elseif coins[x .. "," .. y] then\n        row = row .. colored("$", color.yellow)  -- coin\n      else\n        row = row .. "."                         -- empty\n      end\n    end\n    print(row)\n  end\n\n  -- show score\n  print(colored("score: " .. score, color.green) .. "  wasd/arrows  q=quit")\n\n  -- read a key (non-blocking)\n  local k = io.pollkey()\n\n  -- move player\n  local nx, ny = px, py\n  if k == "w" or k == "up"    then ny = ny - 1 end\n  if k == "s" or k == "down"  then ny = ny + 1 end\n  if k == "a" or k == "left"  then nx = nx - 1 end\n  if k == "d" or k == "right" then nx = nx + 1 end\n  if k == "q" then break end\n\n  -- keep player inside the grid\n  if nx >= 1 and nx <= W and ny >= 1 and ny <= H then\n    px = nx\n    py = ny\n  end\n\n  -- pick up coin?\n  local key = px .. "," .. py\n  if coins[key] then\n    coins[key] = nil       -- remove the coin\n    score = score + 1\n    sound.coin()           -- play a sound\n  end\n\n  sleep(50)  -- small delay so it doesn\'t run too fast\nend' },
   ];
 
   var REF_SECTIONS = [
@@ -823,7 +849,7 @@
       'io.write(".")             -- keeps appending on same line',
       'print()                   -- blank line / flush',
     ]},
-    { title: 'input', see: ['arrow key demo', 'dungeon crawler'], lines: [
+    { title: 'input', see: ['arrow key demo', 'coin collector'], lines: [
       'local name = io.read("your name: ")  -- shows prompt, waits for enter',
       'local age = tonumber(io.read("age: "))  -- string → number',
       '',
@@ -982,8 +1008,8 @@
       'end',
     ]},
     { title: 'math', lines: [
-      'math.random(1, 6)         -- random int 1 to 6',
-      'math.random()             -- random float 0 to 1',
+      'math.random(1, 6)         -- random int from 1 to 6 (both inclusive)',
+      'math.random()             -- random float from 0 to 1 (0 inclusive, 1 exclusive)',
       'math.randomseed(os.time())  -- seed RNG for different results each run',
       'math.floor(3.7)           -- 3',
       'math.ceil(3.2)            -- 4',
@@ -1048,6 +1074,16 @@
       'sleep(500)                -- pause 500ms',
       'sleep(1000)               -- pause 1 second',
       'clear()                   -- wipe terminal output',
+      '',
+      'io.fontsize(1)            -- small (14px)',
+      'io.fontsize(5)            -- medium (40px)',
+      'io.fontsize(10)           -- huge (96px)',
+      '-- levels 1-10: 14 18 24 32 40 48 56 64 80 96',
+      '-- resets automatically when game exits',
+      '',
+      'local cols = io.width()   -- characters that fit horizontally',
+      'local rows = io.height()  -- lines that fit vertically',
+      '-- updates with fontsize changes',
     ]},
     { title: 'tasks (concurrency)', see: ['task game loop'], lines: [
       'tasks.spawn(fn)             -- queue a function as a task',
@@ -1076,11 +1112,16 @@
       'local hs = net.get("high_score")  -- load ("" if unset)',
       '',
       '-- leaderboard',
-      'net.rank("alice", 1500)   -- submit score',
-      'local top = net.top(10)   -- get top N',
+      'net.rank("alice", 1500)   -- submit score (must be a number)',
+      'local top = net.top(10)   -- get top N (highest first)',
+      'local low = net.bottom(10)  -- get top N (lowest first, like golf)',
       'for i, e in ipairs(top) do',
       '  print(i .. ". " .. e.name .. "  " .. e.score)',
       'end',
+      '',
+      '-- testing: each editor session gets its own isolated db',
+      '-- test data does NOT carry over when you publish',
+      '-- wipe published game data from the game page (needs edit code)',
     ]},
   ];
 
@@ -1280,37 +1321,40 @@
   });
 
   
-  function showSuccess(editCode, gameId) {
+  function showSuccess(gameId) {
     clearDraft();
     document.getElementById('ae-form-area').style.display = 'none';
     var panel = document.getElementById('ae-success-panel');
     panel.style.display = 'flex';
-    document.getElementById('ae-success-code').textContent = editCode;
-    document.getElementById('ae-success-link').href        = '/arcade/game/?id=' + gameId;
+    document.getElementById('ae-success-link').href = '/arcade/game/?id=' + gameId;
   }
 
   
   submitBtn.addEventListener('click', function() {
-    var title  = (document.getElementById('ae-title')  || {}).value || '';
-    var author = (document.getElementById('ae-author') || {}).value || '';
-    var desc   = (document.getElementById('ae-desc')   || {}).value || '';
-    var code   = getCode().trim();
-    var btn    = this;
+    var title    = (document.getElementById('ae-title')   || {}).value || '';
+    var author   = (document.getElementById('ae-author')  || {}).value || '';
+    var desc     = (document.getElementById('ae-desc')    || {}).value || '';
+    var editCode = (document.getElementById('ae-newcode') || {}).value || '';
+    var code     = getCode().trim();
+    var btn      = this;
     title  = title.trim();
     author = author.trim();
     desc   = desc.trim();
+    editCode = editCode.trim();
     if (!title)       { setStatus('title required', 'err'); return; }
     if (!author)      { setStatus('author required', 'err'); return; }
+    if (!editCode)    { setStatus('choose an edit code', 'err'); return; }
+    if (editCode.length < 4) { setStatus('edit code must be at least 4 characters', 'err'); return; }
     if (!code)        { setStatus('write some code first', 'err'); return; }
     if (code.length > 25000) { setStatus('code too long (max 25000)', 'err'); return; }
     btn.disabled = true; btn.textContent = 'submitting...'; setStatus('', '');
     fetch('/api/games', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: title, author: author, desc: desc, code: code }),
+      body: JSON.stringify({ title: title, author: author, desc: desc, code: code, editCode: editCode, lbMode: (document.getElementById('ae-lbmode') || {}).value || 'desc' }),
     }).then(function(r) { return r.json(); }).then(function(data) {
       if (data.ok) {
         try { localStorage.removeItem('arcade_v1'); } catch(e) {}
-        showSuccess(data.editCode, data.id);
+        showSuccess(data.id);
       } else {
         setStatus(data.error || 'something went wrong', 'err');
         btn.disabled = false; btn.textContent = 'submit game';
@@ -1335,12 +1379,14 @@
     if (code)              payload.newCode  = code;
     if (newTitle)          payload.newTitle = newTitle;
     if (newDesc !== undefined && newDesc !== '') payload.newDesc = newDesc.trim();
+    payload.lbMode = (document.getElementById('ae-upd-lbmode') || {}).value || 'desc';
     fetch('/api/games?id=' + encodeURIComponent(editId), {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     }).then(function(r) { return r.json(); }).then(function(data) {
       if (data.ok) {
         try { localStorage.removeItem('arcade_v1'); } catch(e) {}
+        clearDraft();
         setStatus('updated!', 'ok');
         btn.disabled = false; btn.textContent = 'publish update';
         var destId = data.newId || editId;
@@ -1352,15 +1398,6 @@
     }).catch(function() {
       setStatus('network error', 'err');
       btn.disabled = false; btn.textContent = 'publish update';
-    });
-  });
-
-  
-  document.getElementById('ae-success-copy').addEventListener('click', function() {
-    var btn = this;
-    navigator.clipboard.writeText(document.getElementById('ae-success-code').textContent).then(function() {
-      btn.textContent = 'copied!'; btn.classList.add('copied');
-      setTimeout(function() { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 1800);
     });
   });
 
@@ -1486,6 +1523,43 @@
       </button>
       <button class="tp-item" data-t="papercolor-light">
         <span class="tp-arrow">▶</span>papercolor-light<span class="tp-variant">light</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="m-theme-sheet">
+    <div id="m-theme-panel">
+      <div class="mts-handle"></div>
+      <div class="mts-title">colorscheme</div>
+      <button class="mts-item" data-t="tokyo-night">
+        <span class="mts-swatch" style="background:#7aa2f7"></span>
+        <span class="mts-name">tokyo-night</span>
+        <span class="mts-label">dark</span>
+      </button>
+      <button class="mts-item" data-t="gruvbox">
+        <span class="mts-swatch" style="background:#d79921"></span>
+        <span class="mts-name">gruvbox</span>
+        <span class="mts-label">dark</span>
+      </button>
+      <button class="mts-item" data-t="dracula">
+        <span class="mts-swatch" style="background:#bd93f9"></span>
+        <span class="mts-name">dracula</span>
+        <span class="mts-label">dark</span>
+      </button>
+      <button class="mts-item" data-t="rose-pine">
+        <span class="mts-swatch" style="background:#b4637a"></span>
+        <span class="mts-name">rose-pine</span>
+        <span class="mts-label">light</span>
+      </button>
+      <button class="mts-item" data-t="github-light">
+        <span class="mts-swatch" style="background:#0969da"></span>
+        <span class="mts-name">github-light</span>
+        <span class="mts-label">light</span>
+      </button>
+      <button class="mts-item" data-t="papercolor-light">
+        <span class="mts-swatch" style="background:#005f87"></span>
+        <span class="mts-name">papercolor-light</span>
+        <span class="mts-label">light</span>
       </button>
     </div>
   </div>

@@ -1458,13 +1458,12 @@ greet("player")</textarea>
     <div class="tut-step-wrap">
       <div class="tut-step-tag">11 / 12</div>
       <div class="tut-heading">two last things.</div>
-      <div class="tut-body">no accounts. when you submit a game, you get a unique <strong>edit code</strong>. save it - it won't be shown again:</div>
+      <div class="tut-body">no accounts. when you submit a game, you <strong>choose your own edit code</strong>. this is how you edit or delete your game later.</div>
       <div class="tut-editcode-box">
-        <span class="tut-editcode-val" id="tut-editcode-demo">a3f9b-2c81d</span>
-        <button class="tut-editcode-copy" id="tut-editcode-copy-demo">copy</button>
+        <span class="tut-editcode-val" id="tut-editcode-demo">my-secret-code</span>
       </div>
       <div class="tut-editcode-note" style="color:var(--muted);font-size:0.75rem;margin-bottom:20px;opacity:0.7">
-        ^ just an example. your real code will look different.
+        pick something you'll remember. minimum 4 characters.
       </div>
       <div class="tut-body" style="margin-bottom:12px">the editor has a <strong>docs panel</strong> on the right side. every API with examples, plus ready-to-paste snippets:</div>
       <div style="border:1px solid var(--border);background:var(--code-bg,#1a1b26);padding:12px 18px;margin-bottom:20px;font-size:0.82rem">
@@ -1606,11 +1605,10 @@ greet("player")</textarea>
         vim keybindings are available too. toggle with the <strong style="color:var(--fg)">vim</strong> button. :w saves, :wq saves and exits.
       </div>
       <div class="tut-editcode-box" style="margin-top:6px">
-        <span class="tut-editcode-val">a3f9b-2c81d</span>
-        <button class="tut-editcode-copy" id="tut-expert-editcode-copy">copy</button>
+        <span class="tut-editcode-val">my-secret-code</span>
       </div>
       <div class="tut-editcode-note" style="color:var(--muted);font-size:0.75rem;margin-bottom:20px;opacity:0.7">
-        when you submit a game you get a unique edit code. save it. it won't be shown again.
+        when you submit a game you choose your own edit code. pick something you'll remember.
       </div>
       <button class="tut-btn" id="tut-expert-next">pick a starter &#8594;</button>
     </div>
@@ -2831,15 +2829,6 @@ greet("player")</textarea>
   document.getElementById('tut-s8-next').addEventListener('click', function() { goTo(12); });
 
   
-  document.getElementById('tut-editcode-copy-demo').addEventListener('click', function() {
-    var btn = this;
-    navigator.clipboard.writeText(document.getElementById('tut-editcode-demo').textContent).then(function() {
-      btn.textContent='copied!';
-      setTimeout(function(){ btn.textContent='copy'; }, 1800);
-    }).catch(function(){});
-    var r = btn.getBoundingClientRect();
-    burst(r.left+r.width/2, r.top+r.height/2, 10);
-  });
   document.getElementById('tut-s9-next').addEventListener('click', function() { goTo(13); });
 
   
@@ -2898,16 +2887,6 @@ greet("player")</textarea>
     });
   });
   document.getElementById('tut-expert-next').addEventListener('click', function() { goTo(IDX_START); });
-  document.getElementById('tut-expert-editcode-copy').addEventListener('click', function() {
-    var btn = this;
-    navigator.clipboard.writeText('a3f9b-2c81d').then(function() {
-      btn.textContent = 'copied!';
-      setTimeout(function(){ btn.textContent = 'copy'; }, 1800);
-    }).catch(function(){});
-    var r = btn.getBoundingClientRect();
-    burst(r.left+r.width/2, r.top+r.height/2, 8);
-  });
-
   
   var previewIntervals = [];
 
@@ -3173,6 +3152,43 @@ greet("player")</textarea>
       </button>
       <button class="tp-item" data-t="papercolor-light">
         <span class="tp-arrow">▶</span>papercolor-light<span class="tp-variant">light</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="m-theme-sheet">
+    <div id="m-theme-panel">
+      <div class="mts-handle"></div>
+      <div class="mts-title">colorscheme</div>
+      <button class="mts-item" data-t="tokyo-night">
+        <span class="mts-swatch" style="background:#7aa2f7"></span>
+        <span class="mts-name">tokyo-night</span>
+        <span class="mts-label">dark</span>
+      </button>
+      <button class="mts-item" data-t="gruvbox">
+        <span class="mts-swatch" style="background:#d79921"></span>
+        <span class="mts-name">gruvbox</span>
+        <span class="mts-label">dark</span>
+      </button>
+      <button class="mts-item" data-t="dracula">
+        <span class="mts-swatch" style="background:#bd93f9"></span>
+        <span class="mts-name">dracula</span>
+        <span class="mts-label">dark</span>
+      </button>
+      <button class="mts-item" data-t="rose-pine">
+        <span class="mts-swatch" style="background:#b4637a"></span>
+        <span class="mts-name">rose-pine</span>
+        <span class="mts-label">light</span>
+      </button>
+      <button class="mts-item" data-t="github-light">
+        <span class="mts-swatch" style="background:#0969da"></span>
+        <span class="mts-name">github-light</span>
+        <span class="mts-label">light</span>
+      </button>
+      <button class="mts-item" data-t="papercolor-light">
+        <span class="mts-swatch" style="background:#005f87"></span>
+        <span class="mts-name">papercolor-light</span>
+        <span class="mts-label">light</span>
       </button>
     </div>
   </div>

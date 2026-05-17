@@ -59,31 +59,163 @@
 
   
 <style>
-  .ag-source-code .ag-line-active {
-    background: color-mix(in srgb, var(--accent) 15%, transparent);
-    display: inline-block;
-    width: 100%;
+   
+  .ag-lb-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 9990;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
   }
-  .ag-preview-panel {
-    border: 1px solid var(--border);
-    margin-top: 8px;
-    background: var(--code-bg, #1a1b26);
+  .ag-lb-overlay.open { opacity: 1; pointer-events: auto; }
+
+  .ag-lb {
+    position: fixed;
+    top: 0; right: 0; bottom: 0;
+    width: min(360px, 90vw);
+    background: var(--code-bg, #13141f);
+    border-left: 1px solid var(--border);
+    z-index: 9991;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: -4px 0 24px rgba(0,0,0,0.5), -1px 0 0 var(--border);
   }
-  .ag-preview-bar {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 6px 12px;
+  .ag-lb.open { transform: translateX(0); }
+
+  .ag-lb-header {
+    display: flex;
+    align-items: center;
+    padding: 18px 20px;
+    gap: 10px;
     border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .ag-lb-title {
     font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--fg);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    flex: 1;
+  }
+  .ag-lb-mode {
+    font-size: 0.6rem;
+    color: var(--muted);
+    opacity: 0.6;
+  }
+  .ag-lb-close {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 0.65rem;
+    cursor: pointer;
+    padding: 3px 10px;
+    line-height: 1.4;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .ag-lb-close:hover { color: var(--fg); border-color: var(--fg); }
+
+  .ag-lb-search-row {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .ag-lb-search {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--fg);
+    font-family: inherit;
+    font-size: 0.75rem;
+    padding: 7px 12px;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color 0.15s;
+  }
+  .ag-lb-search:focus { border-color: var(--accent); }
+  .ag-lb-search::placeholder { color: var(--muted); opacity: 0.4; }
+
+  .ag-lb-body {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+  }
+  .ag-lb-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+  }
+  .ag-lb-table th {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    text-align: left;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--code-bg, #13141f);
+  }
+  .ag-lb-table th:first-child { width: 36px; text-align: center; padding-right: 0; }
+  .ag-lb-table th:last-child { text-align: right; }
+  .ag-lb-table td {
+    padding: 9px 20px;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
+    color: var(--fg);
+  }
+  .ag-lb-table td:first-child {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.68rem;
+    width: 36px;
+    padding-right: 0;
+  }
+  .ag-lb-table td:last-child {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
     color: var(--muted);
   }
-  .ag-preview-out {
-    padding: 10px 14px;
-    font-size: 0.82rem;
-    line-height: 1.7;
-    min-height: 40px;
-    max-height: 200px;
-    overflow-y: auto;
+  .ag-lb-table tr:last-child td { border-bottom: none; }
+  .ag-lb-table tr:hover td { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+  .ag-lb-gold td:first-child { color: #e0af68 !important; font-weight: 700; }
+  .ag-lb-gold td:nth-child(2) { color: var(--accent); font-weight: 600; }
+  .ag-lb-gold td:last-child { color: var(--fg); font-weight: 600; }
+  .ag-lb-silver td:first-child { color: var(--fg) !important; opacity: 0.7; font-weight: 600; }
+  .ag-lb-bronze td:first-child { color: #c0a080 !important; font-weight: 600; }
+  .ag-lb-highlight td:nth-child(2) { color: var(--accent); }
+  .ag-lb-empty {
+    font-size: 0.78rem;
+    color: var(--muted);
+    opacity: 0.45;
+    padding: 60px 20px;
+    text-align: center;
+    line-height: 1.8;
   }
+  .ag-lb-footer {
+    font-size: 0.62rem;
+    color: var(--muted);
+    opacity: 0.55;
+    padding: 12px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .ag-lb-footer span { cursor: default; }
+  .ag-lb-footer .ag-lb-refresh-btn {
+    cursor: pointer; color: var(--accent); opacity: 0.8;
+    transition: opacity 0.15s;
+  }
+  .ag-lb-footer .ag-lb-refresh-btn:hover { opacity: 1; }
 </style>
 <div class="arc-bg-dots" aria-hidden="true"></div>
 <div class="ag-back"><a href="/arcade">← arcade</a></div>
@@ -119,12 +251,12 @@
   <div class="ag-actions">
     <button id="ag-play" class="ag-play-btn"><span class="ag-play-btn-inner">▶&nbsp; play in terminal</span></button>
     <button id="ag-remix" class="ag-action-btn">remix →</button>
+    <button id="ag-lb-toggle" class="ag-action-btn" style="display:none">leaderboard</button>
   </div>
 
   <div class="ag-source-section">
     <div class="ag-source-header">
       <span class="ag-source-title">source</span>
-      <button id="ag-preview" class="ag-copy-btn">▶ preview</button>
       <button id="ag-copy" class="ag-copy-btn">copy</button>
     </div>
     <div class="ag-source-window">
@@ -139,31 +271,45 @@
         <pre id="ag-source" class="ag-source-code"></pre>
       </div>
     </div>
-    <div id="ag-preview-panel" class="ag-preview-panel" style="display:none">
-      <div class="ag-preview-bar">
-        <span>preview output</span>
-        <button id="ag-preview-close" class="ag-copy-btn" style="font-size:0.68rem">close</button>
+  </div>
+
+  <div class="ag-manage">
+    <div class="ag-manage-row">
+      <a id="ag-edit-link" href="#" class="ag-manage-btn">edit in editor</a>
+      <button id="ag-manage-toggle" class="ag-manage-btn ag-manage-muted">manage</button>
+    </div>
+    <div id="ag-manage-panel" class="ag-manage-panel" style="display:none">
+      <div class="ag-manage-field">
+        <input type="password" id="ag-manage-code" class="ag-manage-inp" placeholder="edit code" autocomplete="off" spellcheck="false">
       </div>
-      <div id="ag-preview-out" class="ag-preview-out"></div>
+      <div class="ag-manage-actions">
+        <button id="ag-wipe-confirm" class="ag-manage-btn ag-manage-muted">clear leaderboard</button>
+        <button id="ag-del-confirm" class="ag-manage-btn ag-manage-danger">delete game</button>
+      </div>
+      <span id="ag-manage-status" class="ag-manage-status"></span>
     </div>
   </div>
-
-  <div class="ag-edit-link-row">
-    <a id="ag-edit-link" href="#" class="ag-edit-link">edit in editor →</a>
-  </div>
-
-  <details class="ag-del-section">
-    <summary class="ag-del-summary">delete this game</summary>
-    <div class="ag-del-form">
-      <input type="text" id="ag-code-inp" class="arc-code-inp" placeholder="edit code (xxxxx-xxxxx)">
-      <button id="ag-del-confirm" class="arc-del-confirm">confirm delete</button>
-      <span id="ag-del-status" class="arc-del-status"></span>
-    </div>
-  </details>
 
 </div>
 
 <div id="ag-error" class="ag-error" style="display:none">game not found.</div>
+
+<div id="ag-lb-overlay" class="ag-lb-overlay"></div>
+<div id="ag-lb" class="ag-lb">
+  <div class="ag-lb-header">
+    <span class="ag-lb-title">leaderboard</span>
+    <span class="ag-lb-mode" id="ag-lb-mode"></span>
+    <button class="ag-lb-close" id="ag-lb-close">close</button>
+  </div>
+  <div class="ag-lb-search-row">
+    <input type="text" class="ag-lb-search" id="ag-lb-search" placeholder="search player..." autocomplete="off" spellcheck="false">
+  </div>
+  <div class="ag-lb-body" id="ag-lb-body"></div>
+  <div class="ag-lb-footer" id="ag-lb-footer" style="display:none">
+    <span id="ag-lb-count"></span>
+    <span id="ag-lb-refresh" class="ag-lb-refresh-btn">refresh</span>
+  </div>
+</div>
 
 <script>
 (function() {
@@ -207,11 +353,7 @@
       document.getElementById('ag-lines').textContent = lines;
 
       
-      var highlighted = highlightLua(game.code || '');
-      var hlLines = highlighted.split('\n');
-      document.getElementById('ag-source').innerHTML = hlLines.map(function(l, i) {
-        return '<span class="ag-src-line" data-line="' + i + '">' + l + '</span>';
-      }).join('\n');
+      document.getElementById('ag-source').innerHTML = highlightLua(game.code || '');
       document.getElementById('ag-filename').textContent = id + '.lua';
       var lineCount = (game.code || '').split('\n').length;
       document.getElementById('ag-line-nums').textContent = Array.from({length: lineCount}, function(_, i) { return i + 1; }).join('\n');
@@ -250,169 +392,133 @@
       });
 
       
-      var COLORS = {
-        'color.red': '#f7768e', 'color.green': '#9ece6a', 'color.yellow': '#e0af68',
-        'color.cyan': '#7dcfff', 'color.blue': '#7aa2f7', 'color.purple': '#bb9af7',
-        'color.white': '#c0caf5', 'color.bold': '#c0caf5'
-      };
-
-      var previewRunning = false;
-      var previewAbort = false;
-
-      function previewCleanup() {
-        previewRunning = false;
-        previewAbort = false;
-        var allLines = document.querySelectorAll('.ag-src-line');
-        for (var i = 0; i < allLines.length; i++) {
-          allLines[i].classList.remove('ag-line-active');
-        }
-        var btn = document.getElementById('ag-preview');
-        btn.textContent = '\u25b6 preview';
-      }
-
-      function previewClose() {
-        previewAbort = true;
-        document.getElementById('ag-preview-panel').style.display = 'none';
-        previewCleanup();
-      }
-
-      function evalColoredStr(s) {
-        
-        var m = s.match(/^colored\(\s*"([^"]*)"\s*,\s*(color\.\w+)\s*\)$/);
-        if (m) return { text: m[1], color: COLORS[m[2]] || null };
-        m = s.match(/^colored\(\s*'([^']*)'\s*,\s*(color\.\w+)\s*\)$/);
-        if (m) return { text: m[1], color: COLORS[m[2]] || null };
-        return null;
-      }
-
-      function evalPrintArg(arg) {
-        
-        var parts = arg.split('..');
-        var result = [];
-        for (var i = 0; i < parts.length; i++) {
-          var p = parts[i].trim();
-          
-          var sm = p.match(/^"([^"]*)"$/) || p.match(/^'([^']*)'$/);
-          if (sm) { result.push({ text: sm[1], color: null }); continue; }
-          
-          var c = evalColoredStr(p);
-          if (c) { result.push(c); continue; }
-          
-          result.push({ text: '...', color: null });
-        }
-        return result;
-      }
-
-      function parsePrintLine(raw) {
-        
-        var m = raw.match(/^\s*print\((.+)\)\s*$/);
-        if (!m) return null;
-        var inner = m[1].trim();
-        
-        if (inner === '""' || inner === "''") return [];
-        return evalPrintArg(inner);
-      }
-
-      function isSkipLine(raw) {
-        var t = raw.trim();
-        if (!t || t.indexOf('--') === 0) return true;
-        if (/^\s*(local\s+\w+\s*=\s*)?io\.(read|getkey|choice|confirm)\b/.test(t)) return true;
-        if (/^\s*net\./.test(t)) return true;
-        if (/^\s*(while|for|repeat)\b/.test(t)) return true;
-        if (/^\s*sleep\s*\(/.test(t)) return true;
-        if (/^\s*(if|elseif|else|end|do|then|break|return|until)\b/.test(t)) return true;
-        if (/^\s*local\s+/.test(t) && !parsePrintLine(t)) return true;
-        if (/^\s*sound\./.test(t)) return true;
-        if (/^\s*clear\s*\(/.test(t)) return true;
-        return false;
-      }
-
-      function runPreview() {
-        if (previewRunning) { previewClose(); return; }
-        previewRunning = true;
-        previewAbort = false;
-        var btn = document.getElementById('ag-preview');
-        btn.textContent = '\u25a0 stop';
-
-        var panel = document.getElementById('ag-preview-panel');
-        var outEl = document.getElementById('ag-preview-out');
-        panel.style.display = 'block';
-        outEl.innerHTML = '';
-
-        var rawLines = (game.code || '').split('\n');
-        var srcLines = document.querySelectorAll('.ag-src-line');
-        var idx = 0;
-
-        function step() {
-          if (previewAbort || idx >= rawLines.length) { previewCleanup(); return; }
-
-          
-          for (var j = 0; j < srcLines.length; j++) srcLines[j].classList.remove('ag-line-active');
-
-          
-          if (srcLines[idx]) {
-            srcLines[idx].classList.add('ag-line-active');
-            srcLines[idx].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-          }
-
-          var raw = rawLines[idx];
-          var printed = parsePrintLine(raw);
-
-          if (printed !== null) {
-            
-            var div = document.createElement('div');
-            if (printed.length === 0) {
-              div.innerHTML = '&nbsp;';
-            } else {
-              for (var p = 0; p < printed.length; p++) {
-                var span = document.createElement('span');
-                span.textContent = printed[p].text;
-                if (printed[p].color) span.style.color = printed[p].color;
-                div.appendChild(span);
-              }
-            }
-            outEl.appendChild(div);
-            outEl.scrollTop = outEl.scrollHeight;
-            idx++;
-            setTimeout(step, 300);
-          } else if (isSkipLine(raw)) {
-            idx++;
-            setTimeout(step, 80);
-          } else {
-            idx++;
-            setTimeout(step, 150);
-          }
-        }
-
-        step();
-      }
-
-      document.getElementById('ag-preview').addEventListener('click', runPreview);
-      document.getElementById('ag-preview-close').addEventListener('click', previewClose);
-
-      
       document.getElementById('ag-edit-link').href = '/arcade/editor/?edit=' + encodeURIComponent(id);
 
       
+      var lbMode = game.lbMode || 'desc';
+      var lbOp = lbMode === 'asc' ? 'bottom' : 'top';
+      var allEntries = [];
+      var lbPanel = document.getElementById('ag-lb');
+      var lbOverlay = document.getElementById('ag-lb-overlay');
+
+      function openLb() {
+        lbPanel.classList.add('open'); lbOverlay.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        fetchLb();
+      }
+      function closeLb() {
+        lbPanel.classList.remove('open'); lbOverlay.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+      document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && lbPanel.classList.contains('open')) closeLb(); });
+
+      document.getElementById('ag-lb-toggle').addEventListener('click', openLb);
+      document.getElementById('ag-lb-close').addEventListener('click', closeLb);
+      lbOverlay.addEventListener('click', closeLb);
+
+      function renderLb(entries, query) {
+        var body = document.getElementById('ag-lb-body');
+        var footer = document.getElementById('ag-lb-footer');
+        var filtered = entries;
+        if (query) {
+          var q = query.toLowerCase();
+          filtered = entries.filter(function(e) { return e.name.toLowerCase().indexOf(q) >= 0; });
+        }
+        if (filtered.length === 0) {
+          body.innerHTML = '<div class="ag-lb-empty">' + (query ? 'no matches for "' + hlEsc(query) + '"' : 'no scores yet') + '</div>';
+          footer.style.display = 'none';
+          return;
+        }
+        var html = '<table class="ag-lb-table"><thead><tr><th>#</th><th>player</th><th>score</th></tr></thead><tbody>';
+        for (var i = 0; i < filtered.length; i++) {
+          var e = filtered[i];
+          var rank = query ? '' : (i + 1);
+          var cls = '';
+          if (!query) {
+            if (i === 0) cls = 'ag-lb-gold';
+            else if (i === 1) cls = 'ag-lb-silver';
+            else if (i === 2) cls = 'ag-lb-bronze';
+          }
+          if (query) cls = 'ag-lb-highlight';
+          var scoreStr = e.score % 1 === 0 ? String(Math.round(e.score)) : e.score.toFixed(2);
+          html += '<tr class="' + cls + '"><td>' + rank + '</td><td>' + hlEsc(e.name) + '</td><td>' + scoreStr + '</td></tr>';
+        }
+        html += '</tbody></table>';
+        body.innerHTML = html;
+        footer.style.display = 'flex';
+        var countEl = document.getElementById('ag-lb-count');
+        if (query) {
+          countEl.textContent = filtered.length + ' of ' + entries.length + ' players';
+        } else {
+          countEl.textContent = entries.length + ' player' + (entries.length === 1 ? '' : 's');
+        }
+      }
+
+      function fetchLb() {
+        fetch('/api/net?op=' + lbOp + '&game=' + encodeURIComponent(id) + '&n=100')
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            allEntries = data.entries || [];
+            document.getElementById('ag-lb-mode').textContent = lbMode === 'asc' ? 'lower is better' : 'higher is better';
+            renderLb(allEntries, (document.getElementById('ag-lb-search').value || '').trim());
+          })
+          .catch(function() {});
+      }
+
+      
+      document.getElementById('ag-lb-toggle').style.display = 'inline-block';
+
+      document.getElementById('ag-lb-search').addEventListener('input', function() {
+        renderLb(allEntries, this.value.trim());
+      });
+      document.getElementById('ag-lb-refresh').addEventListener('click', fetchLb);
+
+      
+      var managePanel = document.getElementById('ag-manage-panel');
+      document.getElementById('ag-manage-toggle').addEventListener('click', function() {
+        managePanel.style.display = managePanel.style.display === 'none' ? 'flex' : 'none';
+      });
+
+      function getManageCode() { return (document.getElementById('ag-manage-code').value || '').trim(); }
+      var manageStatus = document.getElementById('ag-manage-status');
+
+      
+      document.getElementById('ag-wipe-confirm').addEventListener('click', function() {
+        var code = getManageCode();
+        if (!code) { manageStatus.textContent = 'enter edit code'; return; }
+        this.disabled = true; this.textContent = 'wiping...'; manageStatus.textContent = '';
+        var self = this;
+        fetch('/api/net?game=' + encodeURIComponent(id), {
+          method: 'POST', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({op: 'clear', code: code})
+        }).then(function(r){return r.json();}).then(function(d){
+          if (d.ok) { manageStatus.textContent = d.deleted + ' keys wiped'; manageStatus.style.color = 'var(--accent)'; fetchLb(); }
+          else { manageStatus.textContent = d.error || 'error'; manageStatus.style.color = ''; }
+          self.disabled = false; self.textContent = 'clear leaderboard';
+        }).catch(function(){
+          manageStatus.textContent = 'network error'; manageStatus.style.color = '';
+          self.disabled = false; self.textContent = 'clear leaderboard';
+        });
+      });
+
+      
       document.getElementById('ag-del-confirm').addEventListener('click', function() {
-        var code = document.getElementById('ag-code-inp').value.trim();
-        var status = document.getElementById('ag-del-status');
-        if (!code) { status.textContent = 'enter your edit code'; return; }
-        this.disabled = true; this.textContent = 'deleting...'; status.textContent = '';
+        var code = getManageCode();
+        if (!code) { manageStatus.textContent = 'enter edit code'; return; }
+        this.disabled = true; this.textContent = 'deleting...'; manageStatus.textContent = '';
+        var self = this;
         fetch('/api/games?id=' + encodeURIComponent(id), {
           method: 'DELETE', headers: {'Content-Type':'application/json'},
           body: JSON.stringify({code: code})
         }).then(function(r){return r.json();}).then(function(d){
           if (d.ok) { try { localStorage.removeItem('arcade_v1'); } catch(e){} window.location.href = '/arcade/?r=1'; }
           else {
-            status.textContent = d.error || 'error';
-            document.getElementById('ag-del-confirm').disabled = false;
-            document.getElementById('ag-del-confirm').textContent = 'confirm delete';
+            manageStatus.textContent = d.error || 'error'; manageStatus.style.color = '';
+            self.disabled = false; self.textContent = 'delete game';
           }
         }).catch(function(){
-          status.textContent = 'network error';
-          document.getElementById('ag-del-confirm').disabled = false;
-          document.getElementById('ag-del-confirm').textContent = 'confirm delete';
+          manageStatus.textContent = 'network error'; manageStatus.style.color = '';
+          self.disabled = false; self.textContent = 'delete game';
         });
       });
     })
@@ -517,6 +623,43 @@
       </button>
       <button class="tp-item" data-t="papercolor-light">
         <span class="tp-arrow">▶</span>papercolor-light<span class="tp-variant">light</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="m-theme-sheet">
+    <div id="m-theme-panel">
+      <div class="mts-handle"></div>
+      <div class="mts-title">colorscheme</div>
+      <button class="mts-item" data-t="tokyo-night">
+        <span class="mts-swatch" style="background:#7aa2f7"></span>
+        <span class="mts-name">tokyo-night</span>
+        <span class="mts-label">dark</span>
+      </button>
+      <button class="mts-item" data-t="gruvbox">
+        <span class="mts-swatch" style="background:#d79921"></span>
+        <span class="mts-name">gruvbox</span>
+        <span class="mts-label">dark</span>
+      </button>
+      <button class="mts-item" data-t="dracula">
+        <span class="mts-swatch" style="background:#bd93f9"></span>
+        <span class="mts-name">dracula</span>
+        <span class="mts-label">dark</span>
+      </button>
+      <button class="mts-item" data-t="rose-pine">
+        <span class="mts-swatch" style="background:#b4637a"></span>
+        <span class="mts-name">rose-pine</span>
+        <span class="mts-label">light</span>
+      </button>
+      <button class="mts-item" data-t="github-light">
+        <span class="mts-swatch" style="background:#0969da"></span>
+        <span class="mts-name">github-light</span>
+        <span class="mts-label">light</span>
+      </button>
+      <button class="mts-item" data-t="papercolor-light">
+        <span class="mts-swatch" style="background:#005f87"></span>
+        <span class="mts-name">papercolor-light</span>
+        <span class="mts-label">light</span>
       </button>
     </div>
   </div>

@@ -224,7 +224,7 @@
         <input type="password" id="ag-manage-code" class="ag-manage-inp" placeholder="edit code" autocomplete="off" spellcheck="false">
       </div>
       <div class="ag-manage-actions">
-        <button id="ag-wipe-confirm" class="ag-manage-btn ag-manage-muted">wipe data</button>
+        <button id="ag-wipe-confirm" class="ag-manage-btn ag-manage-muted">clear leaderboard</button>
         <button id="ag-del-confirm" class="ag-manage-btn ag-manage-danger">delete game</button>
       </div>
       <span id="ag-manage-status" class="ag-manage-status"></span>
@@ -435,10 +435,10 @@
         }).then(function(r){return r.json();}).then(function(d){
           if (d.ok) { manageStatus.textContent = d.deleted + ' keys wiped'; manageStatus.style.color = 'var(--accent)'; fetchLb(); }
           else { manageStatus.textContent = d.error || 'error'; manageStatus.style.color = ''; }
-          self.disabled = false; self.textContent = 'wipe data';
+          self.disabled = false; self.textContent = 'clear leaderboard';
         }).catch(function(){
           manageStatus.textContent = 'network error'; manageStatus.style.color = '';
-          self.disabled = false; self.textContent = 'wipe data';
+          self.disabled = false; self.textContent = 'clear leaderboard';
         });
       });
 
