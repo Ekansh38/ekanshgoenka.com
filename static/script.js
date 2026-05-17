@@ -2207,7 +2207,11 @@ function toggleTheme() {
       output.appendChild(el);
       output.scrollTop = output.scrollHeight;
     }
-    function flushIoBuf() { if (iobuf) { lineHtml(iobuf); iobuf = ''; } }
+    function flushIoBuf() { if (iobuf) { flushClearIfPending(); lineHtml(iobuf); iobuf = ''; } }
+
+    // _flush() — exposed to Lua so io.write can flush before yielding
+    lua.lua_pushcfunction(L, function() { flushIoBuf(); return 0; });
+    lua.lua_setglobal(L, toLua('_flush'));
 
     // print() — flushes io.write buffer first, then prints with newline
     lua.lua_pushcfunction(L, function(Ls) {
@@ -2400,7 +2404,7 @@ function toggleTheme() {
       '  read =function(prompt) if type(prompt)=="string" then _setprompt(prompt) end return coroutine.yield() end,',
       '  getkey=function() _setprompt("__getkey__") return coroutine.yield() end,',
       '  pollkey=function() local k=_pollkey(); if _in_task then coroutine.yield(0) end; return k end,',
-      '  write=function(...) local s="" for i=1,select("#",...)do s=s..tostring(select(i,...))end _iowrite(s); if _in_task then coroutine.yield(0) end end,',
+      '  write=function(...) local s="" for i=1,select("#",...)do s=s..tostring(select(i,...))end _iowrite(s); if _in_task then _flush(); coroutine.yield(0) end end,',
       '  fontsize=function(n) _fontsize(n) end,',
       '  width=function() local w,h=_termsize(); return w end,',
       '  height=function() local w,h=_termsize(); return h end,',
