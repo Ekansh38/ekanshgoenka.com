@@ -180,7 +180,7 @@
   };
 
   /* ── mini boids sim ── */
-  function MiniBoids(W, H, n, size) {
+  function MiniBoids(W, H, n) {
     this.boids=[]; this.W=W; this.H=H;
     for(var i=0;i<n;i++){
       var a=Math.random()*Math.PI*2;
@@ -209,22 +209,21 @@
       if(b.y<0)b.y+=H;if(b.y>H)b.y-=H;
     }
   };
-  MiniBoids.prototype.draw = function(ctx,accentRgb,opacity,glow,size) {
+  MiniBoids.prototype.draw = function(ctx,accentRgb,opacity,glow) {
     var bs=this.boids, N=bs.length;
-    var r = Math.max(1, size/10);
-    if(glow>0){ ctx.shadowColor=rgba(accentRgb,glow/100*0.7); ctx.shadowBlur=glow/100*16; }
+    if(glow>0){ ctx.shadowColor=rgba(accentRgb,glow/100*0.7); ctx.shadowBlur=glow/100*12; }
     ctx.fillStyle=rgba(accentRgb,opacity/100);
     for(var i=0;i<N;i++){
-      ctx.beginPath(); ctx.arc(bs[i].x,bs[i].y,r,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(bs[i].x,bs[i].y,1.5,0,Math.PI*2); ctx.fill();
     }
     /* connections */
-    ctx.strokeStyle=rgba(accentRgb,opacity/100*0.3);
+    ctx.strokeStyle=rgba(accentRgb,opacity/100*0.4);
     ctx.lineWidth=0.5;
-    var CR=50;
+    var CR=45;
     for(var i=0;i<N;i++) for(var j=i+1;j<N;j++){
       var dx=bs[i].x-bs[j].x,dy=bs[i].y-bs[j].y,d=Math.sqrt(dx*dx+dy*dy);
       if(d<CR){
-        ctx.globalAlpha=(1-d/CR)*0.15;
+        ctx.globalAlpha=(1-d/CR)*0.2;
         ctx.beginPath();ctx.moveTo(bs[i].x,bs[i].y);ctx.lineTo(bs[j].x,bs[j].y);ctx.stroke();
       }
     }
@@ -274,20 +273,21 @@
     var life = null, boids = null;
     var showLife = preset.sim==='life'||preset.sim==='combo';
     var showBoids = preset.sim==='boids'||preset.sim==='combo';
-    /* scale down counts for preview */
-    if (showLife) life = new MiniLife(W, H, p['life.cell']||7);
+    /* scale for small preview: clamp cell size, cap boid count */
+    var previewCell = Math.max(3, Math.min(6, p['life.cell']||7));
+    if (showLife) life = new MiniLife(W, H, previewCell);
     if (showBoids) {
-      var bn = Math.min(p['boids.n']||60, 80);
-      boids = new MiniBoids(W, H, bn, p['boids.size']||14);
+      var bn = Math.min(p['boids.n']||60, 50);
+      boids = new MiniBoids(W, H, bn);
     }
 
     /* warmup and render static snapshot */
     ctx.fillStyle = theme.bg;
     ctx.fillRect(0,0,W,H);
-    if (showLife) { for (var s=0;s<30;s++) life.step(); }
-    if (showBoids) { for (var s=0;s<40;s++) boids.step(p['boids.perception']||80, p['boids.separation']||40); }
+    if (showLife) { for (var s=0;s<40;s++) life.step(); }
+    if (showBoids) { for (var s=0;s<80;s++) boids.step(p['boids.perception']||80, p['boids.separation']||40); }
     if (showLife) life.draw(ctx,W,H,accentRgb,p['life.glow']||0,p['life.opacity']||9,p['life.rainbow']||0);
-    if (showBoids) boids.draw(ctx,accentRgb,p['boids.opacity']||14,p['boids.glow']||0,p['boids.size']||14);
+    if (showBoids) boids.draw(ctx,accentRgb,p['boids.opacity']||14,p['boids.glow']||0);
   });
 })();
 </script>

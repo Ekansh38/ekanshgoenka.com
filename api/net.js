@@ -56,9 +56,19 @@ module.exports = async (req, res) => {
         const cmd = op === 'bottom' ? 'zrange' : 'zrevrange';
         const result = await kv([[cmd, `net:${game}:lb`, '0', String(n - 1), 'WITHSCORES']]);
         const raw = result[0]?.result || [];
+        // resolve display names from lowercase keys
+        const lowerNames = [];
+        for (let i = 0; i < raw.length; i += 2) lowerNames.push(raw[i]);
+        let nameMap = {};
+        if (lowerNames.length > 0) {
+          const lookups = lowerNames.map(ln => ['get', `net:${game}:name:${ln}`]);
+          const nameResults = await kv(lookups);
+          for (let i = 0; i < lowerNames.length; i++)
+            nameMap[lowerNames[i]] = nameResults[i]?.result || lowerNames[i];
+        }
         const entries = [];
         for (let i = 0; i < raw.length; i += 2)
-          entries.push({ name: raw[i], score: parseFloat(raw[i + 1]) });
+          entries.push({ name: nameMap[raw[i]] || raw[i], score: parseFloat(raw[i + 1]) });
         return res.status(200).json({ entries });
       }
 
@@ -84,15 +94,25 @@ module.exports = async (req, res) => {
         const score = Number(body.score);
         if (!name)            return res.status(400).json({ error: 'name required' });
         if (!isFinite(score)) return res.status(400).json({ error: 'score must be a number' });
+        const lower = name.toLowerCase();
+        // preserve original casing: only store if no prior entry
+        const nameKey = `net:${game}:name:${lower}`;
+        const existing = await kv([['get', nameKey]]);
+        const displayName = existing[0]?.result || name;
         // look up game's lbMode to decide GT (higher wins) vs LT (lower wins)
         const gamesResult = await kv([['lrange', 'arcade', '0', '49']]);
         const games = (gamesResult[0]?.result || []).map(s => { try { return JSON.parse(s); } catch { return null; } }).filter(Boolean);
         const gMeta = games.find(g => g.id === game);
         const flag = (gMeta && gMeta.lbMode === 'asc') ? 'LT' : 'GT';
-        await kv([
-          ['zadd', `net:${game}:lb`, flag, String(score), name],
+        const cmds = [
+          ['zadd', `net:${game}:lb`, flag, String(score), lower],
           ['expire', `net:${game}:lb`, String(60 * 60 * 24 * 90)],
-        ]);
+        ];
+        // store name casing only on first use
+        if (!existing[0]?.result) {
+          cmds.push(['set', nameKey, name, 'EX', String(60 * 60 * 24 * 90)]);
+        }
+        await kv(cmds);
         return res.status(200).json({ ok: true });
       }
 
