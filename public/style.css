@@ -1552,12 +1552,13 @@ body.page #bg-canvas { opacity: 0.25; }
 }
 
 
-/* ── DESKTOP SETTINGS PANEL ──────────────────────────────────── */
-#d-settings { display: none; }
+/* ── DESKTOP SETTINGS PANEL (slide-in from right) ───────────── */
+#ds-overlay, #ds-panel, #d-settings { display: none; }
 
 @media (hover: hover) and (pointer: fine) {
   #t { display: none; }
 
+  /* trigger button */
   #d-settings {
     display: block;
     position: fixed;
@@ -1566,7 +1567,6 @@ body.page #bg-canvas { opacity: 0.25; }
     z-index: 200;
     font-family: 'JetBrains Mono', monospace;
   }
-
   #d-settings-btn {
     background: color-mix(in srgb, var(--bg) 85%, transparent);
     -webkit-backdrop-filter: blur(12px);
@@ -1582,68 +1582,101 @@ body.page #bg-canvas { opacity: 0.25; }
   }
   #d-settings-btn:hover { color: var(--accent); border-color: var(--accent); }
   #d-settings-btn:active { transform: scale(0.96); }
-  #d-settings.open #d-settings-btn { color: var(--accent); border-color: var(--accent); }
 
-  #d-settings-panel {
-    position: absolute;
-    bottom: calc(100% + 10px);
-    right: 0;
-    display: flex;
-    max-height: 80vh;
-    background: color-mix(in srgb, var(--bg) 94%, transparent);
-    -webkit-backdrop-filter: blur(40px) saturate(1.8);
-    backdrop-filter: blur(40px) saturate(1.8);
-    border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
-    box-shadow: 0 16px 64px rgba(0,0,0,0.3);
-    border-radius: 14px;
+  /* overlay backdrop */
+  #ds-overlay {
+    display: block;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    z-index: 9990;
     opacity: 0;
-    transform: translateY(10px) scale(0.95);
     pointer-events: none;
-    transition: opacity 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.05);
+    transition: opacity 0.3s ease;
   }
-  #d-settings-panel::-webkit-scrollbar { display: none; }
-  #d-settings.open #d-settings-panel {
-    opacity: 1; transform: translateY(0) scale(1); pointer-events: auto;
+  #ds-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
   }
 
-  .ds-col {
-    padding: 6px 0;
+  /* slide-in panel */
+  #ds-panel {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; right: 0; bottom: 0;
+    width: min(380px, 90vw);
+    background: var(--bg);
+    border-left: 1px solid var(--border);
+    z-index: 9991;
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+    box-shadow: -4px 0 24px rgba(0,0,0,0.4);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  #ds-panel.open {
+    transform: translateX(0);
+  }
+
+  /* header */
+  .ds-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .ds-header-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--fg);
+  }
+  #ds-close {
+    background: none; border: none;
+    color: var(--muted);
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    transition: color 0.15s;
+  }
+  #ds-close:hover { color: var(--fg); }
+
+  /* scrollable body */
+  .ds-body {
+    flex: 1;
     overflow-y: auto;
     scrollbar-width: none;
+    padding-bottom: 20px;
   }
-  .ds-col::-webkit-scrollbar { display: none; }
-  .ds-col-left {
-    width: 220px;
-    flex-shrink: 0;
-  }
-  .ds-col-right {
-    width: 280px;
-    flex-shrink: 0;
-    border-left: 1px solid var(--border);
-  }
+  .ds-body::-webkit-scrollbar { display: none; }
 
-  .ds-section { padding: 12px 0 10px; }
+  /* sections */
+  .ds-section { padding: 16px 0 12px; }
   .ds-section + .ds-section { border-top: 1px solid var(--border); }
 
   .ds-title {
-    padding: 0 20px 8px;
+    padding: 0 20px 10px;
     font-size: 0.65rem;
     color: var(--accent);
     letter-spacing: 0.1em;
     text-transform: uppercase;
     user-select: none;
   }
+  .ds-title-sub {
+    padding-top: 10px;
+  }
 
   /* ── theme dots ── */
   .ds-themes {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 12px;
     padding: 4px 20px 4px;
   }
   .ds-theme-dot {
-    width: 22px; height: 22px;
+    width: 24px; height: 24px;
     border-radius: 50%;
     border: 2px solid transparent;
     cursor: pointer;
@@ -1688,7 +1721,7 @@ body.page #bg-canvas { opacity: 0.25; }
   /* ── mode segmented control ── */
   .ds-seg {
     display: flex;
-    margin: 0 20px 10px;
+    margin: 0 20px 12px;
     background: var(--border);
     border-radius: 8px;
     padding: 3px;
@@ -1699,9 +1732,9 @@ body.page #bg-canvas { opacity: 0.25; }
     background: none;
     border: none;
     font: inherit;
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     color: var(--muted);
-    padding: 7px 0;
+    padding: 8px 0;
     cursor: pointer;
     border-radius: 6px;
     transition: background 0.25s, color 0.2s, box-shadow 0.25s;
@@ -1725,8 +1758,8 @@ body.page #bg-canvas { opacity: 0.25; }
     border: 1px solid var(--border);
     color: var(--muted);
     font: inherit;
-    font-size: 0.7rem;
-    padding: 5px 12px;
+    font-size: 0.72rem;
+    padding: 6px 14px;
     border-radius: 14px;
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -1749,39 +1782,39 @@ body.page #bg-canvas { opacity: 0.25; }
     transition: opacity 0.15s ease;
   }
   .ds-group-label {
-    font-size: 0.6rem;
+    font-size: 0.62rem;
     color: var(--accent);
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    margin: 10px 0 6px;
+    margin: 14px 0 8px;
     opacity: 0.8;
   }
   .ds-group-label:first-child { margin-top: 0; }
   .ds-empty {
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     color: var(--muted);
     opacity: 0.5;
-    padding: 12px 0;
+    padding: 16px 0;
     text-align: center;
   }
   .ds-slider-row, .ds-control-row {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 8px;
-    min-height: 26px;
+    gap: 12px;
+    margin-bottom: 10px;
+    min-height: 28px;
   }
   .ds-slider-label {
-    font-size: 0.66rem;
+    font-size: 0.68rem;
     color: var(--muted);
-    width: 80px;
+    width: 82px;
     flex-shrink: 0;
     text-align: left;
   }
   .ds-slider-val {
-    font-size: 0.66rem;
+    font-size: 0.68rem;
     color: var(--accent);
-    width: 32px;
+    width: 34px;
     text-align: right;
     flex-shrink: 0;
     font-variant-numeric: tabular-nums;
@@ -1835,9 +1868,9 @@ body.page #bg-canvas { opacity: 0.25; }
     background: none;
     border: none;
     font: inherit;
-    font-size: 0.62rem;
+    font-size: 0.65rem;
     color: var(--muted);
-    padding: 5px 2px;
+    padding: 6px 4px;
     cursor: pointer;
     border-radius: 4px;
     transition: background 0.25s, color 0.2s, box-shadow 0.25s;

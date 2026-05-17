@@ -52,20 +52,32 @@ function toggleTheme() {
   document.addEventListener('DOMContentLoaded', function () {
     applyTheme(document.documentElement.getAttribute('data-theme'));
 
-    // Desktop settings panel
-    var dsWrap  = document.getElementById('d-settings');
-    var dsBtn   = document.getElementById('d-settings-btn');
-    var dsPanel = document.getElementById('d-settings-panel');
-    if (dsWrap && dsBtn && dsPanel) {
-      dsBtn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        var opening = !dsWrap.classList.contains('open');
-        dsWrap.classList.toggle('open');
-        if (opening && window._buildDesktopSettings) window._buildDesktopSettings();
-      });
-      document.addEventListener('click', function () { dsWrap.classList.remove('open'); });
-      dsPanel.addEventListener('click', function (e) { e.stopPropagation(); });
+    // Desktop settings slide-in panel
+    var dsOverlay = document.getElementById('ds-overlay');
+    var dsPanel   = document.getElementById('ds-panel');
+    var dsClose   = document.getElementById('ds-close');
+    var dsBtn     = document.getElementById('d-settings-btn');
+
+    function openSettings() {
+      if (!dsOverlay || !dsPanel) return;
+      dsOverlay.classList.add('open');
+      dsPanel.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      if (window._buildDesktopSettings) window._buildDesktopSettings();
     }
+    function closeSettings() {
+      if (!dsOverlay || !dsPanel) return;
+      dsOverlay.classList.remove('open');
+      dsPanel.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    if (dsBtn) dsBtn.addEventListener('click', openSettings);
+    if (dsClose) dsClose.addEventListener('click', closeSettings);
+    if (dsOverlay) dsOverlay.addEventListener('click', closeSettings);
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && dsPanel && dsPanel.classList.contains('open')) closeSettings();
+    });
 
     // Mobile settings sheet
     var mSheet = document.getElementById('m-sheet');
