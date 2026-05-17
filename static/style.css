@@ -1559,27 +1559,8 @@ body.page #bg-canvas { opacity: 0.25; }
 @media (hover: hover) and (pointer: fine) {
   #t { display: none; }
 
-  /* trigger button — fixed top-right */
-  #d-settings-btn {
-    display: block;
-    position: fixed;
-    top: 22px;
-    right: 22px;
-    z-index: 200;
-    background: color-mix(in srgb, var(--bg) 85%, transparent);
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
-    border: 1px solid var(--border);
-    color: var(--muted);
-    cursor: pointer;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.78rem;
-    padding: 6px 14px;
-    outline: none;
-    transition: color 0.2s, border-color 0.2s, transform 0.15s;
-  }
-  #d-settings-btn:hover { color: var(--accent); border-color: var(--accent); }
-  #d-settings-btn:active { transform: scale(0.96); }
+  /* trigger button — inline in header-controls, styled like [:]  */
+  #d-settings-btn { display: inline-block; }
 
   /* overlay backdrop */
   #ds-overlay {
