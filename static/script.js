@@ -1020,97 +1020,111 @@ function toggleTheme() {
     { key: 'boids.separation',label: 'separation',  min: 0, max: 300, step: 1, mode: 'boids' },
   ];
   var RAINBOW_LABELS = ['off', 'time', 'age', 'position'];
-  var _dsBuilt = false;
 
   function _buildDesktopSettings() {
-    // themes
+    var mode = window.getBgMode ? window.getBgMode() : 'boids';
+    var params = window.getBgParams ? window.getBgParams() : {};
+    var showLife  = mode === 'life' || mode === 'combo';
+    var showBoids = mode === 'boids' || mode === 'combo';
+
+    // ── themes (only rebuild if changed) ──
     var themesC = document.getElementById('ds-themes');
-    if (themesC) {
-      themesC.innerHTML = '';
+    if (themesC && !themesC.childElementCount) {
       var cur = document.documentElement.getAttribute('data-theme');
       THEMES.forEach(function (t) {
         var dot = document.createElement('button');
         dot.className = 'ds-theme-dot' + (t === cur ? ' active' : '');
+        dot.setAttribute('data-t', t);
         dot.innerHTML = '<span class="ds-dot-inner" style="background:' +
           (THEME_ACCENTS[t] || 'var(--accent)') + '"></span>' +
           '<span class="ds-dot-label">' + t + '</span>';
         dot.addEventListener('click', function () {
           applyTheme(t);
-          _buildDesktopSettings();
+          themesC.querySelectorAll('.ds-theme-dot').forEach(function (d) {
+            d.classList.toggle('active', d.getAttribute('data-t') === t);
+          });
         });
         themesC.appendChild(dot);
       });
+    } else if (themesC) {
+      var cur = document.documentElement.getAttribute('data-theme');
+      themesC.querySelectorAll('.ds-theme-dot').forEach(function (d) {
+        d.classList.toggle('active', d.getAttribute('data-t') === cur);
+      });
     }
 
-    // mode seg
+    // ── mode seg (just update active states) ──
     var seg = document.getElementById('ds-mode-seg');
     if (seg) {
-      var curMode = window.getBgMode ? window.getBgMode() : 'boids';
       var btns = seg.querySelectorAll('button');
       for (var i = 0; i < btns.length; i++) {
-        btns[i].classList.toggle('active', btns[i].getAttribute('data-mode') === curMode);
-        btns[i].onclick = (function (btn) {
-          return function () {
-            if (window.setBgMode) window.setBgMode(btn.getAttribute('data-mode'));
-            _buildDesktopSettings();
-          };
-        })(btns[i]);
+        btns[i].classList.toggle('active', btns[i].getAttribute('data-mode') === mode);
+        if (!btns[i]._wired) {
+          btns[i]._wired = true;
+          btns[i].addEventListener('click', (function (btn) {
+            return function () {
+              if (window.setBgMode) window.setBgMode(btn.getAttribute('data-mode'));
+              _buildDesktopSettings();
+            };
+          })(btns[i]));
+        }
       }
     }
 
-    // presets
+    // ── presets (filtered by mode) ──
     var presetsC = document.getElementById('ds-presets');
     if (presetsC) {
       presetsC.innerHTML = '';
-      var names = window.getPresetNames ? window.getPresetNames() : [];
-      names.forEach(function (name) {
-        var p = PRESETS[name];
-        var btn = document.createElement('button');
-        btn.className = 'ds-preset' + (activePreset === name ? ' active' : '');
-        btn.innerHTML = '<span class="ds-preset-name">' + name + '</span>' +
-          '<span class="ds-preset-desc">' + (p.desc || '') + '</span>';
-        btn.addEventListener('click', function () {
-          window.applyPreset(name);
-          _buildDesktopSettings();
+      if (mode !== 'off') {
+        var names = window.getPresetNames ? window.getPresetNames() : [];
+        names.forEach(function (name) {
+          var p = PRESETS[name];
+          // show presets matching current mode, or combo presets in any non-off mode
+          if (p.sim !== mode && !(p.sim === 'combo' && mode !== 'off')) return;
+          var btn = document.createElement('button');
+          btn.className = 'ds-preset' + (activePreset === name ? ' active' : '');
+          btn.textContent = name;
+          btn.title = p.desc || '';
+          btn.addEventListener('click', function () {
+            window.applyPreset(name);
+            _buildDesktopSettings();
+          });
+          presetsC.appendChild(btn);
         });
-        presetsC.appendChild(btn);
-      });
+      }
     }
 
-    // sliders + controls
+    // ── sliders ──
     var slidersC = document.getElementById('ds-sliders');
     if (!slidersC) return;
-    slidersC.innerHTML = '';
-    var params = window.getBgParams ? window.getBgParams() : {};
-    var mode = window.getBgMode ? window.getBgMode() : 'boids';
 
-    if (mode === 'off') {
-      slidersC.innerHTML = '<div class="ds-empty">background disabled</div>';
-      return;
-    }
-
-    var showLife  = mode === 'life' || mode === 'combo';
-    var showBoids = mode === 'boids' || mode === 'combo';
-
-    // group headers + sliders
-    if (showLife) {
-      slidersC.appendChild(_dsGroupLabel('life'));
-      DS_SLIDERS.forEach(function (s) {
-        if (s.mode !== 'life') return;
-        slidersC.appendChild(_dsSliderRow(s, params));
-      });
-      // rainbow segmented
-      slidersC.appendChild(_dsRainbowControl(params));
-    }
-    if (showBoids) {
-      slidersC.appendChild(_dsGroupLabel('boids'));
-      DS_SLIDERS.forEach(function (s) {
-        if (s.mode !== 'boids') return;
-        slidersC.appendChild(_dsSliderRow(s, params));
-      });
-      // trail toggle
-      slidersC.appendChild(_dsTrailToggle(params));
-    }
+    // fade out, rebuild, fade in
+    slidersC.style.opacity = '0';
+    setTimeout(function () {
+      slidersC.innerHTML = '';
+      if (mode === 'off') {
+        slidersC.innerHTML = '<div class="ds-empty">background disabled</div>';
+      } else {
+        if (showLife) {
+          slidersC.appendChild(_dsGroupLabel('life'));
+          DS_SLIDERS.forEach(function (s) {
+            if (s.mode === 'life') slidersC.appendChild(_dsSliderRow(s, params));
+          });
+          slidersC.appendChild(_dsRainbowControl(params));
+          slidersC.appendChild(_dsTrailToggle(params));
+        }
+        if (showBoids) {
+          slidersC.appendChild(_dsGroupLabel('boids'));
+          DS_SLIDERS.forEach(function (s) {
+            if (s.mode === 'boids') slidersC.appendChild(_dsSliderRow(s, params));
+          });
+          if (!showLife) {
+            slidersC.appendChild(_dsTrailToggle(params));
+          }
+        }
+      }
+      slidersC.style.opacity = '1';
+    }, 120);
   }
 
   function _dsGroupLabel(text) {
