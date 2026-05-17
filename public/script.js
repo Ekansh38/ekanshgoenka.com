@@ -77,6 +77,12 @@ function toggleTheme() {
     if (dsOverlay) dsOverlay.addEventListener('click', closeSettings);
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && dsPanel && dsPanel.classList.contains('open')) closeSettings();
+      if (e.key === '=' && !e.ctrlKey && !e.metaKey && !e.altKey &&
+          e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        if (dsPanel && dsPanel.classList.contains('open')) closeSettings();
+        else openSettings();
+      }
     });
 
     // Mobile settings sheet
