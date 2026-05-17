@@ -60,7 +60,9 @@
   
 
 <div class="four04">
+  <canvas id="four04-life"></canvas>
   <canvas id="four04-canvas"></canvas>
+  <div id="four04-glow"></div>
   <div class="four04-content">
     <p class="four04-num">404</p>
     <p class="four04-msg">this page doesn't exist.</p>
@@ -75,9 +77,27 @@
   background: var(--bg);
   overflow: hidden;
 }
+#four04-life {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  filter: blur(6px);
+  opacity: 0.12;
+}
 #four04-canvas {
   position: absolute; inset: 0;
   width: 100%; height: 100%;
+}
+#four04-glow {
+  position: fixed;
+  width: 400px; height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+  opacity: 0;
+  pointer-events: none;
+  filter: blur(60px);
+  transform: translate(-50%, -50%);
+  transition: opacity 0.3s;
+  z-index: 0;
 }
 .four04-content {
   position: relative; z-index: 1;
@@ -116,15 +136,93 @@ body > header, body > footer { display: none; }
   var f = document.querySelector('footer'); if (f) f.style.display = 'none';
 
   var canvas = document.getElementById('four04-canvas');
+  var lifeCanvas = document.getElementById('four04-life');
+  var glow = document.getElementById('four04-glow');
   if (!canvas) return;
   var ctx = canvas.getContext('2d');
   var W, H, dpr;
 
   
-  var _mobile = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
-  var N = _mobile ? 60 : 180;
-  var boids = [];
   var mouse = { x: -9999, y: -9999 };
+
+  function updateGlow() {
+    if (mouse.x < -999) { glow.style.opacity = '0'; return; }
+    glow.style.opacity = '0.08';
+    glow.style.left = mouse.x + 'px';
+    glow.style.top = mouse.y + 'px';
+  }
+
+  
+  var CELL = 8;
+  var lctx = lifeCanvas ? lifeCanvas.getContext('2d') : null;
+  var GW, GH, grid, gridB;
+
+  function initLife() {
+    if (!lctx) return;
+    var ldpr = window.devicePixelRatio || 1;
+    var lw = lifeCanvas.offsetWidth;
+    var lh = lifeCanvas.offsetHeight;
+    lifeCanvas.width = lw * ldpr;
+    lifeCanvas.height = lh * ldpr;
+    lctx.setTransform(ldpr, 0, 0, ldpr, 0, 0);
+    GW = Math.ceil(lw / CELL);
+    GH = Math.ceil(lh / CELL);
+    grid = new Uint8Array(GW * GH);
+    gridB = new Uint8Array(GW * GH);
+    
+    for (var i = 0; i < grid.length; i++) {
+      grid[i] = Math.random() < 0.08 ? 1 : 0;
+    }
+  }
+
+  function stepLife() {
+    for (var y = 0; y < GH; y++) {
+      for (var x = 0; x < GW; x++) {
+        var n = 0;
+        for (var dy = -1; dy <= 1; dy++) {
+          for (var dx = -1; dx <= 1; dx++) {
+            if (dx === 0 && dy === 0) continue;
+            var nx = (x + dx + GW) % GW;
+            var ny = (y + dy + GH) % GH;
+            n += grid[ny * GW + nx];
+          }
+        }
+        var idx = y * GW + x;
+        gridB[idx] = (grid[idx] && (n === 2 || n === 3)) || (!grid[idx] && n === 3) ? 1 : 0;
+      }
+    }
+    var tmp = grid; grid = gridB; gridB = tmp;
+    
+    var alive = 0;
+    for (var i = 0; i < grid.length; i++) alive += grid[i];
+    if (alive < grid.length * 0.02) {
+      for (var i = 0; i < grid.length * 0.03; i++) {
+        grid[Math.floor(Math.random() * grid.length)] = 1;
+      }
+    }
+  }
+
+  function drawLife() {
+    if (!lctx) return;
+    var lw = lifeCanvas.offsetWidth;
+    var lh = lifeCanvas.offsetHeight;
+    lctx.clearRect(0, 0, lw, lh);
+    lctx.fillStyle = getAccent();
+    lctx.globalAlpha = 0.8;
+    for (var y = 0; y < GH; y++) {
+      for (var x = 0; x < GW; x++) {
+        if (grid[y * GW + x]) {
+          lctx.fillRect(x * CELL, y * CELL, CELL - 1, CELL - 1);
+        }
+      }
+    }
+    lctx.globalAlpha = 1;
+  }
+
+  
+  var _mobile = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+  var N = _mobile ? 50 : 160;
+  var boids = [];
 
   function resize() {
     dpr = window.devicePixelRatio || 1;
@@ -133,10 +231,10 @@ body > header, body > footer { display: none; }
     canvas.width = W * dpr;
     canvas.height = H * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    initLife();
   }
 
-  function init() {
-    resize();
+  function initBoids() {
     boids = [];
     for (var i = 0; i < N; i++) {
       var angle = Math.random() * Math.PI * 2;
@@ -149,9 +247,9 @@ body > header, body > footer { display: none; }
     }
   }
 
-  var SEP_R = 24, ALI_R = 60, COH_R = 80;
-  var SEP_W = 0.08, ALI_W = 0.045, COH_W = 0.005;
-  var MAX_V = 2.8, MOUSE_R = 140, MOUSE_W = 0.15;
+  var SEP_R = 40, ALI_R = 70, COH_R = 120;
+  var SEP_W = 0.15, ALI_W = 0.04, COH_W = 0.002;
+  var MAX_V = 2.5, MOUSE_R = 160, MOUSE_W = 0.12;
 
   function step() {
     for (var i = 0; i < N; i++) {
@@ -186,7 +284,6 @@ body > header, body > footer { display: none; }
 
       b.x += b.vx; b.y += b.vy;
 
-      
       if (b.x < 0) b.x += W; if (b.x > W) b.x -= W;
       if (b.y < 0) b.y += H; if (b.y > H) b.y -= H;
     }
@@ -196,19 +293,20 @@ body > header, body > footer { display: none; }
     return getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#7aa2f7';
   }
 
-  function draw() {
+  function drawBoids() {
     ctx.clearRect(0, 0, W, H);
     var accent = getAccent();
 
     
     ctx.strokeStyle = accent;
+    var CONN_R = 60;
     for (var i = 0; i < N; i++) {
       for (var j = i + 1; j < N; j++) {
         var dx = boids[i].x - boids[j].x;
         var dy = boids[i].y - boids[j].y;
         var d = Math.sqrt(dx * dx + dy * dy);
-        if (d < 50) {
-          ctx.globalAlpha = (1 - d / 50) * 0.15;
+        if (d < CONN_R) {
+          ctx.globalAlpha = (1 - d / CONN_R) * 0.12;
           ctx.beginPath();
           ctx.moveTo(boids[i].x, boids[i].y);
           ctx.lineTo(boids[j].x, boids[j].y);
@@ -219,7 +317,7 @@ body > header, body > footer { display: none; }
     }
 
     
-    ctx.globalAlpha = 0.5;
+    ctx.globalAlpha = 0.45;
     ctx.fillStyle = accent;
     for (var i = 0; i < N; i++) {
       ctx.beginPath();
@@ -229,13 +327,23 @@ body > header, body > footer { display: none; }
     ctx.globalAlpha = 1;
   }
 
+  
+  var lifeFrame = 0;
   function loop() {
     step();
-    draw();
+    drawBoids();
+    
+    if (++lifeFrame % 6 === 0) {
+      stepLife();
+      drawLife();
+    }
+    updateGlow();
     requestAnimationFrame(loop);
   }
 
-  init();
+  resize();
+  initBoids();
+  drawLife();
   loop();
 
   window.addEventListener('resize', resize);
