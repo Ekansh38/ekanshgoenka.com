@@ -13,7 +13,7 @@ document.addEventListener('click', function (e) {
   });
 });
 
-var THEMES = ['tokyo-night', 'gruvbox', 'dracula', 'rose-pine', 'github-light', 'papercolor-light'];
+var THEMES = ['tokyo-night', 'gruvbox', 'dracula', 'rose-pine', 'github-light', 'papercolor-light', 'hacker'];
 var LIGHT_THEMES = ['rose-pine', 'github-light', 'papercolor-light'];
 
 function applyTheme(name) {
@@ -2501,12 +2501,7 @@ function toggleTheme() {
         var out = THEMES.map(function (t) {
           return (t === cur ? '* ' : '  ') + t;
         }).join('\n');
-        if (cur === 'hacker') out += '\n* hacker';
         line(out, 'term-line-pre');
-      } else if (name === 'hacker') {
-        applyTheme('hacker');
-        line('colorscheme → hacker', 'term-line-ok');
-        line('> welcome to the matrix.', 'term-line-ok');
       } else if (THEMES.indexOf(name) >= 0) {
         applyTheme(name);
         line('colorscheme → ' + name, 'term-line-ok');
@@ -3044,7 +3039,7 @@ function toggleTheme() {
       });
   }
 
-  var ALL_THEMES    = ['tokyo-night', 'gruvbox', 'kanagawa', 'flexoki-light', 'rose-pine', 'ayu-light'];
+  var ALL_THEMES    = THEMES;
   var ALL_PARAMS    = ['life.cell','life.opacity','life.glow','life.autofill','life.rainbow','life.speed','boids.n','boids.size','boids.tick','boids.speed','boids.perception','boids.separation','boids.opacity','boids.glow','trail.on','trail.size','trail.glow','trail.decay'];
   var ALL_PATTERNS  = ['r-pentomino','acorn','gosper-gun','queen-bee','pulsar','pentadecathlon','lwss','hwss'];
   var HELP_KEYS     = Object.keys(HELP_TOPICS).concat(Object.keys(HELP_CMDS)).sort();
