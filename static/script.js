@@ -2211,6 +2211,7 @@ function toggleTheme() {
 
     // print() — flushes io.write buffer first, then prints with newline
     lua.lua_pushcfunction(L, function(Ls) {
+      flushClearIfPending();
       flushIoBuf();
       var n = lua.lua_gettop(Ls), parts = [];
       for (var i = 1; i <= n; i++) {
@@ -2228,6 +2229,10 @@ function toggleTheme() {
     lua.lua_setglobal(L, toLua('print'));
 
     // _iowrite() — write without newline; flushes on embedded \n
+    var _clearPending = false;
+    function flushClearIfPending() {
+      if (_clearPending) { output.innerHTML = ''; _clearPending = false; }
+    }
     lua.lua_pushcfunction(L, function(Ls) {
       var n = lua.lua_gettop(Ls), s = '';
       for (var i = 1; i <= n; i++) {
@@ -2236,6 +2241,7 @@ function toggleTheme() {
         else if (t === lua.LUA_TNUMBER) { s += String(lua.lua_tonumber(Ls, i)); }
         else if (t === lua.LUA_TBOOLEAN) { s += lua.lua_toboolean(Ls, i) ? 'true' : 'false'; }
       }
+      flushClearIfPending();
       var lines = (iobuf + s).split('\n');
       for (var j = 0; j < lines.length - 1; j++) lineHtml(lines[j]);
       iobuf = lines[lines.length - 1];
@@ -2255,8 +2261,8 @@ function toggleTheme() {
     });
     lua.lua_setglobal(L, toLua('_sound'));
 
-    // clear() — wipe game output (also flushes iobuf)
-    lua.lua_pushcfunction(L, function(Ls) { iobuf = ''; output.innerHTML = ''; return 0; });
+    // clear() — deferred wipe: sets flag, actual clear happens on next write
+    lua.lua_pushcfunction(L, function(Ls) { iobuf = ''; _clearPending = true; return 0; });
     lua.lua_setglobal(L, toLua('clear'));
 
     // _pollkey() — non-blocking key read: returns held key or last tap, or ""
