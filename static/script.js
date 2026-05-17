@@ -980,10 +980,11 @@ function toggleTheme() {
               'boids.n':40,  'boids.size':28, 'boids.tick':0.9, 'boids.opacity':75, 'boids.glow':65,
               'boids.perception':120, 'boids.separation':80,
               'trail.on':0} },
-    soft:      { sim:'boids', lspeed:null, bspeed:10, theme:'rose-pine',
-      desc:'slow drift',
-      params:{'boids.n':20,  'boids.size':45, 'boids.tick':0.5, 'boids.opacity':60, 'boids.glow':30,
-              'boids.perception':150, 'boids.separation':100} },
+    soft:      { sim:'combo', lspeed:10, bspeed:10, theme:'rose-pine',
+      desc:'gentle layers',
+      params:{'life.cell':10, 'life.opacity':30, 'life.glow':20, 'life.autofill':40, 'life.rainbow':0,
+              'boids.n':20,  'boids.size':45, 'boids.tick':0.5, 'boids.opacity':60, 'boids.glow':30,
+              'boids.perception':150, 'boids.separation':100, 'trail.on':0} },
     swarm:     { sim:'boids', lspeed:null, bspeed:20, theme:'gruvbox',
       desc:'fast dense',
       params:{'boids.n':300, 'boids.size':6,  'boids.tick':3.5, 'boids.opacity':22, 'boids.glow':0,
@@ -1123,7 +1124,7 @@ function toggleTheme() {
             if (s.mode === 'life') slidersC.appendChild(_dsSliderRow(s, params));
           });
           slidersC.appendChild(_dsRainbowControl(params));
-          slidersC.appendChild(_dsTrailToggle(params));
+          slidersC.appendChild(_dsTrailSection(params));
         }
         if (showBoids) {
           slidersC.appendChild(_dsGroupLabel('boids'));
@@ -1131,7 +1132,7 @@ function toggleTheme() {
             if (s.mode === 'boids') slidersC.appendChild(_dsSliderRow(s, params));
           });
           if (!showLife) {
-            slidersC.appendChild(_dsTrailToggle(params));
+            slidersC.appendChild(_dsTrailSection(params));
           }
         }
       }
@@ -1204,8 +1205,16 @@ function toggleTheme() {
     return row;
   }
 
-  function _dsTrailToggle(params) {
+  var TRAIL_SLIDERS = [
+    { key: 'trail.glow',  label: 'glow',  min: 0, max: 100, step: 1 },
+    { key: 'trail.decay', label: 'decay', min: 0, max: 100, step: 1 },
+  ];
+
+  function _dsTrailSection(params) {
+    var wrap = document.createElement('div');
     var on = params['trail.on'] ? true : false;
+
+    // toggle row
     var row = document.createElement('div');
     row.className = 'ds-control-row';
     var label = document.createElement('span');
@@ -1216,13 +1225,26 @@ function toggleTheme() {
     var toggle = document.createElement('button');
     toggle.className = 'ds-toggle' + (on ? ' active' : '');
     toggle.innerHTML = '<span class="ds-toggle-knob"></span>';
+    wrap.appendChild(row);
+
+    // sub-sliders container
+    var sub = document.createElement('div');
+    sub.className = 'ds-trail-sub';
+    sub.style.display = on ? '' : 'none';
+    TRAIL_SLIDERS.forEach(function (s) {
+      sub.appendChild(_dsSliderRow(s, params));
+    });
+    wrap.appendChild(sub);
+
     toggle.addEventListener('click', function () {
       on = !on;
       toggle.classList.toggle('active', on);
+      sub.style.display = on ? '' : 'none';
       if (window.setParam) window.setParam('trail.on', on ? 1 : 0);
     });
     row.appendChild(toggle);
-    return row;
+
+    return wrap;
   }
 
   window._buildDesktopSettings = _buildDesktopSettings;

@@ -1889,6 +1889,12 @@ body.page #bg-canvas { opacity: 0.25; }
     transform: translateX(18px);
     background: var(--bg);
   }
+
+  /* trail sub-sliders (indented under toggle) */
+  .ds-trail-sub {
+    padding-left: 12px;
+    margin-top: 4px;
+  }
 }
 
 
