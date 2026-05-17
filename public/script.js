@@ -1248,6 +1248,7 @@ function toggleTheme() {
   }
 
   var TRAIL_SLIDERS = [
+    { key: 'trail.size',  label: 'size',  min: 1, max: 3,   step: 1 },
     { key: 'trail.glow',  label: 'glow',  min: 0, max: 100, step: 1 },
     { key: 'trail.decay', label: 'decay', min: 0, max: 100, step: 1 },
   ];

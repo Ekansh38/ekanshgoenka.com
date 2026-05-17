@@ -84,8 +84,13 @@ module.exports = async (req, res) => {
         const score = Number(body.score);
         if (!name)            return res.status(400).json({ error: 'name required' });
         if (!isFinite(score)) return res.status(400).json({ error: 'score must be a number' });
+        // look up game's lbMode to decide GT (higher wins) vs LT (lower wins)
+        const gamesResult = await kv([['lrange', 'arcade', '0', '49']]);
+        const games = (gamesResult[0]?.result || []).map(s => { try { return JSON.parse(s); } catch { return null; } }).filter(Boolean);
+        const gMeta = games.find(g => g.id === game);
+        const flag = (gMeta && gMeta.lbMode === 'asc') ? 'LT' : 'GT';
         await kv([
-          ['zadd', `net:${game}:lb`, String(score), name],
+          ['zadd', `net:${game}:lb`, flag, String(score), name],
           ['expire', `net:${game}:lb`, String(60 * 60 * 24 * 90)],
         ]);
         return res.status(200).json({ ok: true });
