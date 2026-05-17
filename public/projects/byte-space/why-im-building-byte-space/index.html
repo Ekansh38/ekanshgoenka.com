@@ -52,6 +52,7 @@ byte-space (all lowercase) is an internet simulator that boasts some pretty cool
     <div class="header-controls">
       <button class="toggle" id="term-btn">[:]</button>
       <button class="toggle" id="t" onclick="toggleTheme()">[theme]</button>
+      <button class="toggle" id="d-settings-btn">[:settings]</button>
     </div>
   </div>
   <div class="tagline">helly · belly · shmelly</div>
@@ -229,7 +230,9 @@ Anyway, hope you understand why I find this idea so interesting and check out th
           <button data-mode="combo">combo</button>
           <button data-mode="off">off</button>
         </div>
-        <div class="ds-title ds-title-sub">presets</div>
+      </div>
+      <div class="ds-section">
+        <div class="ds-title">presets</div>
         <div class="ds-presets" id="ds-presets"></div>
       </div>
       <div class="ds-section">
@@ -237,9 +240,6 @@ Anyway, hope you understand why I find this idea so interesting and check out th
         <div class="ds-sliders" id="ds-sliders"></div>
       </div>
     </div>
-  </div>
-  <div id="d-settings">
-    <button id="d-settings-btn">:settings</button>
   </div>
 
   <div id="m-sheet">

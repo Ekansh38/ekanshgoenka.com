@@ -1083,27 +1083,27 @@ function toggleTheme() {
       }
     }
 
-    // ── presets (filtered by mode) ──
+    // ── presets (all presets, independent of mode) ──
     var presetsC = document.getElementById('ds-presets');
-    if (presetsC) {
-      presetsC.innerHTML = '';
-      if (mode !== 'off') {
-        var names = window.getPresetNames ? window.getPresetNames() : [];
-        names.forEach(function (name) {
-          var p = PRESETS[name];
-          // show presets matching current mode, or combo presets in any non-off mode
-          if (p.sim !== mode && !(p.sim === 'combo' && mode !== 'off')) return;
-          var btn = document.createElement('button');
-          btn.className = 'ds-preset' + (activePreset === name ? ' active' : '');
-          btn.textContent = name;
-          btn.title = p.desc || '';
-          btn.addEventListener('click', function () {
-            window.applyPreset(name);
-            _buildDesktopSettings();
-          });
-          presetsC.appendChild(btn);
+    if (presetsC && !presetsC.childElementCount) {
+      var names = window.getPresetNames ? window.getPresetNames() : [];
+      names.forEach(function (name) {
+        var p = PRESETS[name];
+        var btn = document.createElement('button');
+        btn.className = 'ds-preset' + (activePreset === name ? ' active' : '');
+        btn.setAttribute('data-preset', name);
+        btn.textContent = name;
+        btn.title = p.desc || '';
+        btn.addEventListener('click', function () {
+          window.applyPreset(name);
+          _buildDesktopSettings();
         });
-      }
+        presetsC.appendChild(btn);
+      });
+    } else if (presetsC) {
+      presetsC.querySelectorAll('.ds-preset').forEach(function (btn) {
+        btn.classList.toggle('active', btn.getAttribute('data-preset') === activePreset);
+      });
     }
 
     // ── sliders ──
@@ -1950,7 +1950,7 @@ function toggleTheme() {
       // ── phase 2: element deletion ───────────────────────────
       setTimeout(function () {
         var sel = 'nav, .social, .tagline, li, p, h3, h2, footer, ' +
-                  '.nav, h1, header, section, article, #d-settings, main';
+                  '.nav, h1, header, section, article, main';
         var nodeList = document.querySelectorAll(sel);
         var els = [];
         for (var i = 0; i < nodeList.length; i++) els.push(nodeList[i]);

@@ -1553,35 +1553,14 @@ body.page #bg-canvas { opacity: 0.25; }
 
 
 /* ── DESKTOP SETTINGS PANEL (slide-in from right) ───────────── */
-#ds-overlay, #ds-panel, #d-settings { display: none; }
+#ds-overlay, #ds-panel { display: none; }
+#d-settings-btn { display: none; }
 
 @media (hover: hover) and (pointer: fine) {
   #t { display: none; }
 
-  /* trigger button */
-  #d-settings {
-    display: block;
-    position: fixed;
-    bottom: 22px;
-    right: 22px;
-    z-index: 200;
-    font-family: 'JetBrains Mono', monospace;
-  }
-  #d-settings-btn {
-    background: color-mix(in srgb, var(--bg) 85%, transparent);
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
-    border: 1px solid var(--border);
-    color: var(--muted);
-    cursor: pointer;
-    font: inherit;
-    font-size: 0.82rem;
-    padding: 6px 14px;
-    outline: none;
-    transition: color 0.2s, border-color 0.2s, transform 0.15s;
-  }
-  #d-settings-btn:hover { color: var(--accent); border-color: var(--accent); }
-  #d-settings-btn:active { transform: scale(0.96); }
+  /* trigger button — lives in header-controls */
+  #d-settings-btn { display: inline-block; }
 
   /* overlay backdrop */
   #ds-overlay {
@@ -1663,9 +1642,6 @@ body.page #bg-canvas { opacity: 0.25; }
     letter-spacing: 0.1em;
     text-transform: uppercase;
     user-select: none;
-  }
-  .ds-title-sub {
-    padding-top: 10px;
   }
 
   /* ── theme dots ── */
