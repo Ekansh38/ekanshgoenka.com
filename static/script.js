@@ -3162,14 +3162,6 @@ function toggleTheme() {
     }
 
     if (hits.length === 1) return hits[0].slice(typed.length);
-    if (hits.length > 1) {
-      var cp = commonPrefix(hits);
-      if (cp.length > typed.length) return cp.slice(typed.length);
-    }
-    // history suggestion as fallback
-    for (var i = 0; i < hist.length; i++) {
-      if (hist[i].indexOf(val) === 0 && hist[i] !== val) return hist[i].slice(val.length);
-    }
     return '';
   }
 
