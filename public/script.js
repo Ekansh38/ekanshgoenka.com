@@ -112,7 +112,14 @@ function toggleTheme() {
   var ctx = canvas.getContext('2d');
 
   var MODES = ['life', 'boids', 'combo', 'off'];
-  var _savedMode = localStorage.getItem('bgMode') || (_isMobile ? 'boids' : 'combo');
+  // one-time migration: if mobile sim was previously disabled, re-enable it
+  var _savedMode = localStorage.getItem('bgMode');
+  if (_isMobile && !localStorage.getItem('_msim2')) {
+    localStorage.setItem('_msim2', '1');
+    if (!_savedMode || _savedMode === 'off') _savedMode = 'boids';
+    localStorage.setItem('bgMode', _savedMode);
+  }
+  if (!_savedMode) _savedMode = _isMobile ? 'boids' : 'combo';
   var modeIdx = Math.max(0, MODES.indexOf(_savedMode));
   var lifeSpeedLevel  = Math.max(0, Math.min(100, parseInt(localStorage.getItem('bgLifeSpeed')  || '15')));
   var boidsSpeedLevel = Math.max(0, Math.min(100, parseInt(localStorage.getItem('bgBoidsSpeed') || '15')));
