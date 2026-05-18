@@ -430,6 +430,7 @@
           footer.style.display = 'none';
           return;
         }
+        var useDecimals = entries.some(function(e) { return e.score % 1 !== 0; });
         var html = '<table class="ag-lb-table"><thead><tr><th>#</th><th>player</th><th>score</th></tr></thead><tbody>';
         for (var i = 0; i < filtered.length; i++) {
           var e = filtered[i];
@@ -441,7 +442,7 @@
             else if (i === 2) cls = 'ag-lb-bronze';
           }
           if (query) cls = 'ag-lb-highlight';
-          var scoreStr = e.score % 1 === 0 ? String(Math.round(e.score)) : e.score.toFixed(2);
+          var scoreStr = useDecimals ? e.score.toFixed(2) : String(Math.round(e.score));
           html += '<tr class="' + cls + '"><td>' + rank + '</td><td>' + hlEsc(e.name) + '</td><td>' + scoreStr + '</td></tr>';
         }
         html += '</tbody></table>';
