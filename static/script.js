@@ -2553,7 +2553,7 @@ function toggleTheme() {
               }
               if (op === 'rank') {
                 fetch('/api/net?game=' + gid, { method:'POST', headers:{'Content-Type':'application/json'},
-                  body: JSON.stringify({op:'rank', name: parts[1] || '', score: parts[2] || '0'}) })
+                  body: JSON.stringify({op:'rank', name: parts[1] || '', score: parseFloat(parts[2]) || 0}) })
                   .then(function(r) { return r.json(); })
                   .then(function(d) { if (_gameMode) step(d.ok ? 'ok' : 'err:' + (d.error || '?')); })
                   .catch(function() { if (_gameMode) step('err:network'); });
@@ -3228,12 +3228,10 @@ function toggleTheme() {
           var entries = data.entries || [];
           if (!entries.length) { line('no scores for ' + id, 'term-line-ok'); return; }
           line('\x1b[36m── ' + id + ' leaderboard ──\x1b[0m', 'term-line-pre');
-          var hasDecimal = entries.some(function(e) { return String(e.score).indexOf('.') >= 0; });
           entries.forEach(function(e, i) {
             var rank = ('  ' + (i + 1) + '.').slice(-4);
             var nm   = (e.name + '                ').slice(0, 16);
-            var sc   = hasDecimal ? Number(e.score).toFixed(2) : e.score;
-            line(rank + ' ' + nm + '\x1b[33m' + sc + '\x1b[0m', 'term-line-pre');
+            line(rank + ' ' + nm + '\x1b[33m' + e.score + '\x1b[0m', 'term-line-pre');
           });
         })
         .catch(function() { line('network error', 'term-line-err'); });

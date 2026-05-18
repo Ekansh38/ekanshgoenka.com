@@ -68,7 +68,7 @@ module.exports = async (req, res) => {
         }
         const entries = [];
         for (let i = 0; i < raw.length; i += 2)
-          entries.push({ name: nameMap[raw[i]] || raw[i], score: raw[i + 1] });
+          entries.push({ name: nameMap[raw[i]] || raw[i], score: parseFloat(raw[i + 1]) });
         return res.status(200).json({ entries });
       }
 
@@ -91,8 +91,7 @@ module.exports = async (req, res) => {
 
       if (op === 'rank') {
         const name  = String(body.name  || '').trim().slice(0, MAX_NAME);
-        const scoreStr = String(body.score ?? '');
-        const score = Number(scoreStr);
+        const score = Number(body.score);
         if (!name)            return res.status(400).json({ error: 'name required' });
         if (!isFinite(score)) return res.status(400).json({ error: 'score must be a number' });
         const lower = name.toLowerCase();
@@ -106,7 +105,7 @@ module.exports = async (req, res) => {
         const gMeta = games.find(g => g.id === game);
         const flag = (gMeta && gMeta.lbMode === 'asc') ? 'LT' : 'GT';
         const cmds = [
-          ['zadd', `net:${game}:lb`, flag, scoreStr, lower],
+          ['zadd', `net:${game}:lb`, flag, String(score), lower],
           ['expire', `net:${game}:lb`, String(60 * 60 * 24 * 90)],
         ];
         // store name casing only on first use
