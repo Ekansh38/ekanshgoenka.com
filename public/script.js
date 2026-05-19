@@ -1403,6 +1403,34 @@ function toggleTheme() {
 
   var hist = [], histIdx = -1, isOpen = false;
   var PAGE_START = Date.now();
+
+  // ── resizable terminal ────────────────────────────────────────
+  (function() {
+    var handle = document.getElementById('term-resize');
+    var box    = document.getElementById('term-box');
+    if (!handle || !box) return;
+    var dragging = false, startY = 0, startH = 0;
+    handle.addEventListener('mousedown', function(e) {
+      e.preventDefault();
+      dragging = true; startY = e.clientY; startH = box.offsetHeight;
+      box.style.transition = 'none';
+      document.body.style.cursor = 'ns-resize';
+      document.body.style.userSelect = 'none';
+    });
+    document.addEventListener('mousemove', function(e) {
+      if (!dragging) return;
+      var h = startH + (startY - e.clientY);
+      h = Math.max(180, Math.min(h, window.innerHeight * 0.92));
+      box.style.height = h + 'px';
+    });
+    document.addEventListener('mouseup', function() {
+      if (!dragging) return;
+      dragging = false;
+      box.style.transition = '';
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    });
+  })();
   var _gameMode = false, _gameResume = null;
   var _gCache = null, _gCacheAt = 0, _gById = {}, G_TTL = 300000; // 5 min
 
@@ -2164,7 +2192,7 @@ function toggleTheme() {
   // ── ansi → html (for colored game output) ────────────────────────────────
   function ansiToHtml(text) {
     var s = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    var ANSI = {31:'#f7768e',32:'#9ece6a',33:'#e0af68',34:'#7aa2f7',35:'#bb9af7',36:'#73daca',37:'#c0caf5'};
+    var ANSI = {31:'#f7768e',32:'#9ece6a',33:'#e0af68',34:'#7aa2f7',35:'#bb9af7',36:'#73daca',37:'#c0caf5',90:'#565f89'};
     var open = 0;
     s = s.replace(/\x1b\[([0-9;]*)m/g, function(_, code) {
       if (!code || code === '0') { var c = '</span>'.repeat(open); open = 0; return c; }
@@ -2198,45 +2226,69 @@ function toggleTheme() {
     var L = lauxlib.luaL_newstate();
     lualib.luaL_openlibs(L);
 
-    // game print → colored terminal output
+    // game output engine — cursor-based with live line
     var iobuf = '';
-    function lineHtml(text) {
+    var _liveLine = null;  // current incomplete line element (updated in-place)
+    var _clearPending = false;
+
+    function flushClearIfPending() {
+      if (_clearPending) { output.innerHTML = ''; _liveLine = null; _clearPending = false; }
+    }
+
+    function _commitLine(text) {
       var el = document.createElement('pre');
       el.className = 'term-line-pre';
       el.innerHTML = ansiToHtml(text);
       output.appendChild(el);
+    }
+
+    function _updateLive(text) {
+      if (!_liveLine) {
+        _liveLine = document.createElement('pre');
+        _liveLine.className = 'term-line-pre';
+        output.appendChild(_liveLine);
+      }
+      _liveLine.innerHTML = ansiToHtml(text);
+    }
+
+    function _finalizeLive() {
+      _liveLine = null;
+    }
+
+    function flushIoBuf() {
+      if (!iobuf) return;
+      flushClearIfPending();
+      _updateLive(iobuf);
       output.scrollTop = output.scrollHeight;
     }
-    function flushIoBuf() { if (iobuf) { flushClearIfPending(); lineHtml(iobuf); iobuf = ''; } }
 
     // _flush() — exposed to Lua so io.write can flush before yielding
     lua.lua_pushcfunction(L, function() { flushIoBuf(); return 0; });
     lua.lua_setglobal(L, toLua('_flush'));
 
-    // print() — flushes io.write buffer first, then prints with newline
+    function _luaToString(Ls, i) {
+      var t = lua.lua_type(Ls, i);
+      if (t === lua.LUA_TSTRING) { var raw = lua.lua_tostring(Ls, i); return raw ? toJS(raw) : ''; }
+      if (t === lua.LUA_TNUMBER) return String(lua.lua_tonumber(Ls, i));
+      if (t === lua.LUA_TBOOLEAN) return lua.lua_toboolean(Ls, i) ? 'true' : 'false';
+      if (t === lua.LUA_TNIL) return 'nil';
+      var tn = lua.lua_typename(Ls, t); return tn ? toJS(tn) : '?';
+    }
+
+    // print() — commits current live line, prints text as new complete line
     lua.lua_pushcfunction(L, function(Ls) {
       flushClearIfPending();
-      flushIoBuf();
+      // commit any pending io.write buffer as its own line
+      if (iobuf) { _updateLive(iobuf); _finalizeLive(); iobuf = ''; }
       var n = lua.lua_gettop(Ls), parts = [];
-      for (var i = 1; i <= n; i++) {
-        var t = lua.lua_type(Ls, i), s;
-        if (t === lua.LUA_TSTRING) { var raw = lua.lua_tostring(Ls, i); s = raw ? toJS(raw) : ''; }
-        else if (t === lua.LUA_TNUMBER) { s = String(lua.lua_tonumber(Ls, i)); }
-        else if (t === lua.LUA_TBOOLEAN) { s = lua.lua_toboolean(Ls, i) ? 'true' : 'false'; }
-        else if (t === lua.LUA_TNIL) { s = 'nil'; }
-        else { var tn = lua.lua_typename(Ls, t); s = tn ? toJS(tn) : '?'; }
-        parts.push(s);
-      }
-      lineHtml(parts.join('\t'));
+      for (var i = 1; i <= n; i++) parts.push(_luaToString(Ls, i));
+      _commitLine(parts.join('\t'));
+      output.scrollTop = output.scrollHeight;
       return 0;
     });
     lua.lua_setglobal(L, toLua('print'));
 
-    // _iowrite() — write without newline; flushes on embedded \n
-    var _clearPending = false;
-    function flushClearIfPending() {
-      if (_clearPending) { output.innerHTML = ''; _clearPending = false; }
-    }
+    // _iowrite() — write without newline; appends to live line, commits on \n
     lua.lua_pushcfunction(L, function(Ls) {
       var n = lua.lua_gettop(Ls), s = '';
       for (var i = 1; i <= n; i++) {
@@ -2246,9 +2298,18 @@ function toggleTheme() {
         else if (t === lua.LUA_TBOOLEAN) { s += lua.lua_toboolean(Ls, i) ? 'true' : 'false'; }
       }
       flushClearIfPending();
-      var lines = (iobuf + s).split('\n');
-      for (var j = 0; j < lines.length - 1; j++) lineHtml(lines[j]);
+      var combined = iobuf + s;
+      var lines = combined.split('\n');
+      // commit all complete lines
+      for (var j = 0; j < lines.length - 1; j++) {
+        if (_liveLine) { _updateLive(lines[j]); _finalizeLive(); }
+        else { _commitLine(lines[j]); }
+      }
+      // remaining (after last \n) stays in buffer
       iobuf = lines[lines.length - 1];
+      // update live line with current buffer
+      if (iobuf) _updateLive(iobuf);
+      output.scrollTop = output.scrollHeight;
       return 0;
     });
     lua.lua_setglobal(L, toLua('_iowrite'));
@@ -2266,7 +2327,7 @@ function toggleTheme() {
     lua.lua_setglobal(L, toLua('_sound'));
 
     // clear() — deferred wipe: sets flag, actual clear happens on next write
-    lua.lua_pushcfunction(L, function(Ls) { iobuf = ''; _clearPending = true; return 0; });
+    lua.lua_pushcfunction(L, function(Ls) { iobuf = ''; _liveLine = null; _clearPending = true; return 0; });
     lua.lua_setglobal(L, toLua('clear'));
 
     // _pollkey() — non-blocking key read: returns held key or last tap, or ""
@@ -2416,7 +2477,7 @@ function toggleTheme() {
       'color={',
       '  red="\\27[31m", green="\\27[32m", yellow="\\27[33m",',
       '  blue="\\27[34m", purple="\\27[35m", cyan="\\27[36m",',
-      '  white="\\27[37m", bold="\\27[1m", reset="\\27[0m"',
+      '  white="\\27[37m", grey="\\27[90m", bold="\\27[1m", reset="\\27[0m"',
       '}',
       'function colored(text, col) return col .. tostring(text) .. color.reset end',
       // print/clear: auto-yield every 4 calls in task context
@@ -3257,6 +3318,7 @@ function toggleTheme() {
       line('fetching ' + id + '...', 'term-line-ok');
       fetch('/api/games?id=' + encodeURIComponent(id)).then(function(r) { return r.json(); }).then(function(game) {
         if (game.error) { line('game not found: ' + id + '  (see: games)', 'term-line-err'); return; }
+        if (game.locked) { line('this game is a draft — unlock it on its game page', 'term-line-err'); return; }
         _gById[id] = game;
         loadFengari(function() { runLuaGame(game); });
       }).catch(function() { line('could not load game', 'term-line-err'); });

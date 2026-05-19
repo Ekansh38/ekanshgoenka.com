@@ -463,6 +463,12 @@
           <span class="ae-meta-lbl">edit code</span>
           <input id="ae-newcode" type="password" placeholder="choose a code" minlength="4" maxlength="50" autocomplete="off" spellcheck="false">
         </div>
+        <div class="ae-meta-field" style="max-width:100px">
+          <span class="ae-meta-lbl">visibility</span>
+          <label style="display:flex;align-items:center;gap:6px;font-size:0.82rem;color:var(--muted);cursor:pointer;margin-top:2px">
+            <input type="checkbox" id="ae-locked" style="accent-color:var(--accent)"> draft
+          </label>
+        </div>
       </div>
       <div class="ae-slug-hint" id="ae-slug" style="display:none"></div>
     </div>
@@ -484,6 +490,12 @@
             <option value="desc">higher is better</option>
             <option value="asc">lower is better</option>
           </select>
+        </div>
+        <div class="ae-meta-field" style="max-width:100px">
+          <span class="ae-meta-lbl">visibility</span>
+          <label style="display:flex;align-items:center;gap:6px;font-size:0.82rem;color:var(--muted);cursor:pointer;margin-top:2px">
+            <input type="checkbox" id="ae-upd-locked" style="accent-color:var(--accent)"> draft
+          </label>
         </div>
         <div class="ae-meta-field ae-field-code">
           <span class="ae-meta-lbl">edit code</span>
@@ -775,6 +787,7 @@
         document.getElementById('ae-upd-title').placeholder = game.title;
         document.getElementById('ae-upd-desc').placeholder  = game.desc || '(no description)';
         if (game.lbMode) { var sel = document.getElementById('ae-upd-lbmode'); if (sel) sel.value = game.lbMode; }
+        if (game.locked) { var lck = document.getElementById('ae-upd-locked'); if (lck) lck.checked = true; }
         if (!hadDraft) { setCode(game.code || ''); updateCharCount(); }
       })
       .catch(function() { modeEl.textContent = 'error loading game'; });
@@ -1057,7 +1070,7 @@
       '-- all colors:',
       '--   color.red     color.green   color.yellow',
       '--   color.blue    color.purple  color.cyan',
-      '--   color.white   color.bold',
+      '--   color.white   color.grey    color.bold',
       '',
       '-- combine:  color.red .. color.bold',
       'print(colored("alert!", color.red .. color.bold))',
@@ -1351,7 +1364,7 @@
     btn.disabled = true; btn.textContent = 'submitting...'; setStatus('', '');
     fetch('/api/games', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: title, author: author, desc: desc, code: code, editCode: editCode, lbMode: (document.getElementById('ae-lbmode') || {}).value || 'desc' }),
+      body: JSON.stringify({ title: title, author: author, desc: desc, code: code, editCode: editCode, lbMode: (document.getElementById('ae-lbmode') || {}).value || 'desc', locked: !!(document.getElementById('ae-locked') || {}).checked }),
     }).then(function(r) { return r.json(); }).then(function(data) {
       if (data.ok) {
         try { localStorage.removeItem('arcade_v1'); } catch(e) {}
@@ -1381,6 +1394,7 @@
     if (newTitle)          payload.newTitle = newTitle;
     if (newDesc !== undefined && newDesc !== '') payload.newDesc = newDesc.trim();
     payload.lbMode = (document.getElementById('ae-upd-lbmode') || {}).value || 'desc';
+    payload.locked = !!(document.getElementById('ae-upd-locked') || {}).checked;
     fetch('/api/games?id=' + encodeURIComponent(editId), {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -1440,6 +1454,7 @@
 
   <div id="term-overlay">
     <div id="term-box">
+      <div id="term-resize"></div>
       <div id="term-bar">
         <span id="term-path">ekansh@site:~</span>
         <button id="term-close">✕</button>

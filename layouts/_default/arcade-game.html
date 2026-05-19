@@ -162,6 +162,18 @@
 <div class="ag-back"><a href="/arcade">← arcade</a></div>
 
 <div id="ag-loading" class="ag-loading-state">loading<span class="arc-cursor">_</span></div>
+<div id="ag-error" class="ag-loading-state" style="display:none;color:var(--muted)">game not found.</div>
+
+<div id="ag-locked" style="display:none;text-align:center;padding:60px 20px">
+  <div style="font-size:1.2rem;margin-bottom:6px;color:var(--fg)">this game is a draft</div>
+  <p style="color:var(--muted);font-size:0.85rem;margin-bottom:20px">enter the edit code to view it</p>
+  <div style="display:flex;gap:8px;justify-content:center;align-items:center;max-width:300px;margin:0 auto">
+    <input id="ag-locked-code" type="password" placeholder="edit code" autocomplete="off" spellcheck="false"
+      style="flex:1;background:var(--code-bg,#1a1b26);border:1px solid var(--border);color:var(--fg);font-family:inherit;font-size:0.85rem;padding:8px 10px;outline:none">
+    <button id="ag-locked-btn" style="background:transparent;border:1px solid var(--border);color:var(--fg);font-family:inherit;font-size:0.85rem;padding:8px 14px;cursor:pointer">unlock</button>
+  </div>
+  <p id="ag-locked-err" style="color:#f7768e;font-size:0.82rem;margin-top:10px;min-height:1.2em"></p>
+</div>
 
 <div id="ag-content" class="ag-content" style="display:none">
 
@@ -233,8 +245,6 @@
 
 </div>
 
-<div id="ag-error" class="ag-error" style="display:none">game not found.</div>
-
 <div id="ag-lb-overlay" class="ag-lb-overlay"></div>
 <div id="ag-lb" class="ag-lb">
   <div class="ag-lb-header">
@@ -270,11 +280,13 @@
     return;
   }
 
-  fetch('/api/games?id=' + encodeURIComponent(id))
-    .then(function(r) { return r.json(); })
-    .then(function(game) {
-      document.getElementById('ag-loading').style.display = 'none';
-      if (game.error) { document.getElementById('ag-error').style.display = 'block'; return; }
+  function loadGame(codeParam) {
+    var url = '/api/games?id=' + encodeURIComponent(id);
+    if (codeParam) url += '&code=' + encodeURIComponent(codeParam);
+    return fetch(url).then(function(r) { return r.json(); });
+  }
+
+  function showGame(game) {
 
       document.title = game.title;
 
@@ -316,7 +328,7 @@
 
       // remix
       document.getElementById('ag-remix').addEventListener('click', function() {
-        window.location.href = '/arcade/?remix=' + encodeURIComponent(id);
+        window.location.href = '/arcade/editor/?remix=' + encodeURIComponent(id);
       });
 
       // copy source
@@ -463,6 +475,33 @@
           self.disabled = false; self.textContent = 'delete game';
         });
       });
+  }
+
+  loadGame()
+    .then(function(game) {
+      document.getElementById('ag-loading').style.display = 'none';
+      if (game.error) { document.getElementById('ag-error').style.display = 'block'; return; }
+      if (game.locked) {
+        document.getElementById('ag-locked').style.display = 'block';
+        document.getElementById('ag-locked-btn').addEventListener('click', tryUnlock);
+        document.getElementById('ag-locked-code').addEventListener('keydown', function(e) { if (e.key === 'Enter') tryUnlock(); });
+        function tryUnlock() {
+          var code = (document.getElementById('ag-locked-code').value || '').trim();
+          if (!code) { document.getElementById('ag-locked-err').textContent = 'enter the edit code'; return; }
+          document.getElementById('ag-locked-btn').textContent = '...';
+          loadGame(code).then(function(g) {
+            if (g.locked || g.error) {
+              document.getElementById('ag-locked-err').textContent = 'wrong code';
+              document.getElementById('ag-locked-btn').textContent = 'unlock';
+            } else {
+              document.getElementById('ag-locked').style.display = 'none';
+              showGame(g);
+            }
+          });
+        }
+        return;
+      }
+      showGame(game);
     })
     .catch(function() {
       document.getElementById('ag-loading').style.display = 'none';

@@ -1465,6 +1465,8 @@ body.page #bg-canvas { opacity: 0.25; }
   width: 100%;
   max-width: 660px;
   height: 46vh;
+  min-height: 180px;
+  max-height: 92vh;
   display: flex;
   flex-direction: column;
   background: color-mix(in srgb, var(--bg) 92%, transparent);
@@ -1478,6 +1480,15 @@ body.page #bg-canvas { opacity: 0.25; }
   transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.05);
 }
 #term-overlay.open #term-box { transform: translateY(0); }
+#term-resize {
+  height: 6px; cursor: ns-resize; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+#term-resize::after {
+  content: ''; width: 36px; height: 3px; border-radius: 2px;
+  background: var(--border); opacity: 0.5; transition: opacity 0.15s;
+}
+#term-resize:hover::after { opacity: 1; }
 
 #term-bar {
   display: flex;
@@ -1538,7 +1549,7 @@ body.page #bg-canvas { opacity: 0.25; }
 .term-line-cmd  { color: var(--muted); }
 .term-line-err  { color: #f7768e; }
 .term-line-ok   { color: var(--accent); }
-.term-line-pre  { white-space: pre; font-family: inherit; margin: 0; }
+.term-line-pre  { white-space: pre-wrap; word-break: break-all; font-family: inherit; margin: 0; }
 .term-io-inline {
   display: flex; align-items: center;
   font-family: inherit; font-size: inherit;
