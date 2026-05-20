@@ -55,14 +55,14 @@
       <link>https://ekanshgoenka.com/picks/clean-code-horrible-performance/</link>
       <pubDate>Wed, 20 May 2026 00:00:00 +0000</pubDate>
       <guid>https://ekanshgoenka.com/picks/clean-code-horrible-performance/</guid>
-      <description>&lt;p&gt;Makes the case that &amp;ldquo;clean code&amp;rdquo; principles actively produce slow software. Muratori benchmarks the actual cost of polymorphism, getters/setters, and small functions, and it&amp;rsquo;s not small. Changed how I think about abstractions.&lt;/p&gt;</description>
+      <description>&lt;p&gt;Just proves and benchmarks how slow clean code really is and how pointless and bad it can be sometimes. Just an absolutely great article and video and it&amp;rsquo;s brilliant. I absolutely love it. Casey Muratori is a great guy and super talented engineer.&lt;/p&gt;</description>
     </item>
     <item>
       <title>Code: The Hidden Language of Computer Hardware and Software</title>
       <link>https://ekanshgoenka.com/picks/code-hidden-language/</link>
       <pubDate>Wed, 20 May 2026 00:00:00 +0000</pubDate>
       <guid>https://ekanshgoenka.com/picks/code-hidden-language/</guid>
-      <description>&lt;p&gt;Builds a computer from first principles. Starts with flashlights and Morse code, ends with a working CPU. The best explanation of how computers actually work that I&amp;rsquo;ve ever read.&lt;/p&gt;</description>
+      <description>&lt;p&gt;This book helped me visualize how computers work from the bottom up. I couldn&amp;rsquo;t stop reading. I finished the whole book in almost three days. It&amp;rsquo;s so interesting, super well written, and just absolutely a great read. This changed my perspective on CS forever.&lt;/p&gt;</description>
     </item>
     <item>
       <title>Linux</title>
@@ -77,6 +77,13 @@
       <pubDate>Wed, 20 May 2026 00:00:00 +0000</pubDate>
       <guid>https://ekanshgoenka.com/picks/neovim/</guid>
       <description>&lt;p&gt;My editor. Peak editor. Best editor (for me). Also I really like the plugins and just the whole system in general. Very nice!&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Obsidian</title>
+      <link>https://ekanshgoenka.com/picks/obsidian/</link>
+      <pubDate>Wed, 20 May 2026 00:00:00 +0000</pubDate>
+      <guid>https://ekanshgoenka.com/picks/obsidian/</guid>
+      <description>&lt;p&gt;A great free note-taking tool. I love the customizability, the graph view, and how well it supports a Zettelkasten-style approach to managing knowledge. A little bummed it&amp;rsquo;s not fully open source, but whatever. I actually built a similar alternative as a Neo4j plugin that I also use heavily.&lt;/p&gt;</description>
     </item>
     <item>
       <title>Vim Motions</title>

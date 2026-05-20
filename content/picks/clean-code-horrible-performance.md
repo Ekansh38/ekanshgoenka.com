@@ -6,4 +6,4 @@ link: "https://www.computerenhance.com/p/clean-code-horrible-performance"
 date: 2026-05-20
 ---
 
-Makes the case that "clean code" principles actively produce slow software. Muratori benchmarks the actual cost of polymorphism, getters/setters, and small functions, and it's not small. Changed how I think about abstractions.
+Just proves and benchmarks how slow clean code really is and how pointless and bad it can be sometimes. Just an absolutely great article and video and it's brilliant. I absolutely love it. Casey Muratori is a great guy and super talented engineer.

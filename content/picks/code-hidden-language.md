@@ -5,4 +5,4 @@ type_label: "book"
 date: 2026-05-20
 ---
 
-Builds a computer from first principles. Starts with flashlights and Morse code, ends with a working CPU. The best explanation of how computers actually work that I've ever read.
+This book helped me visualize how computers work from the bottom up. I couldn't stop reading. I finished the whole book in almost three days. It's so interesting, super well written, and just absolutely a great read. This changed my perspective on CS forever.
