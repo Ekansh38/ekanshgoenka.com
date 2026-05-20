@@ -332,7 +332,6 @@ header { margin-bottom: 48px; }
 .nav a:hover::after { width: 100%; }
 .nav-toggle { display: none; }
 .m-nav-btn { display: none; }
-.m-nav-overlay { display: none; }
 .tagline, .yr, footer { color: var(--muted); }
 .tagline { font-style: italic; }
 .li-name, .project-title { font-weight: 700; font-size: 1.15rem; }
@@ -1238,68 +1237,15 @@ body.page #bg-canvas { opacity: 0.25; }
 @media (max-width: 540px) {
   h1 { font-size: 1.35rem; }
   header { margin-bottom: 36px; }
-  .nav { display: none; }
-  .m-nav-btn {
-    display: inline-block;
-    background: none; border: none;
-    color: var(--muted); font: inherit; font-size: inherit;
-    padding: 2px 0; margin-top: 14px;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    transition: color 0.2s ease;
+  .nav {
+    display: grid;
+    grid-template-columns: repeat(4, auto);
+    justify-content: start;
+    gap: 4px 20px;
+    margin-top: 12px; font-size: 0.88rem;
   }
-  .m-nav-btn:hover { color: var(--accent); }
-  .m-nav-btn:active { transform: scale(0.92); }
-  .m-nav-overlay {
-    display: flex;
-    position: fixed; inset: 0; z-index: 9999;
-    align-items: flex-end; justify-content: center;
-    background: rgba(0,0,0,0);
-    pointer-events: none;
-    transition: background 0.25s ease;
-    padding: 12px;
-  }
-  .m-nav-overlay.open {
-    background: rgba(0,0,0,0.4);
-    pointer-events: auto;
-  }
-  .m-nav-sheet {
-    width: 100%;
-    max-width: 400px;
-    display: flex; flex-direction: column;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    overflow: hidden;
-    transform: translateY(100%);
-    opacity: 0;
-    transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.2s ease;
-  }
-  .m-nav-overlay.open .m-nav-sheet {
-    transform: translateY(0);
-    opacity: 1;
-  }
-  .m-nav-sheet a {
-    display: block;
-    padding: 14px 20px;
-    color: var(--accent);
-    text-decoration: none;
-    font-size: 1rem;
-    border-bottom: 1px solid var(--border);
-    transition: background 0.1s;
-    text-align: center;
-  }
-  .m-nav-sheet a:active { background: var(--border); }
-  .m-nav-cancel {
-    display: block; width: 100%;
-    padding: 14px 20px;
-    background: none; border: none;
-    color: var(--muted); font: inherit; font-size: 0.92rem;
-    cursor: pointer; text-align: center;
-    -webkit-tap-highlight-color: transparent;
-    transition: color 0.15s;
-  }
-  .m-nav-cancel:active { color: var(--fg); }
+  .nav a { padding: 3px 0; }
+  .m-nav-btn { display: none; }
   .social { gap: 16px; margin-top: 12px; font-size: 0.9rem; }
 }
 
