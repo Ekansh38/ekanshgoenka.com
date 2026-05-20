@@ -536,9 +536,10 @@
 
   // ── autosave draft (only for new-game mode) ──
   var DRAFT_KEY = 'arcade_editor_draft_v2';
-  var params  = new URLSearchParams(window.location.search);
-  var editId  = params.get('edit');
-  var remixId = params.get('remix');
+  var params   = new URLSearchParams(window.location.search);
+  var editId   = params.get('edit');
+  var remixId  = params.get('remix');
+  var editCode = params.get('code');
 
   function saveDraft() {
     try {
@@ -719,10 +720,13 @@
 
     // load local draft if available (unsaved edits survive reload)
     var hadDraft = loadDraft();
-    fetch('/api/games?id=' + encodeURIComponent(editId))
+    var fetchUrl = '/api/games?id=' + encodeURIComponent(editId);
+    if (editCode) fetchUrl += '&code=' + encodeURIComponent(editCode);
+    fetch(fetchUrl)
       .then(function(r) { return r.json(); })
       .then(function(game) {
         if (game.error) { modeEl.textContent = 'game not found'; return; }
+        if (game.locked && !game.code) { modeEl.textContent = 'draft — enter edit code on game page first'; return; }
         modeEl.innerHTML = 'editing &nbsp;<strong>' + game.title + '</strong>';
         document.getElementById('ae-upd-title').placeholder = game.title;
         document.getElementById('ae-upd-desc').placeholder  = game.desc || '(no description)';
