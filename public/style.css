@@ -1241,14 +1241,15 @@ body.page #bg-canvas { opacity: 0.25; }
   .nav { display: none; }
   .m-nav-btn {
     display: inline-block;
-    background: none; border: 1px solid var(--border);
-    color: var(--accent); font: inherit; font-size: 0.88rem;
-    padding: 6px 16px; margin-top: 14px;
-    border-radius: 8px; cursor: pointer;
+    background: none; border: none;
+    color: var(--muted); font: inherit; font-size: inherit;
+    padding: 2px 0; margin-top: 14px;
+    cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    transition: background 0.15s, border-color 0.15s;
+    transition: color 0.2s ease;
   }
-  .m-nav-btn:active { background: var(--border); }
+  .m-nav-btn:hover { color: var(--accent); }
+  .m-nav-btn:active { transform: scale(0.92); }
   .m-nav-overlay {
     display: flex;
     position: fixed; inset: 0; z-index: 9999;
