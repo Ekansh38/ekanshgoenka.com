@@ -95,17 +95,17 @@
   #gb-identity-fields.open { display: block; }
 
   .gb-entry {
-    padding: 16px 0;
+    padding: 20px 0;
     border-bottom: 1px solid var(--border);
   }
   .gb-entry:first-child { border-top: 1px solid var(--border); }
-  .gb-entry-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
-  .gb-entry-who { display: flex; flex-direction: column; gap: 1px; }
+  .gb-entry-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+  .gb-entry-who { display: flex; align-items: baseline; gap: 8px; }
   .gb-entry-name { font-weight: 700; font-size: 0.95rem; }
   .gb-entry-context { color: var(--muted); font-size: 0.78rem; }
   .gb-entry-date { color: var(--muted); font-size: 0.75rem; flex-shrink: 0; }
   .gb-entry-msg {
-    font-size: 1rem; line-height: 1.65;
+    font-size: 0.92rem; line-height: 1.7;
     white-space: pre-wrap; word-break: break-word;
   }
   .gb-entry-actions { display: flex; align-items: center; gap: 8px; }
@@ -208,11 +208,10 @@
     }
     el.innerHTML = entries.map(function(e) {
       var nameStr = esc(e.name || 'anonymous');
-      var isAnon = !e.name || e.name === 'anonymous';
       return '<div class="gb-entry">'
         + '<div class="gb-entry-header">'
         + '<div class="gb-entry-who">'
-        + '<span class="gb-entry-name"' + (isAnon ? ' style="color:var(--muted);font-weight:400"' : '') + '>' + nameStr + '</span>'
+        + '<span class="gb-entry-name">' + nameStr + '</span>'
         + (e.context ? '<span class="gb-entry-context">' + esc(e.context) + '</span>' : '')
         + '</div>'
         + '<div class="gb-entry-actions">'
