@@ -726,7 +726,7 @@
       .then(function(r) { return r.json(); })
       .then(function(game) {
         if (game.error) { modeEl.textContent = 'game not found'; return; }
-        if (game.locked && !game.code) { modeEl.textContent = 'draft — enter edit code on game page first'; return; }
+        if (game.locked && !game.code) { modeEl.textContent = 'draft - enter edit code on game page first'; return; }
         modeEl.innerHTML = 'editing &nbsp;<strong>' + game.title + '</strong>';
         document.getElementById('ae-upd-title').placeholder = game.title;
         document.getElementById('ae-upd-desc').placeholder  = game.desc || '(no description)';

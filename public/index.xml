@@ -55,21 +55,21 @@
       <link>https://ekanshgoenka.com/picks/clean-code-horrible-performance/</link>
       <pubDate>Wed, 20 May 2026 00:00:00 +0000</pubDate>
       <guid>https://ekanshgoenka.com/picks/clean-code-horrible-performance/</guid>
-      <description>&lt;p&gt;Makes the case that &amp;ldquo;clean code&amp;rdquo; principles actively produce slow software. Muratori benchmarks the actual cost of polymorphism, getters/setters, and small functions — and it&amp;rsquo;s not small. Changed how I think about abstractions.&lt;/p&gt;</description>
+      <description>&lt;p&gt;Makes the case that &amp;ldquo;clean code&amp;rdquo; principles actively produce slow software. Muratori benchmarks the actual cost of polymorphism, getters/setters, and small functions, and it&amp;rsquo;s not small. Changed how I think about abstractions.&lt;/p&gt;</description>
     </item>
     <item>
       <title>Code: The Hidden Language of Computer Hardware and Software</title>
       <link>https://ekanshgoenka.com/picks/code-hidden-language/</link>
       <pubDate>Wed, 20 May 2026 00:00:00 +0000</pubDate>
       <guid>https://ekanshgoenka.com/picks/code-hidden-language/</guid>
-      <description>&lt;p&gt;Builds a computer from first principles — starts with flashlights and Morse code, ends with a working CPU. The best explanation of how computers actually work that I&amp;rsquo;ve ever read.&lt;/p&gt;</description>
+      <description>&lt;p&gt;Builds a computer from first principles. Starts with flashlights and Morse code, ends with a working CPU. The best explanation of how computers actually work that I&amp;rsquo;ve ever read.&lt;/p&gt;</description>
     </item>
     <item>
       <title>Linux</title>
       <link>https://ekanshgoenka.com/picks/linux/</link>
       <pubDate>Wed, 20 May 2026 00:00:00 +0000</pubDate>
       <guid>https://ekanshgoenka.com/picks/linux/</guid>
-      <description>&lt;p&gt;A phenomenal open-source operating system. Lean, lightweight, performant, and really well-made overall. I love it for desktop use, server use, and especially embedded systems. I also love learning from it — it&amp;rsquo;s beautiful that it&amp;rsquo;s open-source. A great piece of engineering.&lt;/p&gt;</description>
+      <description>&lt;p&gt;A phenomenal open-source operating system. Lean, lightweight, performant, and really well-made overall. I love it for desktop use, server use, and especially embedded systems. I also love learning from it, and it&amp;rsquo;s beautiful that it&amp;rsquo;s open-source. A great piece of engineering. Using Linux feels like holding a nicely crafted glass cube, whereas Windows feels like some brown plastic. At least Mac is Unix-based.&lt;/p&gt;</description>
     </item>
     <item>
       <title>Neovim</title>
@@ -83,7 +83,7 @@
       <link>https://ekanshgoenka.com/picks/vim-motions/</link>
       <pubDate>Wed, 20 May 2026 00:00:00 +0000</pubDate>
       <guid>https://ekanshgoenka.com/picks/vim-motions/</guid>
-      <description>&lt;p&gt;The language of text editing. Once you learn the grammar — verbs (&lt;code&gt;d&lt;/code&gt;elete, &lt;code&gt;c&lt;/code&gt;hange, &lt;code&gt;y&lt;/code&gt;ank) combined with nouns (&lt;code&gt;w&lt;/code&gt;ord, &lt;code&gt;i&lt;/code&gt;nner &lt;code&gt;&amp;quot;&lt;/code&gt;, &lt;code&gt;a&lt;/code&gt; &lt;code&gt;p&lt;/code&gt;aragraph) — you stop thinking about keystrokes and start thinking about intent. Available everywhere: Neovim, VS Code, JetBrains, even your browser.&lt;/p&gt;</description>
+      <description>&lt;p&gt;The language of text editing. Once you learn the grammar (verbs like &lt;code&gt;d&lt;/code&gt;elete, &lt;code&gt;c&lt;/code&gt;hange, &lt;code&gt;y&lt;/code&gt;ank combined with nouns like &lt;code&gt;w&lt;/code&gt;ord, &lt;code&gt;i&lt;/code&gt;nner &lt;code&gt;&amp;quot;&lt;/code&gt;, &lt;code&gt;a&lt;/code&gt; &lt;code&gt;p&lt;/code&gt;aragraph) you stop thinking about keystrokes and start thinking about intent. Available everywhere: Neovim, VS Code, JetBrains, even your browser.&lt;/p&gt;</description>
     </item>
     <item>
       <title>AMH Assistant</title>
