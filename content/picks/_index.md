@@ -3,4 +3,4 @@ title: "picks"
 layout: "picks"
 ---
 
-things I genuinely think are great. articles, books, software, talks — stuff that shaped how I think or that I keep coming back to.
+things that I think are really great and interesting and that you should maybe check out. articles, videos, software, books, anything.

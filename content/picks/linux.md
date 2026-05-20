@@ -6,4 +6,4 @@ link: "https://kernel.org"
 date: 2026-05-20
 ---
 
-The operating system that respects you. You own your machine, you understand your machine. No telemetry, no forced updates, no black boxes. Everything is a file, everything is composable, everything is transparent.
+A phenomenal open-source operating system. Lean, lightweight, performant, and really well-made overall. I love it for desktop use, server use, and especially embedded systems. I also love learning from it — it's beautiful that it's open-source. A great piece of engineering.
