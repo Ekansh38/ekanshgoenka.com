@@ -6,7 +6,7 @@
     <description>Recent content in ekansh goenka on Ekansh Goenka</description>
     <generator>Hugo</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 26 Mar 2026 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 20 May 2026 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://ekanshgoenka.com/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>I Built a Racing Game, My Friends Started Cheating, So I Added Cryptography</title>
@@ -49,6 +49,34 @@
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       <guid>https://ekanshgoenka.com/tools/cx/</guid>
       <description>Terminal AI chat. Any model, you own your data.</description>
+    </item>
+    <item>
+      <title>Clean Code, Horrible Performance</title>
+      <link>https://ekanshgoenka.com/picks/clean-code-horrible-performance/</link>
+      <pubDate>Wed, 20 May 2026 00:00:00 +0000</pubDate>
+      <guid>https://ekanshgoenka.com/picks/clean-code-horrible-performance/</guid>
+      <description>&lt;p&gt;Makes the case that &amp;ldquo;clean code&amp;rdquo; principles actively produce slow software. Muratori benchmarks the actual cost of polymorphism, getters/setters, and small functions — and it&amp;rsquo;s not small. Changed how I think about abstractions.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Code: The Hidden Language of Computer Hardware and Software</title>
+      <link>https://ekanshgoenka.com/picks/code-hidden-language/</link>
+      <pubDate>Wed, 20 May 2026 00:00:00 +0000</pubDate>
+      <guid>https://ekanshgoenka.com/picks/code-hidden-language/</guid>
+      <description>&lt;p&gt;Builds a computer from first principles — starts with flashlights and Morse code, ends with a working CPU. The best explanation of how computers actually work that I&amp;rsquo;ve ever read.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Linux</title>
+      <link>https://ekanshgoenka.com/picks/linux/</link>
+      <pubDate>Wed, 20 May 2026 00:00:00 +0000</pubDate>
+      <guid>https://ekanshgoenka.com/picks/linux/</guid>
+      <description>&lt;p&gt;The operating system that respects you. You own your machine, you understand your machine. No telemetry, no forced updates, no black boxes. Everything is a file, everything is composable, everything is transparent.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Neovim</title>
+      <link>https://ekanshgoenka.com/picks/neovim/</link>
+      <pubDate>Wed, 20 May 2026 00:00:00 +0000</pubDate>
+      <guid>https://ekanshgoenka.com/picks/neovim/</guid>
+      <description>&lt;p&gt;My editor. Modal editing rewires how you think about text manipulation. Once you internalize the grammar (verb + noun: &lt;code&gt;diw&lt;/code&gt;, &lt;code&gt;ci&amp;quot;&lt;/code&gt;, &lt;code&gt;gqap&lt;/code&gt;) everything else feels slow. The plugin ecosystem and Lua config make it endlessly customizable without being bloated.&lt;/p&gt;</description>
     </item>
     <item>
       <title>AMH Assistant</title>

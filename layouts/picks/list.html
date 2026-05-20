@@ -1,0 +1,90 @@
+{{ define "main" }}
+
+{{ with .Parent }}<a href="{{ .Permalink }}" class="back">&larr; {{ if .IsHome }}home{{ else }}{{ strings.ToLower .Title }}{{ end }}</a>{{ end }}
+
+<div class="project-title">{{ .Title }}</div>
+
+<p class="picks-intro">{{ .Content }}</p>
+
+{{ $software := where .RegularPages "Params.type_label" "software" }}
+{{ $articles := where .RegularPages "Params.type_label" "article" }}
+{{ $books    := where .RegularPages "Params.type_label" "book" }}
+{{ $talks    := where .RegularPages "Params.type_label" "talk" }}
+{{ $other    := where .RegularPages "Params.type_label" "==" "" }}
+
+{{ if $software }}
+<h3>software</h3>
+<div class="picks-list">
+  {{ range $software }}
+  <div class="pick-card">
+    <div class="pick-head">
+      {{ if .Params.link }}<a href="{{ .Params.link }}" target="_blank" rel="noopener noreferrer" class="pick-title">{{ .Title }} <span class="pick-arrow">&nearr;</span></a>{{ else }}<span class="pick-title">{{ .Title }}</span>{{ end }}
+      {{ with .Params.author }}<span class="pick-author">{{ . }}</span>{{ end }}
+    </div>
+    <div class="pick-body">{{ .Content }}</div>
+  </div>
+  {{ end }}
+</div>
+{{ end }}
+
+{{ if $articles }}
+<h3>articles</h3>
+<div class="picks-list">
+  {{ range $articles }}
+  <div class="pick-card">
+    <div class="pick-head">
+      {{ if .Params.link }}<a href="{{ .Params.link }}" target="_blank" rel="noopener noreferrer" class="pick-title">{{ .Title }} <span class="pick-arrow">&nearr;</span></a>{{ else }}<span class="pick-title">{{ .Title }}</span>{{ end }}
+      {{ with .Params.author }}<span class="pick-author">{{ . }}</span>{{ end }}
+    </div>
+    <div class="pick-body">{{ .Content }}</div>
+  </div>
+  {{ end }}
+</div>
+{{ end }}
+
+{{ if $books }}
+<h3>books</h3>
+<div class="picks-list">
+  {{ range $books }}
+  <div class="pick-card">
+    <div class="pick-head">
+      {{ if .Params.link }}<a href="{{ .Params.link }}" target="_blank" rel="noopener noreferrer" class="pick-title">{{ .Title }} <span class="pick-arrow">&nearr;</span></a>{{ else }}<span class="pick-title">{{ .Title }}</span>{{ end }}
+      {{ with .Params.author }}<span class="pick-author">{{ . }}</span>{{ end }}
+    </div>
+    <div class="pick-body">{{ .Content }}</div>
+  </div>
+  {{ end }}
+</div>
+{{ end }}
+
+{{ if $talks }}
+<h3>talks</h3>
+<div class="picks-list">
+  {{ range $talks }}
+  <div class="pick-card">
+    <div class="pick-head">
+      {{ if .Params.link }}<a href="{{ .Params.link }}" target="_blank" rel="noopener noreferrer" class="pick-title">{{ .Title }} <span class="pick-arrow">&nearr;</span></a>{{ else }}<span class="pick-title">{{ .Title }}</span>{{ end }}
+      {{ with .Params.author }}<span class="pick-author">{{ . }}</span>{{ end }}
+    </div>
+    <div class="pick-body">{{ .Content }}</div>
+  </div>
+  {{ end }}
+</div>
+{{ end }}
+
+{{ if $other }}
+<h3>other</h3>
+<div class="picks-list">
+  {{ range $other }}
+  <div class="pick-card">
+    <div class="pick-head">
+      {{ if .Params.link }}<a href="{{ .Params.link }}" target="_blank" rel="noopener noreferrer" class="pick-title">{{ .Title }} <span class="pick-arrow">&nearr;</span></a>{{ else }}<span class="pick-title">{{ .Title }}</span>{{ end }}
+      {{ with .Params.author }}<span class="pick-author">{{ . }}</span>{{ end }}
+    </div>
+    <div class="pick-body">{{ .Content }}</div>
+  </div>
+  {{ end }}
+</div>
+{{ end }}
+
+{{ end }}
