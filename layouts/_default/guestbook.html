@@ -58,7 +58,9 @@
     background: none; border: none; color: var(--muted); font: inherit;
     font-size: 0.75rem; cursor: pointer; padding: 0; opacity: 0.25;
     transition: opacity 0.15s;
+    display: none;
   }
+  #gb-admin-toggle.visible { display: inline; }
   #gb-admin-toggle:hover { opacity: 0.6; }
   #gb-admin-bar { display: none; margin-bottom: 12px; }
   #gb-admin-bar.open { display: block; }
@@ -71,7 +73,7 @@
 </style>
 
 <div class="project-title">guestbook</div>
-<p class="gb-intro">leave a message! say something nice or mean. you can optionally say who you are for people to know, or put in a funny name.</p>
+<p class="gb-intro">Leave a message! Say something nice or mean. You can optionally say who you are for people to know, or put in a funny name.</p>
 
 <div class="gb-form">
   <div class="gb-field">
@@ -195,6 +197,11 @@
   }
 
   loadEntries();
+
+  // show mod button only with ?mod param
+  if (new URLSearchParams(window.location.search).has('mod')) {
+    document.getElementById('gb-admin-toggle').classList.add('visible');
+  }
 
   // admin toggle
   document.getElementById('gb-admin-toggle').addEventListener('click', function() {

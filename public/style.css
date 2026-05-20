@@ -331,6 +331,8 @@ header { margin-bottom: 48px; }
 .nav a:hover { color: var(--fg); }
 .nav a:hover::after { width: 100%; }
 .nav-primary { font-weight: 700; }
+.nav a:not(.nav-primary) { opacity: 0.55; }
+.nav a:not(.nav-primary):hover { opacity: 1; }
 .nav-toggle { display: none; }
 .m-nav-btn { display: none; }
 .tagline, .yr, footer { color: var(--muted); }
