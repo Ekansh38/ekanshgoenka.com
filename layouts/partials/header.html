@@ -8,7 +8,7 @@
     </div>
   </div>
   <div class="tagline">{{ .Site.Params.tagline }}</div>
-  <nav class="nav">
+  <nav class="nav" id="nav">
     <a href="/projects">projects</a>
     <a href="/writing">writing</a>
     <a href="/music">music</a>
@@ -17,6 +17,7 @@
     <a href="/arcade">arcade</a>
     <a href="/picks">picks</a>
   </nav>
+  <button class="nav-toggle" id="nav-toggle">more <span class="nav-toggle-arrow">&#9662;</span></button>
   <div class="social">
     <a href="{{ .Site.Params.github }}" target="_blank" rel="noopener noreferrer">github ↗</a>
     <a href="{{ .Site.Params.youtube }}" target="_blank" rel="noopener noreferrer" title="bytecolony">youtube ↗</a>

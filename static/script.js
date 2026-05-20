@@ -52,6 +52,17 @@ function toggleTheme() {
   document.addEventListener('DOMContentLoaded', function () {
     applyTheme(document.documentElement.getAttribute('data-theme'));
 
+    // Mobile nav toggle
+    var navToggle = document.getElementById('nav-toggle');
+    var nav = document.getElementById('nav');
+    if (navToggle && nav) {
+      navToggle.addEventListener('click', function() {
+        var open = nav.classList.toggle('open');
+        navToggle.classList.toggle('open', open);
+        navToggle.firstChild.textContent = open ? 'less ' : 'more ';
+      });
+    }
+
     // Desktop settings slide-in panel
     var dsOverlay = document.getElementById('ds-overlay');
     var dsPanel   = document.getElementById('ds-panel');

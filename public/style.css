@@ -310,14 +310,16 @@ h3 { color: var(--muted); margin: 28px 0 6px; font-size: 1rem; }
 header { margin-bottom: 48px; }
 .header-top { display: flex; justify-content: space-between; align-items: center; }
 .nav {
-  display: flex; gap: 8px 28px; margin-top: 16px;
-  flex-wrap: wrap;
+  display: flex; margin-top: 16px;
+  gap: 0;
 }
 .nav a {
   color: var(--accent);
   text-decoration: none;
   position: relative;
-  padding-bottom: 1px;
+  padding: 4px 0;
+  flex: 1;
+  text-align: left;
   transition: color 0.2s ease;
 }
 .nav a::after {
@@ -330,6 +332,7 @@ header { margin-bottom: 48px; }
 }
 .nav a:hover { color: var(--fg); }
 .nav a:hover::after { width: 100%; }
+.nav-toggle { display: none; }
 .tagline, .yr, footer { color: var(--muted); }
 .tagline { font-style: italic; }
 .li-name, .project-title { font-weight: 700; font-size: 1.15rem; }
@@ -1236,17 +1239,39 @@ body.page #bg-canvas { opacity: 0.25; }
   h1 { font-size: 1.35rem; }
   header { margin-bottom: 36px; }
   .nav {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    gap: 18px; margin-top: 14px; font-size: 0.82rem;
-    padding-bottom: 4px;
-    mask-image: linear-gradient(to right, black 85%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+    flex-direction: column;
+    gap: 0; margin-top: 14px; font-size: 0.88rem;
+    overflow: hidden;
   }
-  .nav::-webkit-scrollbar { display: none; }
-  .nav a { flex-shrink: 0; padding: 2px 0; }
+  .nav a {
+    flex: none;
+    padding: 6px 0;
+  }
+  /* show first 4, hide the rest */
+  .nav a:nth-child(n+5) {
+    max-height: 0; padding: 0; overflow: hidden; opacity: 0;
+    transition: max-height 0.25s ease, padding 0.25s ease, opacity 0.2s ease;
+  }
+  .nav.open a:nth-child(n+5) {
+    max-height: 40px; padding: 6px 0; opacity: 1;
+  }
+  .nav-toggle {
+    display: inline-block;
+    background: none; border: none; font: inherit;
+    color: var(--muted); font-size: 0.82rem;
+    padding: 4px 0 0; cursor: pointer;
+    transition: color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nav-toggle:hover { color: var(--accent); }
+  .nav-toggle-arrow {
+    display: inline-block;
+    transition: transform 0.25s ease;
+    font-size: 0.7em;
+  }
+  .nav-toggle.open .nav-toggle-arrow {
+    transform: rotate(180deg);
+  }
   .social { gap: 16px; margin-top: 12px; font-size: 0.9rem; }
 }
 
