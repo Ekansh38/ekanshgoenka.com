@@ -66,8 +66,7 @@ module.exports = async (req, res) => {
     if (req.method === 'GET' && !id) {
       res.setHeader('Cache-Control', 'no-store');
       const all = await fetchAll();
-      const public_ = all.filter(g => !g.locked);
-      return res.status(200).json(public_.map(g => ({ id: g.id, title: g.title, author: g.author, desc: g.desc || '', date: g.date })));
+      return res.status(200).json(all.map(g => ({ id: g.id, title: g.title, author: g.author, desc: g.desc || '', date: g.date, ...(g.locked ? { locked: true } : {}) })));
     }
 
     // ── GET single game by id ─────────────────────────────────────────────────

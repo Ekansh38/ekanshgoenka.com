@@ -160,14 +160,14 @@ document.getElementById('arc-write-btn').addEventListener('click', function() {
     }
 
     gamesEl.innerHTML = games.map(function(g, i) {
-      return '<a class="arc-card" href="/arcade/game/?id=' + esc(g.id) + '" style="animation-delay:' + (i * 0.045) + 's">'
+      return '<a class="arc-card' + (g.locked ? ' arc-card-draft' : '') + '" href="/arcade/game/?id=' + esc(g.id) + '" style="animation-delay:' + (i * 0.045) + 's">'
         + '<span class="arc-card-num">' + String(i + 1).padStart(2, '0') + '</span>'
         + '<div class="arc-card-body">'
-        + '<span class="arc-card-title">' + esc(g.title) + '</span>'
+        + '<span class="arc-card-title">' + esc(g.title) + (g.locked ? ' <span class="arc-draft-badge">draft</span>' : '') + '</span>'
         + '<span class="arc-card-meta">by ' + esc(g.author) + ' &middot; ' + fmt(g.date) + '</span>'
         + (g.desc ? '<span class="arc-card-desc">' + esc(g.desc) + '</span>' : '')
         + '</div>'
-        + '<span class="arc-card-play">▶ play</span>'
+        + '<span class="arc-card-play">' + (g.locked ? '🔒' : '▶ play') + '</span>'
         + '</a>';
     }).join('');
   }

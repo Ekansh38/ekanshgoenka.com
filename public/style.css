@@ -578,6 +578,9 @@ body.page h3 { font-size: 1rem; color: var(--fg); font-weight: 700; margin: 28px
 .arc-card-title { font-weight: 700; font-size: 1rem; display: block; margin-bottom: 3px; transition: color 0.15s; }
 .arc-card-meta { color: var(--muted); font-size: 0.78rem; display: block; margin-bottom: 4px; }
 .arc-card-desc { color: var(--muted); font-size: 0.82rem; opacity: 0.65; display: block; }
+.arc-card-draft { opacity: 0.5; }
+.arc-card-draft:hover { opacity: 0.75; }
+.arc-draft-badge { font-size: 0.65rem; font-weight: 400; color: var(--muted); border: 1px solid var(--border); padding: 1px 6px; border-radius: 3px; margin-left: 6px; vertical-align: middle; letter-spacing: 0.04em; }
 .arc-card-play {
   font-size: 0.72rem;
   color: var(--accent);

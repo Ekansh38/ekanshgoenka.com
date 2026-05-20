@@ -490,7 +490,7 @@
           if (!code) { document.getElementById('ag-locked-err').textContent = 'enter the edit code'; return; }
           document.getElementById('ag-locked-btn').textContent = '...';
           loadGame(code).then(function(g) {
-            if (g.locked || g.error) {
+            if (!g.code || g.error) {
               document.getElementById('ag-locked-err').textContent = 'wrong code';
               document.getElementById('ag-locked-btn').textContent = 'unlock';
             } else {
