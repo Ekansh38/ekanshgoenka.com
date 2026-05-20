@@ -3383,7 +3383,44 @@ function toggleTheme() {
       line('fetching ' + id + '...', 'term-line-ok');
       fetch('/api/games?id=' + encodeURIComponent(id)).then(function(r) { return r.json(); }).then(function(game) {
         if (game.error) { line('game not found: ' + id + '  (see: games)', 'term-line-err'); return; }
-        if (game.locked) { line('this game is a draft — unlock it on its game page', 'term-line-err'); return; }
+        if (game.locked) {
+          line('this game is a draft. enter edit code to play:', 'term-line-ok');
+          var row = document.createElement('div');
+          row.className = 'term-io-inline';
+          var ps = document.createElement('span');
+          ps.textContent = 'code: ';
+          row.appendChild(ps);
+          var inp = document.createElement('input');
+          inp.className = 'term-io-input';
+          inp.type = 'password';
+          inp.autocomplete = 'off';
+          inp.spellcheck = false;
+          row.appendChild(inp);
+          output.appendChild(row);
+          output.scrollTop = output.scrollHeight;
+          inp.focus();
+          var _focusClick = function() { if (inp.parentNode) inp.focus(); };
+          output.addEventListener('click', _focusClick);
+          inp.addEventListener('keydown', function(e) {
+            if (e.key !== 'Enter') return;
+            var code = inp.value.trim();
+            output.removeEventListener('click', _focusClick);
+            var staticEl = document.createElement('pre');
+            staticEl.className = 'term-line-pre';
+            staticEl.textContent = 'code: ••••••••';
+            if (row.parentNode) row.parentNode.replaceChild(staticEl, row);
+            if (!code) { line('no code entered', 'term-line-err'); return; }
+            line('unlocking...', 'term-line-ok');
+            fetch('/api/games?id=' + encodeURIComponent(id) + '&code=' + encodeURIComponent(code))
+              .then(function(r) { return r.json(); })
+              .then(function(g) {
+                if (!g.code || g.error) { line('wrong code', 'term-line-err'); return; }
+                _gById[id] = g;
+                loadFengari(function() { runLuaGame(g); });
+              }).catch(function() { line('network error', 'term-line-err'); });
+          });
+          return;
+        }
         _gById[id] = game;
         loadFengari(function() { runLuaGame(game); });
       }).catch(function() { line('could not load game', 'term-line-err'); });
